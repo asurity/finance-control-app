@@ -52,6 +52,7 @@ export interface Category {
   type: CategoryType;
   icon: string;
   color: string;
+  isSystem?: boolean; // System categories cannot be deleted
 }
 
 export type TransactionType = 'INCOME' | 'EXPENSE';

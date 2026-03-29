@@ -14,7 +14,7 @@ import { db } from '@/lib/firebase/config';
 import { ICategoryRepository } from '@/domain/repositories/ICategoryRepository';
 import { Category, CategoryType } from '@/types/firestore';
 import { CategoryMapper } from '@/infrastructure/mappers/CategoryMapper';
-import { DEFAULT_CATEGORIES } from '@/lib/constants/categories';
+import { DEFAULT_CATEGORIES } from '@/lib/constants/defaultCategories';
 
 /**
  * Firestore implementation of Category Repository
