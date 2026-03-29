@@ -41,17 +41,18 @@ export class Account {
       throw new Error('Currency is required');
     }
 
-    // Credit card specific validations
+    // Credit card specific validations - only validate if fields are present
     if (this.type === 'CREDIT_CARD') {
-      if (this.creditLimit === undefined || this.creditLimit <= 0) {
-        throw new Error('Credit card accounts must have a positive credit limit');
+      // Credit limit is optional, but if present must be positive
+      if (this.creditLimit !== undefined && this.creditLimit <= 0) {
+        throw new Error('Credit limit must be positive when specified');
       }
 
-      if (this.cutoffDay && (this.cutoffDay < 1 || this.cutoffDay > 31)) {
+      if (this.cutoffDay !== undefined && (this.cutoffDay < 1 || this.cutoffDay > 31)) {
         throw new Error('Cutoff day must be between 1 and 31');
       }
 
-      if (this.paymentDueDay && (this.paymentDueDay < 1 || this.paymentDueDay > 31)) {
+      if (this.paymentDueDay !== undefined && (this.paymentDueDay < 1 || this.paymentDueDay > 31)) {
         throw new Error('Payment due day must be between 1 and 31');
       }
     }
