@@ -1,5 +1,6 @@
 import { DocumentData, Timestamp } from 'firebase/firestore';
 import { RecurringTransaction } from '@/types/firestore';
+import { RecurringTransaction as RecurringTransactionEntity } from '@/domain/entities/RecurringTransaction';
 
 /**
  * Recurring transaction mapper
@@ -11,27 +12,27 @@ export class RecurringTransactionMapper {
   /**
    * Converts Firestore document to domain entity
    * @param doc - Firestore document data with ID
-   * @returns RecurringTransaction domain entity
+   * @returns RecurringTransaction domain entity (class instance)
    */
-  static toDomain(doc: DocumentData & { id: string }): RecurringTransaction {
-    return {
-      id: doc.id,
-      description: doc.description,
-      amount: doc.amount,
-      type: doc.type,
-      frequency: doc.frequency,
-      accountId: doc.accountId,
-      categoryId: doc.categoryId,
-      userId: doc.userId,
-      startDate: doc.startDate instanceof Timestamp ? doc.startDate.toDate() : new Date(doc.startDate),
-      endDate: doc.endDate instanceof Timestamp ? doc.endDate.toDate() : doc.endDate ? new Date(doc.endDate) : undefined,
-      nextOccurrence: doc.nextOccurrence instanceof Timestamp ? doc.nextOccurrence.toDate() : new Date(doc.nextOccurrence),
-      lastProcessedDate: doc.lastProcessedDate instanceof Timestamp ? doc.lastProcessedDate.toDate() : doc.lastProcessedDate ? new Date(doc.lastProcessedDate) : undefined,
-      isActive: doc.isActive !== undefined ? doc.isActive : true,
-      tags: doc.tags || [],
-      createdAt: doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : new Date(doc.createdAt),
-      updatedAt: doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : new Date(doc.updatedAt),
-    };
+  static toDomain(doc: DocumentData & { id: string }): RecurringTransactionEntity {
+    return new RecurringTransactionEntity(
+      doc.id,
+      doc.description,
+      doc.amount,
+      doc.type,
+      doc.frequency,
+      doc.accountId,
+      doc.categoryId,
+      doc.userId,
+      doc.startDate instanceof Timestamp ? doc.startDate.toDate() : new Date(doc.startDate),
+      doc.nextOccurrence instanceof Timestamp ? doc.nextOccurrence.toDate() : new Date(doc.nextOccurrence),
+      doc.endDate instanceof Timestamp ? doc.endDate.toDate() : doc.endDate ? new Date(doc.endDate) : undefined,
+      doc.lastProcessedDate instanceof Timestamp ? doc.lastProcessedDate.toDate() : doc.lastProcessedDate ? new Date(doc.lastProcessedDate) : undefined,
+      doc.isActive !== undefined ? doc.isActive : true,
+      doc.tags || [],
+      doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : undefined,
+      doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : undefined
+    );
   }
 
   /**

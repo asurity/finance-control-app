@@ -1,5 +1,6 @@
 import { DocumentData, Timestamp } from 'firebase/firestore';
 import { Account } from '@/types/firestore';
+import { Account as AccountEntity } from '@/domain/entities/Account';
 
 /**
  * Account mapper
@@ -10,23 +11,24 @@ export class AccountMapper {
   /**
    * Converts Firestore document to domain entity
    * @param doc - Firestore document data with ID
-   * @returns Account domain entity
+   * @returns Account domain entity (class instance)
    */
-  static toDomain(doc: DocumentData & { id: string }): Account {
-    return {
-      id: doc.id,
-      name: doc.name,
-      type: doc.type,
-      balance: doc.balance,
-      currency: doc.currency,
-      isActive: doc.isActive !== undefined ? doc.isActive : true,
-      // Credit card specific fields
-      creditCardId: doc.creditCardId,
-      creditLimit: doc.creditLimit,
-      availableCredit: doc.availableCredit,
-      cutoffDay: doc.cutoffDay,
-      paymentDueDay: doc.paymentDueDay,
-    };
+  static toDomain(doc: DocumentData & { id: string }): AccountEntity {
+    return new AccountEntity(
+      doc.id,
+      doc.name,
+      doc.type,
+      doc.balance,
+      doc.currency || 'CLP',
+      doc.isActive !== undefined ? doc.isActive : true,
+      doc.creditCardId,
+      doc.creditLimit,
+      doc.availableCredit,
+      doc.cutoffDay,
+      doc.paymentDueDay,
+      doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : undefined,
+      doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : undefined
+    );
   }
 
   /**

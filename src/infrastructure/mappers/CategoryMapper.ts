@@ -1,5 +1,6 @@
 import { DocumentData, Timestamp } from 'firebase/firestore';
 import { Category } from '@/types/firestore';
+import { Category as CategoryEntity } from '@/domain/entities/Category';
 
 /**
  * Category mapper
@@ -10,16 +11,17 @@ export class CategoryMapper {
   /**
    * Converts Firestore document to domain entity
    * @param doc - Firestore document data with ID
-   * @returns Category domain entity
+   * @returns Category domain entity (class instance)
    */
-  static toDomain(doc: DocumentData & { id: string }): Category {
-    return {
-      id: doc.id,
-      name: doc.name,
-      type: doc.type,
-      icon: doc.icon,
-      color: doc.color,
-    };
+  static toDomain(doc: DocumentData & { id: string }): CategoryEntity {
+    return new CategoryEntity(
+      doc.id,
+      doc.name,
+      doc.type,
+      doc.icon || '📁',
+      doc.color || '#666666',
+      doc.isSystem || false
+    );
   }
 
   /**

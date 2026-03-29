@@ -1,5 +1,6 @@
 import { DocumentData, Timestamp } from 'firebase/firestore';
 import { Budget } from '@/types/firestore';
+import { Budget as BudgetEntity } from '@/domain/entities/Budget';
 
 /**
  * Budget mapper
@@ -11,18 +12,20 @@ export class BudgetMapper {
   /**
    * Converts Firestore document to domain entity
    * @param doc - Firestore document data with ID
-   * @returns Budget domain entity
+   * @returns Budget domain entity (class instance)
    */
-  static toDomain(doc: DocumentData & { id: string }): Budget {
-    return {
-      id: doc.id,
-      name: doc.name,
-      amount: doc.amount,
-      period: doc.period,
-      categoryId: doc.categoryId,
-      startDate: doc.startDate instanceof Timestamp ? doc.startDate.toDate() : new Date(doc.startDate),
-      endDate: doc.endDate instanceof Timestamp ? doc.endDate.toDate() : new Date(doc.endDate),
-    };
+  static toDomain(doc: DocumentData & { id: string }): BudgetEntity {
+    return new BudgetEntity(
+      doc.id,
+      doc.name,
+      doc.amount,
+      doc.period,
+      doc.categoryId,
+      doc.startDate instanceof Timestamp ? doc.startDate.toDate() : new Date(doc.startDate),
+      doc.endDate instanceof Timestamp ? doc.endDate.toDate() : new Date(doc.endDate),
+      doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : undefined,
+      doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : undefined
+    );
   }
 
   /**

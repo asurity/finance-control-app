@@ -1,5 +1,6 @@
 import { DocumentData, Timestamp } from 'firebase/firestore';
 import { Alert } from '@/types/firestore';
+import { Alert as AlertEntity } from '@/domain/entities/Alert';
 
 /**
  * Alert mapper
@@ -11,25 +12,25 @@ export class AlertMapper {
   /**
    * Converts Firestore document to domain entity
    * @param doc - Firestore document data with ID
-   * @returns Alert domain entity
+   * @returns Alert domain entity (class instance)
    */
-  static toDomain(doc: DocumentData & { id: string }): Alert {
-    return {
-      id: doc.id,
-      type: doc.type,
-      priority: doc.priority,
-      title: doc.title,
-      message: doc.message,
-      isRead: doc.isRead || false,
-      isArchived: doc.isArchived || false,
-      userId: doc.userId,
-      relatedEntityType: doc.relatedEntityType,
-      relatedEntityId: doc.relatedEntityId,
-      thresholdPercent: doc.thresholdPercent,
-      createdAt: doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : new Date(doc.createdAt),
-      readAt: doc.readAt instanceof Timestamp ? doc.readAt.toDate() : doc.readAt ? new Date(doc.readAt) : undefined,
-      archivedAt: doc.archivedAt instanceof Timestamp ? doc.archivedAt.toDate() : doc.archivedAt ? new Date(doc.archivedAt) : undefined,
-    };
+  static toDomain(doc: DocumentData & { id: string }): AlertEntity {
+    return new AlertEntity(
+      doc.id,
+      doc.type,
+      doc.priority,
+      doc.title,
+      doc.message,
+      doc.isRead || false,
+      doc.isArchived || false,
+      doc.userId,
+      doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : new Date(doc.createdAt),
+      doc.relatedEntityType,
+      doc.relatedEntityId,
+      doc.thresholdPercent,
+      doc.readAt instanceof Timestamp ? doc.readAt.toDate() : doc.readAt ? new Date(doc.readAt) : undefined,
+      doc.archivedAt instanceof Timestamp ? doc.archivedAt.toDate() : doc.archivedAt ? new Date(doc.archivedAt) : undefined
+    );
   }
 
   /**

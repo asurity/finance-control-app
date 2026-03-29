@@ -1,5 +1,6 @@
 import { DocumentData, Timestamp } from 'firebase/firestore';
 import { SavingsGoal } from '@/types/firestore';
+import { SavingsGoal as SavingsGoalEntity } from '@/domain/entities/SavingsGoal';
 
 /**
  * Savings goal mapper
@@ -11,26 +12,26 @@ export class SavingsGoalMapper {
   /**
    * Converts Firestore document to domain entity
    * @param doc - Firestore document data with ID
-   * @returns SavingsGoal domain entity
+   * @returns SavingsGoal domain entity (class instance)
    */
-  static toDomain(doc: DocumentData & { id: string }): SavingsGoal {
-    return {
-      id: doc.id,
-      name: doc.name,
-      description: doc.description,
-      targetAmount: doc.targetAmount,
-      currentAmount: doc.currentAmount,
-      currency: doc.currency || 'CLP',
-      targetDate: doc.targetDate instanceof Timestamp ? doc.targetDate.toDate() : doc.targetDate ? new Date(doc.targetDate) : undefined,
-      status: doc.status,
-      icon: doc.icon,
-      color: doc.color,
-      linkedAccountId: doc.linkedAccountId,
-      userId: doc.userId,
-      createdAt: doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : new Date(doc.createdAt),
-      updatedAt: doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : new Date(doc.updatedAt),
-      completedAt: doc.completedAt instanceof Timestamp ? doc.completedAt.toDate() : doc.completedAt ? new Date(doc.completedAt) : undefined,
-    };
+  static toDomain(doc: DocumentData & { id: string }): SavingsGoalEntity {
+    return new SavingsGoalEntity(
+      doc.id,
+      doc.name,
+      doc.targetAmount,
+      doc.currentAmount,
+      doc.currency || 'CLP',
+      doc.status,
+      doc.userId,
+      doc.description,
+      doc.targetDate instanceof Timestamp ? doc.targetDate.toDate() : doc.targetDate ? new Date(doc.targetDate) : undefined,
+      doc.icon,
+      doc.color,
+      doc.linkedAccountId,
+      doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : undefined,
+      doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : undefined,
+      doc.completedAt instanceof Timestamp ? doc.completedAt.toDate() : doc.completedAt ? new Date(doc.completedAt) : undefined
+    );
   }
 
   /**

@@ -1,5 +1,6 @@
 import { DocumentData, Timestamp } from 'firebase/firestore';
 import { CreditCard } from '@/types/firestore';
+import { CreditCard as CreditCardEntity } from '@/domain/entities/CreditCard';
 
 /**
  * Credit card mapper
@@ -11,27 +12,27 @@ export class CreditCardMapper {
   /**
    * Converts Firestore document to domain entity
    * @param doc - Firestore document data with ID
-   * @returns CreditCard domain entity
+   * @returns CreditCard domain entity (class instance)
    */
-  static toDomain(doc: DocumentData & { id: string }): CreditCard {
-    return {
-      id: doc.id,
-      name: doc.name,
-      accountId: doc.accountId,
-      bank: doc.bank,
-      lastFourDigits: doc.lastFourDigits,
-      creditLimit: doc.creditLimit,
-      availableCredit: doc.availableCredit,
-      currentBalance: doc.currentBalance,
-      cutoffDay: doc.cutoffDay,
-      paymentDueDay: doc.paymentDueDay,
-      interestRate: doc.interestRate,
-      minimumPaymentPercent: doc.minimumPaymentPercent,
-      currency: doc.currency || 'CLP',
-      isActive: doc.isActive !== undefined ? doc.isActive : true,
-      createdAt: doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : new Date(doc.createdAt),
-      updatedAt: doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : new Date(doc.updatedAt),
-    };
+  static toDomain(doc: DocumentData & { id: string }): CreditCardEntity {
+    return new CreditCardEntity(
+      doc.id,
+      doc.name,
+      doc.accountId,
+      doc.bank,
+      doc.lastFourDigits,
+      doc.creditLimit,
+      doc.availableCredit,
+      doc.currentBalance,
+      doc.cutoffDay,
+      doc.paymentDueDay,
+      doc.interestRate,
+      doc.minimumPaymentPercent,
+      doc.currency || 'CLP',
+      doc.isActive !== undefined ? doc.isActive : true,
+      doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : undefined,
+      doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : undefined
+    );
   }
 
   /**

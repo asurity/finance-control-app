@@ -1,5 +1,6 @@
 import { DocumentData, Timestamp } from 'firebase/firestore';
 import { Transaction } from '@/types/firestore';
+import { Transaction as TransactionEntity } from '@/domain/entities/Transaction';
 
 /**
  * Transaction mapper
@@ -11,31 +12,30 @@ export class TransactionMapper {
   /**
    * Converts Firestore document to domain entity
    * @param doc - Firestore document data with ID
-   * @returns Transaction domain entity
+   * @returns Transaction domain entity (class instance)
    */
-  static toDomain(doc: DocumentData & { id: string }): Transaction {
-    return {
-      id: doc.id,
-      description: doc.description,
-      amount: doc.amount,
-      type: doc.type,
-      date: doc.date instanceof Timestamp ? doc.date.toDate() : new Date(doc.date),
-      accountId: doc.accountId,
-      categoryId: doc.categoryId,
-      userId: doc.userId,
-      tags: doc.tags || [],
-      receiptUrl: doc.receiptUrl,
-      // Installments
-      isInstallment: doc.isInstallment || false,
-      installmentNumber: doc.installmentNumber,
-      totalInstallments: doc.totalInstallments,
-      installmentGroupId: doc.installmentGroupId,
-      // Recurring
-      isRecurring: doc.isRecurring || false,
-      recurringTransactionId: doc.recurringTransactionId,
-      // Credit card
-      creditCardId: doc.creditCardId,
-    };
+  static toDomain(doc: DocumentData & { id: string }): TransactionEntity {
+    return new TransactionEntity(
+      doc.id,
+      doc.type,
+      doc.amount,
+      doc.description,
+      doc.date instanceof Timestamp ? doc.date.toDate() : new Date(doc.date),
+      doc.accountId,
+      doc.categoryId,
+      doc.userId,
+      doc.tags || [],
+      doc.receiptUrl,
+      doc.isInstallment || false,
+      doc.installmentNumber,
+      doc.totalInstallments,
+      doc.installmentGroupId,
+      doc.isRecurring || false,
+      doc.recurringTransactionId,
+      doc.creditCardId,
+      doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : undefined,
+      doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : undefined
+    );
   }
 
   /**
