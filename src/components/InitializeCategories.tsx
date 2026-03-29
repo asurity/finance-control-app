@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useCategories } from '@/application/hooks/useCategories';
 import { useOrganization } from '@/hooks/useOrganization';
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * InitializeCategories Component
@@ -14,26 +15,41 @@ import { useOrganization } from '@/hooks/useOrganization';
  */
 export function InitializeCategories() {
   const { currentOrgId } = useOrganization();
-  const { categories, seedCategories, isLoading } = useCategories();
+  const { user } = useAuth();
   const [initialized, setInitialized] = useState(false);
 
+  // Don't render anything if no organization
+  if (!currentOrgId || !user) {
+    return null;
+  }
+
+  return <InitializeCategoriesInner orgId={currentOrgId} userId={user.uid} />;
+}
+
+/**
+ * Inner component that safely uses hooks with guaranteed orgId
+ */
+function InitializeCategoriesInner({ orgId, userId }: { orgId: string; userId: string }) {
+  const [initialized, setInitialized] = useState(false);
+  const { useAllCategories, seedCategories } = useCategories(orgId);
+  const { data: categories, isLoading } = useAllCategories();
+
   useEffect(() => {
-    // Skip if no organization, already initialized, currently loading, or data not loaded
-    if (!currentOrgId || initialized || isLoading || !categories) {
+    // Skip if already initialized, loading, or data not loaded
+    if (initialized || isLoading || !categories) {
       return;
     }
 
     // Only seed if no categories exist
     if (categories.length === 0) {
       console.log('[InitializeCategories] No categories found, initializing defaults...');
-      seedCategories.mutate();
+      seedCategories.mutate(userId);
       setInitialized(true);
     } else {
       console.log(`[InitializeCategories] Found ${categories.length} categories, skipping initialization`);
       setInitialized(true);
     }
-  }, [currentOrgId, categories, initialized, isLoading, seedCategories]);
+  }, [categories, initialized, isLoading, seedCategories, userId]);
 
-  // Invisible component
   return null;
 }
