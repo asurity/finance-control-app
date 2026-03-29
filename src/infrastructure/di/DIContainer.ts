@@ -26,6 +26,10 @@ import {
   SeedDefaultCategoriesUseCase,
 } from '@/domain/use-cases';
 
+import { GetDashboardStatisticsUseCase } from '@/domain/use-cases/dashboard/GetDashboardStatisticsUseCase';
+import { GetBalanceHistoryUseCase } from '@/domain/use-cases/dashboard/GetBalanceHistoryUseCase';
+import { GetExpensesByCategoryUseCase } from '@/domain/use-cases/dashboard/GetExpensesByCategoryUseCase';
+
 /**
  * Singleton DI Container
  */
@@ -201,5 +205,28 @@ export class DIContainer {
 
   getSeedDefaultCategoriesUseCase(): SeedDefaultCategoriesUseCase {
     return new SeedDefaultCategoriesUseCase(this.getCategoryRepository());
+  }
+
+  getGetDashboardStatisticsUseCase(): GetDashboardStatisticsUseCase {
+    return new GetDashboardStatisticsUseCase(
+      this.getTransactionRepository(),
+      this.getAccountRepository(),
+      this.getBudgetRepository(),
+      this.getAlertRepository()
+    );
+  }
+
+  getGetBalanceHistoryUseCase(): GetBalanceHistoryUseCase {
+    return new GetBalanceHistoryUseCase(
+      this.getTransactionRepository(),
+      this.getAccountRepository()
+    );
+  }
+
+  getGetExpensesByCategoryUseCase(): GetExpensesByCategoryUseCase {
+    return new GetExpensesByCategoryUseCase(
+      this.getTransactionRepository(),
+      this.getCategoryRepository()
+    );
   }
 }

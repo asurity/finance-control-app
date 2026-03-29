@@ -15,9 +15,11 @@ import {
   signOut as firebaseSignOut,
   GoogleAuthProvider,
   signInWithPopup,
+  updateProfile,
+  sendEmailVerification,
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase/config';
-import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, Timestamp, writeBatch } from 'firebase/firestore';
 import { User } from '@/types/firestore';
 
 interface AuthContextType {
@@ -28,6 +30,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  resendVerificationEmail: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,9 +45,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setFirebaseUser(firebaseUser);
 
       if (firebaseUser) {
-        // Fetch user data from Firestore
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        if (userDoc.exists()) {
+        // Fetch user data from Firestore with retry logic
+        let retries = 3;
+        let userDoc = null;
+        
+        while (retries > 0 && !userDoc) {
+          try {
+            const docRef = await getDoc(doc(db, 'users', firebaseUser.uid));
+            if (docRef.exists()) {
+              userDoc = docRef;
+              break;
+            }
+            // If document doesn't exist yet, wait and retry
+            if (retries > 1) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+          }
+          retries--;
+        }
+        
+        if (userDoc && userDoc.exists()) {
           const userData = userDoc.data();
           setUser({
             id: userDoc.id,
@@ -69,89 +91,153 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, name: string) => {
-    const { user: firebaseUser } = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
+    let firebaseUser: FirebaseUser | null = null;
+    
+    try {
+      // Step 1: Create user in Firebase Auth
+      const { user } = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      firebaseUser = user;
 
-    // Create user document in Firestore
-    const userData = {
-      email: firebaseUser.email!,
-      name,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-    };
+      // Step 2: Update Firebase Auth profile with displayName
+      await updateProfile(firebaseUser, {
+        displayName: name,
+      });
 
-    await setDoc(doc(db, 'users', firebaseUser.uid), userData);
+      // Step 3: Send email verification
+      try {
+        await sendEmailVerification(firebaseUser);
+      } catch (emailError) {
+        // No bloquear el registro si falla el envío del email
+        console.warn('Error sending verification email:', emailError);
+      }
 
-    // Create default personal organization
-    const orgData = {
-      name: `${name} - Personal`,
-      type: 'PERSONAL',
-      ownerId: firebaseUser.uid,
-      createdAt: Timestamp.now(),
-    };
+      // Step 4: Create Firestore documents using batch for atomicity
+      const batch = writeBatch(db);
+      const now = Timestamp.now();
 
-    const orgRef = doc(db, 'organizations', `${firebaseUser.uid}-personal`);
-    await setDoc(orgRef, orgData);
+      // Create user document
+      const userRef = doc(db, 'users', firebaseUser.uid);
+      batch.set(userRef, {
+        email: firebaseUser.email!,
+        name,
+        createdAt: now,
+        updatedAt: now,
+      });
 
-    // Add user as owner of the organization
-    const memberData = {
-      userId: firebaseUser.uid,
-      role: 'OWNER',
-      joinedAt: Timestamp.now(),
-    };
+      // Create default personal organization
+      const orgId = `${firebaseUser.uid}-personal`;
+      const orgRef = doc(db, 'organizations', orgId);
+      batch.set(orgRef, {
+        name: `${name} - Personal`,
+        type: 'PERSONAL',
+        ownerId: firebaseUser.uid,
+        createdAt: now,
+      });
 
-    await setDoc(
-      doc(db, 'organizations', `${firebaseUser.uid}-personal`, 'members', firebaseUser.uid),
-      memberData
-    );
+      // Add user as owner of the organization
+      const memberRef = doc(db, 'organizationMembers', `${orgId}_${firebaseUser.uid}`);
+      batch.set(memberRef, {
+        organizationId: orgId,
+        userId: firebaseUser.uid,
+        role: 'OWNER',
+        joinedAt: now,
+      });
+
+      // Commit all changes atomically
+      await batch.commit();
+    } catch (error) {
+      // Rollback: If Firestore operations fail, delete the Firebase Auth user
+      if (firebaseUser && error && (error as any).code?.startsWith('firestore')) {
+        try {
+          await firebaseUser.delete();
+          console.log('Rolled back Firebase Auth user creation');
+        } catch (deleteError) {
+          console.error('Error rolling back user:', deleteError);
+        }
+      }
+      throw error;
+    }
   };
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    const { user: firebaseUser } = await signInWithPopup(auth, provider);
+    let firebaseUser: FirebaseUser | null = null;
+    let newUser = false;
 
-    // Check if user exists, if not create
-    const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-    if (!userDoc.exists()) {
-      const userData = {
-        email: firebaseUser.email!,
-        name: firebaseUser.displayName || 'Usuario',
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-      };
+    try {
+      const { user } = await signInWithPopup(auth, provider);
+      firebaseUser = user;
 
-      await setDoc(doc(db, 'users', firebaseUser.uid), userData);
+      // Check if user exists in Firestore
+      const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+      
+      if (!userDoc.exists()) {
+        newUser = true;
+        const batch = writeBatch(db);
+        const now = Timestamp.now();
+        const name = firebaseUser.displayName || 'Usuario';
 
-      // Create default personal organization
-      const orgData = {
-        name: `${firebaseUser.displayName || 'Usuario'} - Personal`,
-        type: 'PERSONAL',
-        ownerId: firebaseUser.uid,
-        createdAt: Timestamp.now(),
-      };
+        // Create user document
+        const userRef = doc(db, 'users', firebaseUser.uid);
+        batch.set(userRef, {
+          email: firebaseUser.email!,
+          name,
+          createdAt: now,
+          updatedAt: now,
+        });
 
-      const orgRef = doc(db, 'organizations', `${firebaseUser.uid}-personal`);
-      await setDoc(orgRef, orgData);
+        // Create default personal organization
+        const orgId = `${firebaseUser.uid}-personal`;
+        const orgRef = doc(db, 'organizations', orgId);
+        batch.set(orgRef, {
+          name: `${name} - Personal`,
+          type: 'PERSONAL',
+          ownerId: firebaseUser.uid,
+          createdAt: now,
+        });
 
-      // Add user as owner of the organization
-      const memberData = {
-        userId: firebaseUser.uid,
-        role: 'OWNER',
-        joinedAt: Timestamp.now(),
-      };
+        // Add user as owner of the organization
+        const memberRef = doc(db, 'organizationMembers', `${orgId}_${firebaseUser.uid}`);
+        batch.set(memberRef, {
+          organizationId: orgId,
+          userId: firebaseUser.uid,
+          role: 'OWNER',
+          joinedAt: now,
+        });
 
-      await setDoc(
-        doc(db, 'organizations', `${firebaseUser.uid}-personal`, 'members', firebaseUser.uid),
-        memberData
-      );
+        // Commit all changes atomically
+        await batch.commit();
+      }
+    } catch (error) {
+      // Rollback: If this was a new user and Firestore failed, sign out
+      if (newUser && firebaseUser) {
+        try {
+          await firebaseSignOut(auth);
+          console.log('Rolled back Google sign-in');
+        } catch (signOutError) {
+          console.error('Error rolling back sign-in:', signOutError);
+        }
+      }
+      throw error;
     }
   };
 
   const signOut = async () => {
     await firebaseSignOut(auth);
+  };
+
+  const resendVerificationEmail = async () => {
+    if (firebaseUser && !firebaseUser.emailVerified) {
+      await sendEmailVerification(firebaseUser);
+    } else if (firebaseUser?.emailVerified) {
+      throw new Error('El correo ya está verificado');
+    } else {
+      throw new Error('No hay usuario autenticado');
+    }
   };
 
   return (
@@ -164,6 +250,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp,
         signInWithGoogle,
         signOut,
+        resendVerificationEmail,
       }}
     >
       {children}

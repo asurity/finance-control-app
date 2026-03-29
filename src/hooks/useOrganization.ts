@@ -16,7 +16,8 @@ export function useOrganization() {
     if (user) {
       // For now, use user's personal organization (userId-personal)
       // This will be replaced with actual organization selection logic
-      setCurrentOrgId(`${user.id}-personal`);
+      const orgId = `${user.id}-personal`;
+      setCurrentOrgId(orgId);
     } else {
       setCurrentOrgId(null);
     }
