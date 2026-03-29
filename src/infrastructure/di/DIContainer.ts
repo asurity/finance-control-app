@@ -26,6 +26,13 @@ import {
   SeedDefaultCategoriesUseCase,
 } from '@/domain/use-cases';
 
+import { UpdateTransactionUseCase } from '@/domain/use-cases/transactions/UpdateTransactionUseCase';
+import { GetTransactionByIdUseCase } from '@/domain/use-cases/transactions/GetTransactionByIdUseCase';
+import { GetTransactionsByDateRangeUseCase } from '@/domain/use-cases/transactions/GetTransactionsByDateRangeUseCase';
+import { GetTransactionsByCategoryUseCase } from '@/domain/use-cases/transactions/GetTransactionsByCategoryUseCase';
+import { GetTransactionsByAccountUseCase } from '@/domain/use-cases/transactions/GetTransactionsByAccountUseCase';
+import { GetTransactionStatisticsUseCase } from '@/domain/use-cases/transactions/GetTransactionStatisticsUseCase';
+
 import { GetDashboardStatisticsUseCase } from '@/domain/use-cases/dashboard/GetDashboardStatisticsUseCase';
 import { GetBalanceHistoryUseCase } from '@/domain/use-cases/dashboard/GetBalanceHistoryUseCase';
 import { GetExpensesByCategoryUseCase } from '@/domain/use-cases/dashboard/GetExpensesByCategoryUseCase';
@@ -225,6 +232,40 @@ export class DIContainer {
 
   getGetExpensesByCategoryUseCase(): GetExpensesByCategoryUseCase {
     return new GetExpensesByCategoryUseCase(
+      this.getTransactionRepository(),
+      this.getCategoryRepository()
+    );
+  }
+
+  // ========================================
+  // Transaction Use Cases
+  // ========================================
+
+  getUpdateTransactionUseCase(): UpdateTransactionUseCase {
+    return new UpdateTransactionUseCase(
+      this.getTransactionRepository(),
+      this.getAccountRepository()
+    );
+  }
+
+  getGetTransactionByIdUseCase(): GetTransactionByIdUseCase {
+    return new GetTransactionByIdUseCase(this.getTransactionRepository());
+  }
+
+  getGetTransactionsByDateRangeUseCase(): GetTransactionsByDateRangeUseCase {
+    return new GetTransactionsByDateRangeUseCase(this.getTransactionRepository());
+  }
+
+  getGetTransactionsByCategoryUseCase(): GetTransactionsByCategoryUseCase {
+    return new GetTransactionsByCategoryUseCase(this.getTransactionRepository());
+  }
+
+  getGetTransactionsByAccountUseCase(): GetTransactionsByAccountUseCase {
+    return new GetTransactionsByAccountUseCase(this.getTransactionRepository());
+  }
+
+  getGetTransactionStatisticsUseCase(): GetTransactionStatisticsUseCase {
+    return new GetTransactionStatisticsUseCase(
       this.getTransactionRepository(),
       this.getCategoryRepository()
     );
