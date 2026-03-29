@@ -37,6 +37,31 @@ import { GetDashboardStatisticsUseCase } from '@/domain/use-cases/dashboard/GetD
 import { GetBalanceHistoryUseCase } from '@/domain/use-cases/dashboard/GetBalanceHistoryUseCase';
 import { GetExpensesByCategoryUseCase } from '@/domain/use-cases/dashboard/GetExpensesByCategoryUseCase';
 
+// Account Use Cases
+import { CreateAccountUseCase } from '@/domain/use-cases/accounts/CreateAccountUseCase';
+import { UpdateAccountUseCase } from '@/domain/use-cases/accounts/UpdateAccountUseCase';
+import { DeleteAccountUseCase } from '@/domain/use-cases/accounts/DeleteAccountUseCase';
+import { GetAccountByIdUseCase } from '@/domain/use-cases/accounts/GetAccountByIdUseCase';
+
+// Budget Use Cases
+import { CreateBudgetUseCase } from '@/domain/use-cases/budgets/CreateBudgetUseCase';
+import { UpdateBudgetUseCase } from '@/domain/use-cases/budgets/UpdateBudgetUseCase';
+import { DeleteBudgetUseCase } from '@/domain/use-cases/budgets/DeleteBudgetUseCase';
+import { CheckBudgetExceededUseCase } from '@/domain/use-cases/budgets/CheckBudgetExceededUseCase';
+
+// Category Use Cases
+import { CreateCategoryUseCase } from '@/domain/use-cases/categories/CreateCategoryUseCase';
+import { UpdateCategoryUseCase } from '@/domain/use-cases/categories/UpdateCategoryUseCase';
+import { DeleteCategoryUseCase } from '@/domain/use-cases/categories/DeleteCategoryUseCase';
+import { GetCategoriesByTypeUseCase } from '@/domain/use-cases/categories/GetCategoriesByTypeUseCase';
+
+// Credit Card Use Cases
+import { CreateCreditCardUseCase } from '@/domain/use-cases/credit-cards/CreateCreditCardUseCase';
+import { UpdateCreditCardUseCase } from '@/domain/use-cases/credit-cards/UpdateCreditCardUseCase';
+import { DeleteCreditCardUseCase } from '@/domain/use-cases/credit-cards/DeleteCreditCardUseCase';
+import { CalculateCreditCardBalanceUseCase } from '@/domain/use-cases/credit-cards/CalculateCreditCardBalanceUseCase';
+import { GetUpcomingPaymentsUseCase } from '@/domain/use-cases/credit-cards/GetUpcomingPaymentsUseCase';
+
 /**
  * Singleton DI Container
  */
@@ -268,6 +293,108 @@ export class DIContainer {
     return new GetTransactionStatisticsUseCase(
       this.getTransactionRepository(),
       this.getCategoryRepository()
+    );
+  }
+
+  // ========================================
+  // Account Use Cases
+  // ========================================
+
+  getCreateAccountUseCase(): CreateAccountUseCase {
+    return new CreateAccountUseCase(this.getAccountRepository());
+  }
+
+  getUpdateAccountUseCase(): UpdateAccountUseCase {
+    return new UpdateAccountUseCase(this.getAccountRepository());
+  }
+
+  getDeleteAccountUseCase(): DeleteAccountUseCase {
+    return new DeleteAccountUseCase(
+      this.getAccountRepository(),
+      this.getTransactionRepository()
+    );
+  }
+
+  getGetAccountByIdUseCase(): GetAccountByIdUseCase {
+    return new GetAccountByIdUseCase(this.getAccountRepository());
+  }
+
+  // ========================================
+  // Budget Use Cases
+  // ========================================
+
+  getCreateBudgetUseCase(): CreateBudgetUseCase {
+    return new CreateBudgetUseCase(this.getBudgetRepository());
+  }
+
+  getUpdateBudgetUseCase(): UpdateBudgetUseCase {
+    return new UpdateBudgetUseCase(this.getBudgetRepository());
+  }
+
+  getDeleteBudgetUseCase(): DeleteBudgetUseCase {
+    return new DeleteBudgetUseCase(this.getBudgetRepository());
+  }
+
+  getCheckBudgetExceededUseCase(): CheckBudgetExceededUseCase {
+    return new CheckBudgetExceededUseCase(
+      this.getBudgetRepository(),
+      this.getTransactionRepository()
+    );
+  }
+
+  // ========================================
+  // Category Use Cases
+  // ========================================
+
+  getCreateCategoryUseCase(): CreateCategoryUseCase {
+    return new CreateCategoryUseCase(this.getCategoryRepository());
+  }
+
+  getUpdateCategoryUseCase(): UpdateCategoryUseCase {
+    return new UpdateCategoryUseCase(this.getCategoryRepository());
+  }
+
+  getDeleteCategoryUseCase(): DeleteCategoryUseCase {
+    return new DeleteCategoryUseCase(
+      this.getCategoryRepository(),
+      this.getTransactionRepository()
+    );
+  }
+
+  getGetCategoriesByTypeUseCase(): GetCategoriesByTypeUseCase {
+    return new GetCategoriesByTypeUseCase(this.getCategoryRepository());
+  }
+
+  // ========================================
+  // Credit Card Use Cases
+  // ========================================
+
+  getCreateCreditCardUseCase(): CreateCreditCardUseCase {
+    return new CreateCreditCardUseCase(
+      this.getCreditCardRepository(),
+      this.getAccountRepository()
+    );
+  }
+
+  getUpdateCreditCardUseCase(): UpdateCreditCardUseCase {
+    return new UpdateCreditCardUseCase(this.getCreditCardRepository());
+  }
+
+  getDeleteCreditCardUseCase(): DeleteCreditCardUseCase {
+    return new DeleteCreditCardUseCase(
+      this.getCreditCardRepository(),
+      this.getTransactionRepository()
+    );
+  }
+
+  getCalculateCreditCardBalanceUseCase(): CalculateCreditCardBalanceUseCase {
+    return new CalculateCreditCardBalanceUseCase(this.getTransactionRepository());
+  }
+
+  getGetUpcomingPaymentsUseCase(): GetUpcomingPaymentsUseCase {
+    return new GetUpcomingPaymentsUseCase(
+      this.getCreditCardRepository(),
+      this.getTransactionRepository()
     );
   }
 }
