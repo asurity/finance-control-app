@@ -2,6 +2,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
+import { InitializeCategories } from '@/components/InitializeCategories';
 
 export default function DashboardLayout({
   children,
@@ -10,6 +11,7 @@ export default function DashboardLayout({
 }) {
   return (
     <ProtectedRoute>
+      <InitializeCategories />
       <div className="flex h-screen overflow-hidden bg-background">
         {/* Sidebar */}
         <Sidebar />
