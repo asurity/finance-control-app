@@ -99,10 +99,19 @@ export class CreateTransactionUseCase extends BaseUseCase<
       };
     }
 
-    // Check balance for expenses (not for credit cards)
-    if (input.type === 'EXPENSE' && account.type !== 'CREDIT_CARD') {
-      if (account.balance < input.amount) {
-        throw new Error('Insufficient balance');
+    // Check balance for expenses
+    if (input.type === 'EXPENSE') {
+      // For credit cards and lines of credit, validate available credit
+      if (account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT') {
+        if (!account.hasAvailableCredit(input.amount)) {
+          const availableCredit = account.getAvailableCredit() || 0;
+          throw new Error(`Insufficient credit. Available: ${availableCredit.toFixed(2)}, Required: ${input.amount.toFixed(2)}`);
+        }
+      } else {
+        // For other account types, validate balance
+        if (account.balance < input.amount) {
+          throw new Error('Insufficient balance');
+        }
       }
     }
 
@@ -151,6 +160,23 @@ export class CreateTransactionUseCase extends BaseUseCase<
     }
 
     await this.accountRepo.updateBalance(accountId, newBalance);
+    
+    // Update available credit for credit accounts
+    if (account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT') {
+      if (account.creditLimit !== undefined) {
+        const newAvailableCredit = Math.max(0, account.creditLimit - Math.abs(newBalance));
+        // Update availableCredit if the account repository supports it
+        try {
+          await this.accountRepo.update(accountId, {
+            balance: newBalance,
+            availableCredit: newAvailableCredit,
+          });
+        } catch (error) {
+          console.error('Error updating available credit:', error);
+          // Silently fail - balance was already updated
+        }
+      }
+    }
   }
 
   /**

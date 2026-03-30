@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Landmark, PlusCircle, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
+import { Progress } from '@/components/ui/progress';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
@@ -389,31 +390,69 @@ function AccountsContent({
                       <TableHead>Tarjeta</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead className="text-right">Saldo</TableHead>
+                      <TableHead className="text-right">Límite</TableHead>
+                      <TableHead className="text-right">Crédito Disponible</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {accounts.map((account) => (
-                      <TableRow key={account.id}>
-                        <TableCell className="font-medium">{account.name}</TableCell>
-                        <TableCell>
-                          {accountTypeOptions.find((option) => option.value === account.type)?.label || account.type}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {account.bankName || '-'}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {account.cardNumber ? `**** ${account.cardNumber}` : '-'}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={account.isActive ? 'default' : 'secondary'}>
-                            {account.isActive ? 'Activa' : 'Inactiva'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <MoneyDisplay amount={account.balance} type="balance" size="sm" />
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {accounts.map((account) => {
+                      const isCreditAccount = account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT';
+                      const creditLimit = account.creditLimit || 0;
+                      const usedCredit = isCreditAccount ? Math.abs(account.balance) : 0;
+                      const availableCredit = isCreditAccount && creditLimit > 0 ? creditLimit - usedCredit : 0;
+                      const creditUtilization = isCreditAccount && creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
+                      
+                      return (
+                        <TableRow key={account.id}>
+                          <TableCell className="font-medium">{account.name}</TableCell>
+                          <TableCell>
+                            {accountTypeOptions.find((option) => option.value === account.type)?.label || account.type}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {account.bankName || '-'}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {account.cardNumber ? `**** ${account.cardNumber}` : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={account.isActive ? 'default' : 'secondary'}>
+                              {account.isActive ? 'Activa' : 'Inactiva'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <MoneyDisplay amount={account.balance} type="balance" size="sm" />
+                          </TableCell>
+                          <TableCell className="text-right text-muted-foreground">
+                            {isCreditAccount && creditLimit > 0 ? (
+                              <MoneyDisplay amount={creditLimit} type="neutral" size="sm" />
+                            ) : '-'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {isCreditAccount && creditLimit > 0 ? (
+                              <div className="space-y-1">
+                                <MoneyDisplay 
+                                  amount={availableCredit} 
+                                  type="neutral" 
+                                  size="sm"
+                                  className={
+                                    creditUtilization > 90 ? 'text-red-600 dark:text-red-400' :
+                                    creditUtilization > 70 ? 'text-yellow-600 dark:text-yellow-400' :
+                                    'text-green-600 dark:text-green-400'
+                                  }
+                                />
+                                <Progress 
+                                  value={creditUtilization} 
+                                  className="h-1.5"
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                  {creditUtilization.toFixed(0)}% usado
+                                </p>
+                              </div>
+                            ) : '-'}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

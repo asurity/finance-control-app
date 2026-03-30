@@ -162,26 +162,50 @@ export class Account {
   }
 
   /**
-   * Gets available credit (for credit cards)
-   * @returns Available credit or undefined if not a credit card
+   * Gets available credit (for credit cards and lines of credit)
+   * @returns Available credit or undefined if not a credit account
    */
   getAvailableCredit(): number | undefined {
-    if (!this.isCreditCard()) {
+    if (this.type !== 'CREDIT_CARD' && this.type !== 'LINE_OF_CREDIT') {
       return undefined;
     }
-    return this.availableCredit;
+    
+    // If availableCredit is set, use it. Otherwise calculate from creditLimit - balance
+    if (this.availableCredit !== undefined) {
+      return this.availableCredit;
+    }
+    
+    if (this.creditLimit !== undefined) {
+      return Math.max(0, this.creditLimit - Math.abs(this.balance));
+    }
+    
+    return undefined;
   }
 
   /**
-   * Gets credit utilization percentage (for credit cards)
-   * @returns Utilization percentage or undefined if not a credit card
+   * Checks if credit account has available credit for a transaction
+   * @param amount Transaction amount
+   * @returns True if credit is available
+   */
+  hasAvailableCredit(amount: number): boolean {
+    if (amount <= 0) {
+      return false;
+    }
+    
+    const availableCredit = this.getAvailableCredit();
+    return availableCredit !== undefined && availableCredit >= amount;
+  }
+
+  /**
+   * Gets credit utilization percentage (for credit cards and lines of credit)
+   * @returns Utilization percentage or undefined if not a credit account
    */
   getCreditUtilization(): number | undefined {
-    if (!this.isCreditCard() || !this.creditLimit) {
+    if ((this.type !== 'CREDIT_CARD' && this.type !== 'LINE_OF_CREDIT') || !this.creditLimit) {
       return undefined;
     }
 
-    const used = this.creditLimit - (this.availableCredit || 0);
+    const used = Math.abs(this.balance);
     return (used / this.creditLimit) * 100;
   }
 

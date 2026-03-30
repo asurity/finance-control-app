@@ -7,6 +7,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
+import { Progress } from '@/components/ui/progress';
 import { Wallet, CreditCard, Building, Landmark, TrendingUp, ArrowRight, HandCoins } from 'lucide-react';
 import Link from 'next/link';
 
@@ -16,6 +17,8 @@ interface Account {
   type: 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD' | 'CASH' | 'INVESTMENT' | 'LINE_OF_CREDIT';
   balance: number;
   isActive: boolean;
+  creditLimit?: number;
+  availableCredit?: number;
 }
 
 interface AccountsSummaryWidgetProps {
@@ -72,7 +75,11 @@ export function AccountsSummaryWidget({ accounts, totalBalance }: AccountsSummar
         <div className="space-y-3">
           {activeAccounts.map((account) => {
             const Icon = accountIcons[account.type];
-            const isNegative = account.balance < 0;
+            const isCreditAccount = account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT';
+            const creditLimit = account.creditLimit || 0;
+            const usedCredit = isCreditAccount ? Math.abs(account.balance) : 0;
+            const availableCredit = isCreditAccount && creditLimit > 0 ? creditLimit - usedCredit : 0;
+            const creditUtilization = isCreditAccount && creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
             
             return (
               <div 
@@ -90,12 +97,28 @@ export function AccountsSummaryWidget({ accounts, totalBalance }: AccountsSummar
                     </p>
                   </div>
                 </div>
-                <MoneyDisplay
-                  amount={account.balance}
-                  type="balance"
-                  size="sm"
-                  className="font-bold"
-                />
+                {isCreditAccount && creditLimit > 0 ? (
+                  <div className="text-right space-y-1">
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Usado: </span>
+                      <MoneyDisplay amount={usedCredit} type="expense" size="sm" className="inline" />
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Límite: <MoneyDisplay amount={creditLimit} type="neutral" size="sm" className="inline" />
+                    </div>
+                    <Progress 
+                      value={creditUtilization} 
+                      className="h-1.5 w-24"
+                    />
+                  </div>
+                ) : (
+                  <MoneyDisplay
+                    amount={account.balance}
+                    type="balance"
+                    size="sm"
+                    className="font-bold"
+                  />
+                )}
               </div>
             );
           })}
