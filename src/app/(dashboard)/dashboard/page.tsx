@@ -19,6 +19,7 @@ import { RecentTransactionsWidget, RecentTransactionsWidgetSkeleton } from '@/pr
 import { AccountsSummaryWidget, AccountsSummaryWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/AccountsSummaryWidget';
 import { AlertsWidget, AlertsWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/AlertsWidget';
 import { formatCurrency, formatCurrencyAbsolute } from '@/lib/utils/format';
+import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
 import {
   Select,
   SelectContent,
@@ -120,6 +121,47 @@ export default function DashboardPage() {
           </Button>
         </div>
       </div>
+
+      {/* Balance del Período - Card Destacado */}
+      {isLoading || !stats ? (
+        <KPICardSkeleton />
+      ) : (
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium text-muted-foreground">Balance del Período</h3>
+              <div className="flex items-baseline gap-3">
+                <MoneyDisplay 
+                  amount={(stats.totalIncome || 0) - (stats.totalExpenses || 0)} 
+                  type="balance" 
+                  size="xl" 
+                />
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                {(stats.totalIncome || 0) - (stats.totalExpenses || 0) >= 0 
+                  ? '🎉 Estás ahorrando este período'
+                  : '⚠️ Estás gastando más de lo que ganas este período'
+                }
+              </p>
+            </div>
+            <div className="rounded-full bg-primary/10 p-3">
+              <DollarSign className="h-5 w-5 text-primary" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-3 w-3 text-green-600" />
+              <span className="text-muted-foreground">Ingresos:</span>
+              <span className="font-medium text-green-600 dark:text-green-400">{formatCurrencyAbsolute(stats.totalIncome)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <TrendingDown className="h-3 w-3 text-red-600" />
+              <span className="text-muted-foreground">Gastos:</span>
+              <span className="font-medium text-red-600 dark:text-red-400">{formatCurrencyAbsolute(stats.totalExpenses)}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* KPIs Grid - Primary Row */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
