@@ -161,7 +161,7 @@
 
 ### 2.1 — Crear utilidades centralizadas de formato (DRY)
 
-- [ ] **Editar** `src/lib/utils/format.ts` — Agregar funciones:
+- [x] **Editar** `src/lib/utils/format.ts` — Agregar funciones:
   ```typescript
   /**
    * Formatea un monto SIEMPRE como valor absoluto (positivo).
@@ -176,12 +176,12 @@
   export function formatCurrencyWithSign(amount: number): string
   ```
 
-- [ ] **Editar** `src/lib/utils/index.ts` — Re-exportar las nuevas funciones:
+- [x] **Editar** `src/lib/utils/index.ts` — Re-exportar las nuevas funciones:
   - Agregar `formatCurrencyAbsolute` y `formatCurrencyWithSign` al export
 
 ### 2.2 — Crear componente compartido MoneyDisplay (DRY + Reutilización)
 
-- [ ] **Crear** `src/presentation/components/shared/MoneyDisplay.tsx`
+- [x] **Crear** `src/presentation/components/shared/MoneyDisplay.tsx`
   - Props:
     ```typescript
     interface MoneyDisplayProps {
@@ -204,14 +204,14 @@
 
 ### 2.3 — Actualizar KPICard para soportar color de valor
 
-- [ ] **Editar** `src/presentation/components/shared/Cards/KPICard.tsx`
+- [x] **Editar** `src/presentation/components/shared/Cards/KPICard.tsx`
   - Agregar prop opcional `valueClassName?: string` a `KPICardProps`
   - Aplicar la clase al `<div className="text-2xl font-bold">` que muestra el value
   - Esto permite que cada KPI tenga color independiente en su valor sin romper la interfaz existente
 
 ### 2.4 — Aplicar MoneyDisplay en TransactionList
 
-- [ ] **Editar** `src/presentation/components/features/transactions/TransactionList.tsx`
+- [x] **Editar** `src/presentation/components/features/transactions/TransactionList.tsx`
   - Reemplazar el bloque de display de monto (líneas ~141-151) por:
     ```tsx
     <MoneyDisplay
@@ -225,26 +225,26 @@
 
 ### 2.5 — Aplicar MoneyDisplay en RecentTransactionsWidget
 
-- [ ] **Editar** `src/presentation/components/features/dashboard/widgets/RecentTransactionsWidget.tsx`
+- [x] **Editar** `src/presentation/components/features/dashboard/widgets/RecentTransactionsWidget.tsx`
   - Reemplazar el bloque de display de monto (línea ~78) por `<MoneyDisplay>`
   - Eliminar la lógica manual de `+/-` y clases de color
 
 ### 2.6 — Aplicar MoneyDisplay en AccountsSummaryWidget
 
-- [ ] **Editar** `src/presentation/components/features/dashboard/widgets/AccountsSummaryWidget.tsx`
+- [x] **Editar** `src/presentation/components/features/dashboard/widgets/AccountsSummaryWidget.tsx`
   - **Balance total** en CardDescription: usar `<MoneyDisplay type="balance">` para colorear
   - **Balance por cuenta** (línea ~96): usar `<MoneyDisplay type="balance">` para que cuentas positivas sean verdes y negativas sean rojas
 
 ### 2.7 — Aplicar en BalanceChart tooltip
 
-- [ ] **Editar** `src/presentation/components/features/dashboard/charts/BalanceChart.tsx`
+- [x] **Editar** `src/presentation/components/features/dashboard/charts/BalanceChart.tsx`
   - En el `CustomTooltip`, reemplazar `formatCurrency(data.income)` por `formatCurrencyAbsolute(data.income)`
   - Reemplazar `formatCurrency(data.expenses)` por `formatCurrencyAbsolute(data.expenses)`
   - El balance se mantiene con `formatCurrency` (puede ser negativo legítimamente en el gráfico)
 
 ### 2.8 — Aplicar en Dashboard page (KPIs)
 
-- [ ] **Editar** `src/app/(dashboard)/dashboard/page.tsx`
+- [x] **Editar** `src/app/(dashboard)/dashboard/page.tsx`
   - KPI "Balance Total": agregar `valueClassName` con color condicional según `stats.currentBalance >= 0`
   - KPI "Ingresos del Período": agregar `valueClassName="text-green-600 dark:text-green-400"`
   - KPI "Gastos del Período": agregar `valueClassName="text-red-600 dark:text-red-400"` y usar `formatCurrencyAbsolute`
@@ -252,7 +252,7 @@
 
 ### 2.9 — Aplicar en Reports page
 
-- [ ] **Editar** `src/app/(dashboard)/reports/page.tsx`
+- [x] **Editar** `src/app/(dashboard)/reports/page.tsx`
   - **Summary Cards**:
     - Ingresos: ya tiene verde — verificar que usa `formatCurrencyAbsolute`
     - Gastos: ya tiene rojo — verificar que usa `formatCurrencyAbsolute`
@@ -266,20 +266,20 @@
 
 ### 2.10 — Aplicar en Accounts page
 
-- [ ] **Editar** `src/app/(dashboard)/accounts/page.tsx`
+- [x] **Editar** `src/app/(dashboard)/accounts/page.tsx`
   - **Balance total** en CardDescription (línea ~367): usar `<MoneyDisplay type="balance">`
   - **Saldo por cuenta** en la tabla (línea ~413): usar `<MoneyDisplay type="balance">` para que se vea verde/rojo según saldo
 
 ### 2.11 — Aplicar en ExpensesByCategoryChart
 
-- [ ] **Editar** `src/presentation/components/features/dashboard/charts/ExpensesByCategoryChart.tsx`
+- [x] **Editar** `src/presentation/components/features/dashboard/charts/ExpensesByCategoryChart.tsx`
   - Tooltip: reemplazar `formatCurrency(data.value)` por `formatCurrencyAbsolute(data.value)` (gastos siempre positivos)
   - CardDescription: reemplazar `formatCurrency(totalExpenses)` por `formatCurrencyAbsolute(totalExpenses)`
   - Top Categories list: reemplazar `formatCurrency(cat.amount)` por `formatCurrencyAbsolute(cat.amount)`
 
 ### 2.12 — Commit de Fase 2
 
-- [ ] Commit y tag:
+- [x] Commit y tag:
   ```bash
   git add -A
   git commit -m "feat: sistema de display de montos con valores absolutos y colores
