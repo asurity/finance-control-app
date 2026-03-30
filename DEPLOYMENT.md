@@ -45,22 +45,33 @@ firebase hosting:sites:update asurity-finance --add-domain app.asurity.cl
 
 ### 1. Variables de Entorno
 
-Crear archivo `.env.local` (para desarrollo):
+Ya tienes archivos de ejemplo en el proyecto. Las credenciales reales son:
+
+**Crear archivo `.env.local`** (desarrollo - ya existe con las credenciales correctas):
 ```env
-NEXT_PUBLIC_FIREBASE_API_KEY=tu-api-key
+# Firebase Configuration - Proyecto: cuentas-financieras-0625
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyA19XEttyk9sutNbIh-wr-IZT9GRxD5Qvs
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=cuentas-financieras-0625.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=cuentas-financieras-0625
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=cuentas-financieras-0625.firebasestorage.app
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=tu-sender-id
-NEXT_PUBLIC_FIREBASE_APP_ID=tu-app-id
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=tu-measurement-id
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=207319380404
+NEXT_PUBLIC_FIREBASE_APP_ID=1:207319380404:web:8a06cb2656748a929882e1
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-SXJNY7KFXF
+
+# Optional Features
+NEXT_PUBLIC_ENABLE_ANALYTICS=true
+NEXT_PUBLIC_ENABLE_DEBUG=true
+NEXT_PUBLIC_APP_NAME="Control Financiero"
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Crear archivo `.env.production` (para producción):
+**Archivo `.env.production`** (producción - ya creado con las mismas credenciales):
 ```env
-# Mismo contenido que .env.local
+# Las mismas credenciales que .env.local
 # Next.js automáticamente usará este archivo en build de producción
 ```
+
+⚠️ **IMPORTANTE**: Los archivos `.env.local` y `.env.production` YA están en `.gitignore` y NO se subirán a git.
 
 ### 2. Configuración Next.js
 
