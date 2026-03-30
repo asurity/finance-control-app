@@ -20,7 +20,7 @@
 
 ## COMMIT INICIAL (Antes de cualquier cambio)
 
-- [ ] **Commit base**: Hacer commit de todo el estado actual del proyecto
+- [x] **Commit base**: Hacer commit de todo el estado actual del proyecto
   - Mensaje: `chore: snapshot pre-ajustes del sistema financiero`
   - Tag: `v0.1.0-pre-ajustes`
   - Comando:
@@ -40,106 +40,106 @@
 
 ### 1.1 — Verificar y completar capa de Dominio (si falta algo)
 
-- [ ] **Verificar** `src/domain/entities/BudgetPeriod.ts`
+- [x] **Verificar** `src/domain/entities/BudgetPeriod.ts`
   - Confirmar que tiene: `id`, `totalAmount`, `startDate`, `endDate`, `userId`, `organizationId`, `name`, `description`, `createdAt`, `updatedAt`
   - Confirmar métodos: `isActive()`, `hasExpired()`, `getRemainingDays()`, `getProgressPercentage()`
   - No se espera que haya cambios. Si los hay, documentar.
 
-- [ ] **Verificar** `src/domain/entities/CategoryBudget.ts`
+- [x] **Verificar** `src/domain/entities/CategoryBudget.ts`
   - Confirmar que tiene: `id`, `budgetPeriodId`, `categoryId`, `percentage`, `allocatedAmount`, `spentAmount`, `userId`, `organizationId`
   - Confirmar métodos: `getRemainingAmount()`, `getUsagePercentage()`, `isExceeded()`, `isApproachingLimit()`
   - No se espera que haya cambios. Si los hay, documentar.
 
 ### 1.2 — Verificar capa de Infrastructure (repositorios y mappers)
 
-- [ ] **Verificar** `src/infrastructure/repositories/FirestoreBudgetPeriodRepository.ts`
+- [x] **Verificar** `src/infrastructure/repositories/FirestoreBudgetPeriodRepository.ts`
   - Confirmar CRUD completo + `getByUserId`, `getActiveByUserId`, `getCurrentByUserId`
   - Confirmar que usa la subcollection `organizations/{orgId}/budgetPeriods`
 
-- [ ] **Verificar** `src/infrastructure/repositories/FirestoreCategoryBudgetRepository.ts`
+- [x] **Verificar** `src/infrastructure/repositories/FirestoreCategoryBudgetRepository.ts`
   - Confirmar CRUD completo + `getByBudgetPeriodId`, `getByBudgetPeriodAndCategory`, `updateSpentAmount`
   - Confirmar que usa la subcollection `organizations/{orgId}/categoryBudgets`
 
-- [ ] **Verificar** `src/infrastructure/mappers/BudgetPeriodMapper.ts`
+- [x] **Verificar** `src/infrastructure/mappers/BudgetPeriodMapper.ts`
   - Confirmar `toDomain()`, `toFirestore()`, `toFirestoreUpdate()`
 
-- [ ] **Verificar** `src/infrastructure/mappers/CategoryBudgetMapper.ts`
+- [x] **Verificar** `src/infrastructure/mappers/CategoryBudgetMapper.ts`
   - Confirmar `toDomain()`, `toFirestore()`, `toFirestoreUpdate()`
 
 ### 1.3 — Verificar capa de Application (hooks y DTOs)
 
-- [ ] **Verificar** `src/application/hooks/useBudgetPeriods.ts`
+- [x] **Verificar** `src/application/hooks/useBudgetPeriods.ts`
   - Confirmar queries: `useBudgetPeriodsByUser`, `useActiveBudgetPeriods`, `useCurrentBudgetPeriod`
   - Confirmar mutations: `createBudgetPeriod`, `updateBudgetPeriod`, `deleteBudgetPeriod`
 
-- [ ] **Verificar** `src/application/hooks/useCategoryBudgets.ts`
+- [x] **Verificar** `src/application/hooks/useCategoryBudgets.ts`
   - Confirmar queries: `useCategoryBudgetsByPeriod`, `useBudgetPeriodSummary`
   - Confirmar mutations: `setCategoryBudget`, `updateCategoryBudgetPercentage`, `deleteCategoryBudget`
 
-- [ ] **Verificar** DTOs en `src/application/dto/`
+- [x] **Verificar** DTOs en `src/application/dto/`
   - Confirmar existencia de: `BudgetPeriodDTO.ts`, `CategoryBudgetDTO.ts`
   - Confirmar tipos: `CreateBudgetPeriodDTO`, `UpdateBudgetPeriodDTO`, `SetCategoryBudgetDTO`, etc.
 
 ### 1.4 — Refactorizar la página de Presupuestos (capa Presentation)
 
-- [ ] **Refactorizar** `src/app/(dashboard)/budgets/page.tsx`
+- [x] **Refactorizar** `src/app/(dashboard)/budgets/page.tsx`
   - Eliminar todas las importaciones y uso de `useBudgets` (sistema viejo)
   - Importar `useBudgetPeriods` y `useCategoryBudgets`
   - Estructura de la página en DOS secciones principales:
 
   **Sección A — Gestión de Período de Presupuesto**:
-  - [ ] Formulario para crear nuevo BudgetPeriod: nombre (opcional), monto total, fecha inicio, fecha fin
-  - [ ] Lista de períodos existentes (activos, futuros, expirados) con badges de estado
-  - [ ] Poder seleccionar un período para ver/editar sus categorías
-  - [ ] Poder eliminar períodos que no tengan transacciones asociadas
+  - [x] Formulario para crear nuevo BudgetPeriod: nombre (opcional), monto total, fecha inicio, fecha fin
+  - [x] Lista de períodos existentes (activos, futuros, expirados) con badges de estado
+  - [x] Poder seleccionar un período para ver/editar sus categorías
+  - [x] Poder eliminar períodos que no tengan transacciones asociadas
 
   **Sección B — Asignación de Categorías por Porcentaje**:
-  - [ ] Solo visible cuando hay un BudgetPeriod seleccionado
-  - [ ] Tabla con todas las categorías de tipo EXPENSE
-  - [ ] Columnas: Categoría | % Asignado | Monto Calculado | Gastado | Restante | Estado
-  - [ ] Input de porcentaje por categoría → al cambiar, recalcular monto asignado
-  - [ ] Progress bar de porcentaje total asignado (debe sumar <= 100%)
-  - [ ] Botón "Guardar asignaciones" → crea/actualiza `CategoryBudget` para cada categoría
-  - [ ] Botón para agregar nueva categoría de gasto (reusar dialog existente)
+  - [x] Solo visible cuando hay un BudgetPeriod seleccionado
+  - [x] Tabla con todas las categorías de tipo EXPENSE
+  - [x] Columnas: Categoría | % Asignado | Monto Calculado | Gastado | Restante | Estado
+  - [x] Input de porcentaje por categoría → al cambiar, recalcular monto asignado
+  - [x] Progress bar de porcentaje total asignado (debe sumar <= 100%)
+  - [x] Botón "Guardar asignaciones" → crea/actualiza `CategoryBudget` para cada categoría
+  - [x] Botón para agregar nueva categoría de gasto (reusar dialog existente)
 
   **Sección C — Resumen del Período Activo**:
-  - [ ] Card resumen: Presupuesto total | Asignado | Gastado | Disponible
-  - [ ] Progress bar general del período
-  - [ ] Días restantes del período
-  - [ ] Alertas si alguna categoría supera el 80% o 100%
+  - [x] Card resumen: Presupuesto total | Asignado | Gastado | Disponible
+  - [x] Progress bar general del período
+  - [x] Días restantes del período
+  - [x] Alertas si alguna categoría supera el 80% o 100%
 
-- [ ] **Crear componente** `src/presentation/components/features/budgets/BudgetPeriodSelector.tsx`
+- [x] **Crear componente** `src/presentation/components/features/budgets/BudgetPeriodSelector.tsx`
   - Props: `periods: BudgetPeriod[]`, `selectedId: string`, `onSelect: (id) => void`
   - Dropdown o lista de períodos con estados visuales
 
-- [ ] **Crear componente** `src/presentation/components/features/budgets/CategoryAllocationTable.tsx`
+- [x] **Crear componente** `src/presentation/components/features/budgets/CategoryAllocationTable.tsx`
   - Props: `budgetPeriodId`, `totalAmount`, `categories`, `categoryBudgets`, `onSave`
   - Tabla editable de porcentajes con cálculo automático de montos
   - Validación: suma de porcentajes <= 100%
 
-- [ ] **Crear componente** `src/presentation/components/features/budgets/BudgetPeriodSummaryCard.tsx`
+- [x] **Crear componente** `src/presentation/components/features/budgets/BudgetPeriodSummaryCard.tsx`
   - Props: `budgetPeriod`, `categoryBudgets`, `summary`
   - Card con métricas consolidadas del período
 
 ### 1.5 — Vincular transacciones con BudgetPeriod
 
-- [ ] **Verificar** `src/domain/use-cases/transactions/CreateTransactionUseCase.ts`
+- [x] **Verificar** `src/domain/use-cases/transactions/CreateTransactionUseCase.ts`
   - Confirmar que al crear una transacción EXPENSE, actualiza el `spentAmount` del `CategoryBudget` correspondiente al período activo
   - Si no lo hace: agregar lógica para buscar el `BudgetPeriod` activo del usuario, encontrar el `CategoryBudget` de esa categoría, e incrementar `spentAmount`
   - **Respetar desacoplamiento**: la actualización de budget es un efecto secundario, no debe fallar la transacción si falla el budget update
 
-- [ ] **Verificar** `src/domain/use-cases/transactions/DeleteTransactionUseCase.ts`
+- [x] **Verificar** `src/domain/use-cases/transactions/DeleteTransactionUseCase.ts`
   - Confirmar que al eliminar una transacción EXPENSE, decrementa el `spentAmount` del `CategoryBudget` correspondiente
   - Si no lo hace: agregar lógica inversa
 
 ### 1.6 — Tests
 
-- [ ] Verificar que los tests existentes de `BudgetPeriod` y `CategoryBudget` entities pasan
-- [ ] Verificar que no hay tests rotos por la refactorización de la página de presupuestos
+- [x] Verificar que los tests existentes de `BudgetPeriod` y `CategoryBudget` entities pasan
+- [x] Verificar que no hay tests rotos por la refactorización de la página de presupuestos
 
 ### 1.7 — Commit de Fase 1
 
-- [ ] Commit y tag:
+- [x] Commit y tag:
   ```bash
   git add -A
   git commit -m "feat: conectar BudgetPeriod y CategoryBudget a la UI de presupuestos
