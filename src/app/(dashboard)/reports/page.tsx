@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
 import { useTransactions } from '@/application/hooks/useTransactions';
 import { useBudgets } from '@/application/hooks/useBudgets';
+import { useBudgetPeriods } from '@/application/hooks/useBudgetPeriods';
 import { useCategories } from '@/application/hooks/useCategories';
 import { useAccounts } from '@/application/hooks/useAccounts';
 import { formatCurrencyAbsolute, formatCurrencyWithSign } from '@/lib/utils/format';
@@ -34,6 +35,8 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PeriodReport, PeriodReportSkeleton } from '@/presentation/components/features/reports/PeriodReport';
 import type { Transaction, Category, Budget, Account } from '@/types/firestore';
 
 type PeriodPreset = 'current_month' | 'last_month' | 'last_3_months' | 'last_6_months' | 'current_year' | 'custom';
@@ -69,13 +72,16 @@ function ReportsContent({
   organizationName: string;
 }) {
   // Period selection
+  const [reportMode, setReportMode] = useState<'date-range' | 'budget-period'>('date-range');
   const [periodPreset, setPeriodPreset] = useState<PeriodPreset>('current_month');
   const [startDate, setStartDate] = useState<Date>(() => startOfMonth(new Date()));
   const [endDate, setEndDate] = useState<Date>(() => endOfMonth(new Date()));
+  const [selectedBudgetPeriodId, setSelectedBudgetPeriodId] = useState<string>('');
 
   // Hooks
   const transactionsHook = useTransactions(orgId);
   const budgetsHook = useBudgets(orgId);
+  const budgetPeriodsHook = useBudgetPeriods(orgId);
   const categoriesHook = useCategories(orgId);
   const accountsHook = useAccounts(orgId);
 
@@ -83,6 +89,10 @@ function ReportsContent({
   const { data: categories = [] } = categoriesHook.useAllCategories();
   const { data: budgets = [] } = budgetsHook.useActiveBudgets();
   const { data: accounts = [] } = accountsHook.useAllAccounts();
+  
+  // Budget periods for period report mode
+  const { data: budgetPeriodsData } = budgetPeriodsHook.useBudgetPeriodsByUser(userId);
+  const budgetPeriods = budgetPeriodsData?.budgetPeriods || [];
 
   // Handle period preset changes
   const handlePeriodChange = (preset: PeriodPreset) => {
@@ -260,18 +270,35 @@ function ReportsContent({
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Reportes</h1>
             <p className="text-muted-foreground">
-              Análisis detallado del periodo en {organizationName}
+              Análisis detallado en {organizationName}
             </p>
           </div>
-          <Button onClick={handleExportCSV}>
-            <Download className="mr-2 h-4 w-4" />
-            Exportar CSV
-          </Button>
+          {reportMode === 'date-range' && (
+            <Button onClick={handleExportCSV}>
+              <Download className="mr-2 h-4 w-4" />
+              Exportar CSV
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Period Selection */}
-      <Card>
+      {/* Report Mode Selector */}
+      <Tabs value={reportMode} onValueChange={(v) => setReportMode(v as typeof reportMode)}>
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="date-range">
+            <Calendar className="mr-2 h-4 w-4" />
+            Por Rango de Fechas
+          </TabsTrigger>
+          <TabsTrigger value="budget-period">
+            <FileText className="mr-2 h-4 w-4" />
+            Por Período de Presupuesto
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Date Range Report */}
+        <TabsContent value="date-range" className="space-y-6">
+          {/* Period Selection */}
+          <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
@@ -544,6 +571,79 @@ function ReportsContent({
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        {/* Budget Period Report */}
+        <TabsContent value="budget-period" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Seleccionar Período de Presupuesto
+              </CardTitle>
+              <CardDescription>
+                Analiza el desempeño de un período de presupuesto específico
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Período de Presupuesto</Label>
+                  <Select value={selectedBudgetPeriodId} onValueChange={setSelectedBudgetPeriodId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona un período" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {budgetPeriods.length === 0 ? (
+                        <SelectItem value="none" disabled>
+                          No hay períodos de presupuesto
+                        </SelectItem>
+                      ) : (
+                        budgetPeriods.map((period) => (
+                          <SelectItem key={period.id} value={period.id}>
+                            {period.name || 'Sin nombre'} ({format(period.startDate, 'MMM yyyy', { locale: es })} - {format(period.endDate, 'MMM yyyy', { locale: es })})
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {budgetPeriods.length === 0 && (
+                  <div className="rounded-lg border border-dashed p-6 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      No tienes períodos de presupuesto configurados. Ve a la sección de{' '}
+                      <a href="/budgets" className="text-primary hover:underline">
+                        Presupuestos
+                      </a>{' '}
+                      para crear uno.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {selectedBudgetPeriodId && (
+            <PeriodReport
+              orgId={orgId}
+              userId={userId}
+              budgetPeriodId={selectedBudgetPeriodId}
+            />
+          )}
+
+          {!selectedBudgetPeriodId && budgetPeriods.length > 0 && (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <FileText className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+                <p className="text-muted-foreground">
+                  Selecciona un período de presupuesto para ver el reporte
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
