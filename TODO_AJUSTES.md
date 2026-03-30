@@ -305,13 +305,13 @@
 
 ### 3.1 — Verificar datos disponibles
 
-- [ ] **Verificar** que `GetDashboardStatisticsUseCase` ya retorna `totalIncome` y `totalExpenses`
+- [x] **Verificar** que `GetDashboardStatisticsUseCase` ya retorna `totalIncome` y `totalExpenses`
   - El balance neto se calcula como: `totalIncome - totalExpenses`
   - No se necesitan cambios en el use case — el cálculo es de presentación
 
 ### 3.2 — Agregar KPI de Balance Neto en Dashboard
 
-- [ ] **Editar** `src/app/(dashboard)/dashboard/page.tsx`
+- [x] **Editar** `src/app/(dashboard)/dashboard/page.tsx`
   - Agregar una fila destacada **antes** de los KPIs actuales, con un solo card ancho (`md:col-span-2 lg:col-span-4`):
     ```
     ┌─────────────────────────────────────────────────────────────┐
@@ -328,7 +328,7 @@
 
 ### 3.3 — Commit de Fase 3
 
-- [ ] Commit y tag:
+- [x] Commit y tag:
   ```bash
   git add -A
   git commit -m "feat: agregar KPI de Balance Neto del Período en dashboard
