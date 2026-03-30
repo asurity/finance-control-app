@@ -241,17 +241,17 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
               </p>
             </div>
           ) : (
-            <div className="rounded-md border">
+            <div className="rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Categoría</TableHead>
-                    <TableHead className="text-center">% Asignado</TableHead>
-                    <TableHead className="text-right">Presupuestado</TableHead>
-                    <TableHead className="text-right">Gastado</TableHead>
-                    <TableHead className="text-right">Diferencia</TableHead>
-                    <TableHead className="text-center">Estado</TableHead>
-                    <TableHead className="w-32">Uso</TableHead>
+                    <TableHead className="min-w-[120px]">Categoría</TableHead>
+                    <TableHead className="text-center min-w-[100px]">% Asignado</TableHead>
+                    <TableHead className="text-right min-w-[120px]">Presupuestado</TableHead>
+                    <TableHead className="text-right min-w-[120px]">Gastado</TableHead>
+                    <TableHead className="text-right min-w-[120px]">Diferencia</TableHead>
+                    <TableHead className="text-center min-w-[100px]">Estado</TableHead>
+                    <TableHead className="min-w-[140px]">Uso</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

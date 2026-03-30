@@ -96,18 +96,18 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
             Resumen de tu situación financiera - {getPeriodLabel()}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Select value={period} onValueChange={(value: any) => setPeriod(value)}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[160px] sm:w-[180px]">
               <SelectValue placeholder="Seleccionar período" />
             </SelectTrigger>
             <SelectContent>

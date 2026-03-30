@@ -520,17 +520,18 @@ function ReportsContent({
             </p>
           ) : (
             <div className="rounded-md border max-h-[400px] overflow-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Descripción</TableHead>
-                    <TableHead>Categoría</TableHead>
-                    <TableHead>Cuenta</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead className="text-right">Monto</TableHead>
-                  </TableRow>
-                </TableHeader>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[100px]">Fecha</TableHead>
+                      <TableHead className="min-w-[150px]">Descripción</TableHead>
+                      <TableHead className="min-w-[120px]">Categoría</TableHead>
+                      <TableHead className="min-w-[120px]">Cuenta</TableHead>
+                      <TableHead className="min-w-[100px]">Tipo</TableHead>
+                      <TableHead className="text-right min-w-[120px]">Monto</TableHead>
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {transactions
                     .filter(t => t.userId === userId)
@@ -567,6 +568,7 @@ function ReportsContent({
                     })}
                 </TableBody>
               </Table>
+              </div>
             </div>
           )}
         </CardContent>
