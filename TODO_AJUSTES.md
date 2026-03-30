@@ -396,38 +396,38 @@
 
 ### 5.1 — Crear query de reporte por período (Application)
 
-- [ ] **Crear** `src/presentation/components/features/reports/PeriodReport.tsx`
+- [x] **Crear** `src/presentation/components/features/reports/PeriodReport.tsx`
   - Props: `orgId`, `userId`, `budgetPeriodId`
   - Usa `useCategoryBudgets.useBudgetPeriodSummary(budgetPeriodId)` para obtener resumen
   - Usa transacciones filtradas por el rango de fechas del período
 
 ### 5.2 — Agregar sección en Reports page (Presentation)
 
-- [ ] **Editar** `src/app/(dashboard)/reports/page.tsx`
+- [x] **Editar** `src/app/(dashboard)/reports/page.tsx`
   - Agregar modo "Reporte por Período de Presupuesto":
     - Selector de BudgetPeriod (dropdown con períodos del usuario)
     - Al seleccionar un período, mostrar:
 
   **Card resumen del período**:
-  - [ ] Presupuesto total del período
-  - [ ] Total ejecutado (gastado)
-  - [ ] Balance: `Presupuesto - Gastado` con `<MoneyDisplay type="balance">`
-  - [ ] Ingresos del período
-  - [ ] Balance real: `Ingresos - Gastos` con `<MoneyDisplay type="balance">`
+  - [x] Presupuesto total del período
+  - [x] Total ejecutado (gastado)
+  - [x] Balance: `Presupuesto - Gastado` con `<MoneyDisplay type="balance">`
+  - [x] Ingresos del período
+  - [x] Balance real: `Ingresos - Gastos` con `<MoneyDisplay type="balance">`
 
   **Tabla presupuesto vs real por categoría**:
-  - [ ] Columnas: Categoría | % Asignado | Presupuestado | Gastado | Diferencia | Estado
-  - [ ] Gastado usa `<MoneyDisplay type="expense">`
-  - [ ] Diferencia usa `<MoneyDisplay type="balance">`
-  - [ ] Estado: badge verde/amarillo/rojo según % de uso
-  - [ ] Progress bar por categoría
+  - [x] Columnas: Categoría | % Asignado | Presupuestado | Gastado | Diferencia | Estado
+  - [x] Gastado usa `<MoneyDisplay type="expense">`
+  - [x] Diferencia usa `<MoneyDisplay type="balance">`
+  - [x] Estado: badge verde/amarillo/rojo según % de uso
+  - [x] Progress bar por categoría
 
   **Exportar**:
-  - [ ] Botón para exportar CSV del reporte del período (reusar lógica existente de `handleExportCSV`)
+  - [x] Botón para exportar CSV del reporte del período (reusar lógica existente de `handleExportCSV`)
 
 ### 5.3 — Commit de Fase 5
 
-- [ ] Commit y tag:
+- [x] Commit y tag:
   ```bash
   git add -A
   git commit -m "feat: reporte de fin de período vinculado a BudgetPeriod
