@@ -1,31 +1,21 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Calendar, TrendingUp, AlertCircle, Save, Percent, Plus, Edit2 } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Calendar, Plus, Trash2, Edit2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { addMonths, startOfMonth, endOfMonth, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
-import { useBudgets } from '@/application/hooks/useBudgets';
+import { useBudgetPeriods } from '@/application/hooks/useBudgetPeriods';
+import { useCategoryBudgets } from '@/application/hooks/useCategoryBudgets';
 import { useCategories } from '@/application/hooks/useCategories';
 import { formatCurrency } from '@/lib/utils/format';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
@@ -36,23 +26,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Progress } from '@/components/ui/progress';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+// Import new components
+import { BudgetPeriodSelector } from '@/presentation/components/features/budgets/BudgetPeriodSelector';
+import { CategoryAllocationTable } from '@/presentation/components/features/budgets/CategoryAllocationTable';
+import { BudgetPeriodSummaryCard } from '@/presentation/components/features/budgets/BudgetPeriodSummaryCard';
+
 import type { Category } from '@/types/firestore';
-
-const BudgetConfigSchema = z.object({
-  totalMonthlyBudget: z.number().positive('El presupuesto debe ser mayor a 0'),
-  startDate: z.date(),
-  endDate: z.date(),
-  allocations: z.record(z.string(), z.number().min(0).max(100)),
-}).refine(
-  (data) => data.endDate > data.startDate,
-  {
-    message: 'La fecha de fin debe ser posterior a la fecha de inicio',
-    path: ['endDate'],
-  }
-);
-
-type BudgetConfigFormValues = z.infer<typeof BudgetConfigSchema>;
 
 export default function BudgetsPage() {
   const { user } = useAuth();
@@ -75,6 +66,7 @@ export default function BudgetsPage() {
   );
 }
 
+
 function BudgetsContent({
   orgId,
   userId,
@@ -84,151 +76,143 @@ function BudgetsContent({
   userId: string;
   organizationName: string;
 }) {
-  const budgetsHook = useBudgets(orgId);
+  // Hooks
+  const budgetPeriodsHook = useBudgetPeriods(orgId);
+  const categoryBudgetsHook = useCategoryBudgets(orgId);
   const categoriesHook = useCategories(orgId);
-  const { data: categories = [] } = categoriesHook.useAllCategories();
-  const { data: existingBudgets = [] } = budgetsHook.useActiveBudgets();
 
-  // Category creation/editing states
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  // Queries
+  const { data: budgetPeriodsData } = budgetPeriodsHook.useBudgetPeriodsByUser(userId);
+  const budgetPeriods = budgetPeriodsData?.budgetPeriods || [];
+  const { data: categories = [] } = categoriesHook.useAllCategories();
+
+  // Filter only expense categories
+  const expenseCategories = useMemo(
+    () => categories.filter((cat) => cat.type === 'EXPENSE'),
+    [categories]
+  );
+
+  // State
+  const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null);
+  const [isCreatePeriodDialogOpen, setIsCreatePeriodDialogOpen] = useState(false);
+  const [isDeletePeriodDialogOpen, setIsDeletePeriodDialogOpen] = useState(false);
+  const [periodToDelete, setPeriodToDelete] = useState<string | null>(null);
+
+  // New period form state
+  const [newPeriodName, setNewPeriodName] = useState('');
+  const [newPeriodAmount, setNewPeriodAmount] = useState<number | ''>('');
+  const [newPeriodStartDate, setNewPeriodStartDate] = useState<Date>(startOfMonth(new Date()));
+  const [newPeriodEndDate, setNewPeriodEndDate] = useState<Date>(endOfMonth(addMonths(new Date(), 0)));
+
+  // Category management
+  const [isCreateCategoryDialogOpen, setIsCreateCategoryDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryColor, setNewCategoryColor] = useState('#3b82f6');
 
-  // Helper function to format date input
-  const formatDateInput = (value: string): string => {
-    const digits = value.replace(/\D/g, '');
-    
-    if (digits.length <= 2) {
-      return digits;
-    } else if (digits.length <= 4) {
-      return `${digits.slice(0, 2)}-${digits.slice(2)}`;
-    } else {
-      return `${digits.slice(0, 2)}-${digits.slice(2, 4)}-${digits.slice(4, 8)}`;
-    }
-  };
+  // Get selected period and its category budgets
+  const selectedPeriod = useMemo(
+    () => budgetPeriods.find((p) => p.id === selectedPeriodId) || null,
+    [budgetPeriods, selectedPeriodId]
+  );
 
-  // Parse date from dd-mm-yyyy format
-  const parseDateInput = (value: string): Date | null => {
-    if (value.length === 10) {
-      const parts = value.split('-');
-      const day = parseInt(parts[0]);
-      const month = parseInt(parts[1]) - 1;
-      const year = parseInt(parts[2]);
-      
-      if (day >= 1 && day <= 31 && month >= 0 && month <= 11 && year >= 2020) {
-        const newDate = new Date(year, month, day);
-        if (!isNaN(newDate.getTime())) {
-          return newDate;
-        }
+  const { data: categoryBudgetsData } = categoryBudgetsHook.useCategoryBudgetsByPeriod(
+    selectedPeriodId || ''
+  );
+  const categoryBudgets = categoryBudgetsData?.categoryBudgets || [];
+
+  // Auto-select active period on load
+  useMemo(() => {
+    if (!selectedPeriodId && budgetPeriods.length > 0) {
+      const activePeriod = budgetPeriods.find((p) => p.isActive());
+      if (activePeriod) {
+        setSelectedPeriodId(activePeriod.id);
+      } else {
+        setSelectedPeriodId(budgetPeriods[0].id);
       }
     }
-    return null;
-  };
+  }, [budgetPeriods, selectedPeriodId]);
 
-  // Filter only expense categories
-  const expenseCategories = categories.filter((cat) => cat.type === 'EXPENSE');
-
-  const [allocations, setAllocations] = useState<Record<string, number>>(() => {
-    // Initialize with existing budgets if any
-    const initial: Record<string, number> = {};
-    expenseCategories.forEach((cat) => {
-      const existing = existingBudgets.find((b) => b.categoryId === cat.id);
-      initial[cat.id] = 0;
-    });
-    return initial;
-  });
-
-  const [totalMonthlyBudget, setTotalMonthlyBudget] = useState<number>(0);
-  const [startDate, setStartDate] = useState<Date>(() => startOfMonth(new Date()));
-  const [endDate, setEndDate] = useState<Date>(() => endOfMonth(addMonths(new Date(), 1)));
-
-  // Date input states (after startDate and endDate are initialized)
-  const [startDateInput, setStartDateInput] = useState(() => format(startOfMonth(new Date()), 'dd-MM-yyyy'));
-  const [endDateInput, setEndDateInput] = useState(() => format(endOfMonth(addMonths(new Date(), 1)), 'dd-MM-yyyy'));
-
-  // Sync date inputs when dates change
-  useEffect(() => {
-    setStartDateInput(format(startDate, 'dd-MM-yyyy'));
-  }, [startDate]);
-
-  useEffect(() => {
-    setEndDateInput(format(endDate, 'dd-MM-yyyy'));
-  }, [endDate]);
-
-  // Calculate totals
-  const totalAllocatedPercent = useMemo(() => {
-    return Object.values(allocations).reduce((sum, percent) => sum + (percent || 0), 0);
-  }, [allocations]);
-
-  const budgetsByCategory = useMemo(() => {
-    return expenseCategories.map((category) => {
-      const percent = allocations[category.id] || 0;
-      const amount = (totalMonthlyBudget * percent) / 100;
-      const existing = existingBudgets.find((b) => b.categoryId === category.id);
-      
-      return {
-        category,
-        percent,
-        amount,
-        existing,
-        spent: existing?.spent || 0,
-        percentUsed: existing ? (existing.spent / existing.amount) * 100 : 0,
-      };
-    });
-  }, [expenseCategories, allocations, totalMonthlyBudget, existingBudgets]);
-
-  const handleAllocationChange = (categoryId: string, value: number) => {
-    setAllocations((prev) => ({
-      ...prev,
-      [categoryId]: Math.max(0, Math.min(100, value)),
-    }));
-  };
-
-  const handleSaveBudgets = async () => {
-    if (totalMonthlyBudget <= 0) {
-      toast.error('Debes definir un presupuesto mensual mayor a 0');
+  // Handlers
+  const handleCreatePeriod = async () => {
+    if (!newPeriodAmount || newPeriodAmount <= 0) {
+      toast.error('Ingresa un monto válido para el presupuesto');
       return;
     }
 
-    if (totalAllocatedPercent > 100) {
-      toast.error('Los porcentajes no pueden superar 100%', {
-        description: `Actualmente suman ${totalAllocatedPercent.toFixed(1)}%`,
-      });
+    if (newPeriodStartDate >= newPeriodEndDate) {
+      toast.error('La fecha de fin debe ser posterior a la fecha de inicio');
       return;
     }
 
     try {
-      const budgetsToCreate = budgetsByCategory.filter((b) => b.percent > 0 && b.amount > 0);
+      const result = await budgetPeriodsHook.createBudgetPeriod.mutateAsync({
+        name: newPeriodName.trim() || undefined,
+        totalAmount: Number(newPeriodAmount),
+        startDate: newPeriodStartDate,
+        endDate: newPeriodEndDate,
+        userId,
+      });
 
-      if (budgetsToCreate.length === 0) {
-        toast.error('Debes asignar al menos una categoría con presupuesto');
-        return;
+      toast.success('Período de presupuesto creado');
+      setSelectedPeriodId(result.budgetPeriodId);
+      setIsCreatePeriodDialogOpen(false);
+      setNewPeriodName('');
+      setNewPeriodAmount('');
+      setNewPeriodStartDate(startOfMonth(addMonths(new Date(), 1)));
+      setNewPeriodEndDate(endOfMonth(addMonths(new Date(), 1)));
+    } catch (error: any) {
+      console.error('Error al crear período:', error);
+      toast.error('No se pudo crear el período', {
+        description: error.message,
+      });
+    }
+  };
+
+  const handleDeletePeriod = async () => {
+    if (!periodToDelete) return;
+
+    try {
+      await budgetPeriodsHook.deleteBudgetPeriod.mutateAsync({ id: periodToDelete, userId });
+      toast.success('Período eliminado');
+      setIsDeletePeriodDialogOpen(false);
+      setPeriodToDelete(null);
+      if (selectedPeriodId === periodToDelete) {
+        setSelectedPeriodId(null);
       }
+    } catch (error: any) {
+      console.error('Error al eliminar período:', error);
+      toast.error('No se pudo eliminar el período', {
+        description: error.message,
+      });
+    }
+  };
 
-      // Create all budgets
-      for (const item of budgetsToCreate) {
-        await budgetsHook.createBudget.mutateAsync({
-          name: `${item.category.name} - ${organizationName}`,
-          amount: item.amount,
-          period: 'MONTHLY',
-          categoryId: item.category.id,
+  const openDeleteDialog = (periodId: string) => {
+    setPeriodToDelete(periodId);
+    setIsDeletePeriodDialogOpen(true);
+  };
+
+  const handleSaveCategoryAllocations = async (
+    allocations: { categoryId: string; percentage: number }[]
+  ) => {
+    if (!selectedPeriod) return;
+
+    try {
+      // Save each category budget
+      for (const alloc of allocations) {
+        await categoryBudgetsHook.setCategoryBudget.mutateAsync({
+          budgetPeriodId: selectedPeriod.id,
+          categoryId: alloc.categoryId,
+          percentage: alloc.percentage,
           userId,
-          startDate,
-          endDate,
-          alertThreshold: 80,
-          isActive: true,
         });
       }
 
-      toast.success(`${budgetsToCreate.length} presupuestos creados exitosamente`);
-      
-      // No reseteamos los valores para que el usuario pueda seguir editando
+      toast.success('Asignaciones guardadas exitosamente');
     } catch (error: any) {
-      console.error('Error al crear presupuestos:', error);
-      toast.error('No se pudieron crear los presupuestos', {
-        description: error.message || 'Inténtalo nuevamente.',
+      console.error('Error al guardar asignaciones:', error);
+      toast.error('No se pudieron guardar las asignaciones', {
+        description: error.message,
       });
     }
   };
@@ -247,333 +231,318 @@ function BudgetsContent({
         icon: 'tag',
       });
 
+      toast.success('Categoría creada');
       setNewCategoryName('');
       setNewCategoryColor('#3b82f6');
-      setIsCreateDialogOpen(false);
+      setIsCreateCategoryDialogOpen(false);
     } catch (error: any) {
       console.error('Error al crear categoría:', error);
-    }
-  };
-
-  const handleEditCategory = async () => {
-    if (!editingCategory || !newCategoryName.trim()) {
-      toast.error('Ingresa un nombre válido');
-      return;
-    }
-
-    try {
-      await categoriesHook.updateCategory.mutateAsync({
-        id: editingCategory.id,
-        data: {
-          name: newCategoryName.trim(),
-          color: newCategoryColor,
-        },
+      toast.error('No se pudo crear la categoría', {
+        description: error.message,
       });
-
-      setEditingCategory(null);
-      setNewCategoryName('');
-      setNewCategoryColor('#3b82f6');
-      setIsEditDialogOpen(false);
-    } catch (error: any) {
-      console.error('Error al editar categoría:', error);
     }
   };
-
-  const openEditDialog = (category: Category) => {
-    setEditingCategory(category);
-    setNewCategoryName(category.name);
-    setNewCategoryColor(category.color);
-    setIsEditDialogOpen(true);
-  };
-
-  const isValidAllocation = totalAllocatedPercent <= 100;
-  const hasDefinedBudget = totalMonthlyBudget > 0;
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Presupuestos</h1>
         <p className="text-muted-foreground">
-          Define tu presupuesto mensual y asigna porcentajes a cada categoría de gasto en {organizationName}.
+          Gestiona períodos de presupuesto y asigna porcentajes a cada categoría en {organizationName}.
         </p>
       </div>
 
-      {existingBudgets.length > 0 && (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Ya tienes {existingBudgets.length} presupuestos activos. Si creas nuevos presupuestos
-            para las mismas categorías, se agregarán a los existentes.
-          </AlertDescription>
-        </Alert>
-      )}
+      {/* Tabs: Períodos | Asignación por Categoría */}
+      <Tabs defaultValue="periods" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="periods">Períodos de Presupuesto</TabsTrigger>
+          <TabsTrigger value="allocation" disabled={!selectedPeriod}>
+            Asignación por Categoría
+          </TabsTrigger>
+          <TabsTrigger value="summary" disabled={!selectedPeriod}>
+            Resumen
+          </TabsTrigger>
+        </TabsList>
 
-      <div className="grid gap-6 lg:grid-cols-[400px_1fr]">
-        {/* Configuration Panel */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Configuración
-            </CardTitle>
-            <CardDescription>
-              Define el monto total mensual a distribuir
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        {/* TAB: Períodos de Presupuesto */}
+        <TabsContent value="periods" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Gestión de Períodos</CardTitle>
+                  <CardDescription>
+                    Crea y administra períodos de presupuesto con montos y fechas definidas
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setIsCreatePeriodDialogOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nuevo Período
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {budgetPeriods.length === 0 ? (
+                <div className="rounded-lg border border-dashed p-8 text-center">
+                  <Calendar className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+                  <p className="font-medium">No hay períodos de presupuesto</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Crea tu primer período para comenzar a asignar presupuestos por categoría
+                  </p>
+                  <Button
+                    className="mt-4"
+                    onClick={() => setIsCreatePeriodDialogOpen(true)}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Crear Período
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {budgetPeriods.map((period) => {
+                    const isActive = period.isActive();
+                    const isExpired = period.hasExpired();
+                    const isUpcoming = period.isUpcoming();
+
+                    return (
+                      <Card
+                        key={period.id}
+                        className={`cursor-pointer transition-all ${
+                          selectedPeriodId === period.id
+                            ? 'ring-2 ring-primary'
+                            : 'hover:bg-accent'
+                        }`}
+                        onClick={() => setSelectedPeriodId(period.id)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold">
+                                  {period.name || 'Período sin nombre'}
+                                </h3>
+                                {isActive && <Badge variant="default">Activo</Badge>}
+                                {isUpcoming && <Badge variant="secondary">Próximo</Badge>}
+                                {isExpired && <Badge variant="outline">Expirado</Badge>}
+                              </div>
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                <span>
+                                  {format(period.startDate, 'dd/MM/yyyy')} -{' '}
+                                  {format(period.endDate, 'dd/MM/yyyy')}
+                                </span>
+                                <span>·</span>
+                                <span className="font-medium">
+                                  {formatCurrency(period.totalAmount)}
+                                </span>
+                                {isActive && (
+                                  <>
+                                    <span>·</span>
+                                    <span>{period.getRemainingDays()} días restantes</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDeleteDialog(period.id);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* TAB: Asignación por Categoría */}
+        <TabsContent value="allocation" className="space-y-4">
+          {selectedPeriod && (
+            <>
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Asignación por Categoría</CardTitle>
+                      <CardDescription>
+                        Distribuye el presupuesto de{' '}
+                        <strong>{formatCurrency(selectedPeriod.totalAmount)}</strong> entre las
+                        categorías de gastos
+                      </CardDescription>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsCreateCategoryDialogOpen(true)}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Nueva Categoría
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {/* Period Selector */}
+                  <div className="mb-6">
+                    <BudgetPeriodSelector
+                      periods={budgetPeriods}
+                      selectedId={selectedPeriodId}
+                      onSelect={setSelectedPeriodId}
+                    />
+                  </div>
+
+                  {expenseCategories.length === 0 ? (
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        No hay categorías de gastos. Crea al menos una categoría para poder
+                        asignar presupuestos.
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <CategoryAllocationTable
+                      budgetPeriodId={selectedPeriod.id}
+                      totalAmount={selectedPeriod.totalAmount}
+                      categories={expenseCategories}
+                      categoryBudgets={categoryBudgets}
+                      onSave={handleSaveCategoryAllocations}
+                      isLoading={categoryBudgetsHook.setCategoryBudget.isPending}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </TabsContent>
+
+        {/* TAB: Resumen */}
+        <TabsContent value="summary" className="space-y-4">
+          {selectedPeriod && (
+            <>
+              {/* Period Selector */}
+              <BudgetPeriodSelector
+                periods={budgetPeriods}
+                selectedId={selectedPeriodId}
+                onSelect={setSelectedPeriodId}
+              />
+
+              {/* Summary Card */}
+              <BudgetPeriodSummaryCard
+                budgetPeriod={selectedPeriod}
+                categoryBudgets={categoryBudgets}
+              />
+            </>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* Create Period Dialog */}
+      <Dialog open={isCreatePeriodDialogOpen} onOpenChange={setIsCreatePeriodDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nuevo Período de Presupuesto</DialogTitle>
+            <DialogDescription>
+              Define un período con monto total y fechas de inicio y fin
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="totalBudget">Presupuesto mensual total</Label>
+              <Label htmlFor="period-name">Nombre (opcional)</Label>
               <Input
-                id="totalBudget"
+                id="period-name"
+                placeholder="Ej: Presupuesto Enero 2026"
+                value={newPeriodName}
+                onChange={(e) => setNewPeriodName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="period-amount">Monto Total</Label>
+              <Input
+                id="period-amount"
                 type="number"
                 step="1000"
                 placeholder="Ej: 1000000"
-                value={totalMonthlyBudget || ''}
-                onChange={(e) => setTotalMonthlyBudget(Number(e.target.value) || 0)}
+                value={newPeriodAmount}
+                onChange={(e) => setNewPeriodAmount(Number(e.target.value) || '')}
               />
-              {hasDefinedBudget && (
+              {newPeriodAmount && (
                 <p className="text-sm text-muted-foreground">
-                  {formatCurrency(totalMonthlyBudget)}
+                  {formatCurrency(Number(newPeriodAmount))}
                 </p>
               )}
             </div>
-
-            <div className="space-y-2">
-              <Label>Periodo</Label>
-              <div className="grid gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="startDate" className="text-xs text-muted-foreground">
-                    Fecha de inicio
-                  </Label>
-                  <Input
-                    id="startDate"
-                    type="text"
-                    placeholder="dd-mm-aaaa"
-                    value={startDateInput}
-                    onChange={(e) => {
-                      const formatted = formatDateInput(e.target.value);
-                      setStartDateInput(formatted);
-                      
-                      const parsed = parseDateInput(formatted);
-                      if (parsed) {
-                        setStartDate(parsed);
-                      }
-                    }}
-                    maxLength={10}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {format(startDate, "dd 'de' MMMM 'de' yyyy", { locale: es })}
-                  </p>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="endDate" className="text-xs text-muted-foreground">
-                    Fecha de fin
-                  </Label>
-                  <Input
-                    id="endDate"
-                    type="text"
-                    placeholder="dd-mm-aaaa"
-                    value={endDateInput}
-                    onChange={(e) => {
-                      const formatted = formatDateInput(e.target.value);
-                      setEndDateInput(formatted);
-                      
-                      const parsed = parseDateInput(formatted);
-                      if (parsed) {
-                        setEndDate(parsed);
-                      }
-                    }}
-                    maxLength={10}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {format(endDate, "dd 'de' MMMM 'de' yyyy", { locale: es })}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium">Porcentaje asignado</span>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-2xl font-bold ${
-                        totalAllocatedPercent === 100
-                          ? 'text-green-600'
-                          : totalAllocatedPercent > 100
-                          ? 'text-destructive'
-                          : 'text-muted-foreground'
-                      }`}
-                    >
-                      {totalAllocatedPercent.toFixed(1)}%
-                    </span>
-                    <span className="text-sm text-muted-foreground">/ 100%</span>
-                  </div>
-                </div>
-                
-                <Progress 
-                  value={Math.min(totalAllocatedPercent, 100)} 
-                  className={`h-3 ${
-                    totalAllocatedPercent > 100 ? 'bg-red-100' : ''
-                  }`}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Fecha de Inicio</Label>
+                <Input
+                  type="date"
+                  value={format(newPeriodStartDate, 'yyyy-MM-dd')}
+                  onChange={(e) => setNewPeriodStartDate(new Date(e.target.value))}
                 />
-                
-                <div className="mt-2">
-                  {totalAllocatedPercent === 100 && (
-                    <Alert className="py-2 bg-green-50 border-green-200">
-                      <AlertDescription className="text-xs text-green-700">
-                        ✓ Perfecto: Has asignado el 100% del presupuesto
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  {totalAllocatedPercent > 0 && totalAllocatedPercent < 100 && (
-                    <Alert className="py-2 bg-yellow-50 border-yellow-200">
-                      <AlertDescription className="text-xs text-yellow-700">
-                        Opcional: Faltan {(100 - totalAllocatedPercent).toFixed(1)}% por asignar
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  {totalAllocatedPercent > 100 && (
-                    <Alert className="py-2 bg-red-50 border-red-200">
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                      <AlertDescription className="text-xs text-red-700 font-medium">
-                        ¡Excedido! Sobrepasa el límite por {(totalAllocatedPercent - 100).toFixed(1)}%
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Fecha de Fin</Label>
+                <Input
+                  type="date"
+                  value={format(newPeriodEndDate, 'yyyy-MM-dd')}
+                  onChange={(e) => setNewPeriodEndDate(new Date(e.target.value))}
+                />
               </div>
             </div>
-
+          </div>
+          <DialogFooter>
             <Button
-              onClick={handleSaveBudgets}
-              className="w-full"
-              disabled={
-                !hasDefinedBudget ||
-                !isValidAllocation ||
-                budgetsHook.createBudget.isPending
-              }
+              variant="outline"
+              onClick={() => {
+                setIsCreatePeriodDialogOpen(false);
+                setNewPeriodName('');
+                setNewPeriodAmount('');
+              }}
             >
-              <Save className="mr-2 h-4 w-4" />
-              {budgetsHook.createBudget.isPending ? 'Guardando...' : 'Guardar presupuestos'}
+              Cancelar
             </Button>
-          </CardContent>
-        </Card>
+            <Button
+              onClick={handleCreatePeriod}
+              disabled={budgetPeriodsHook.createBudgetPeriod.isPending}
+            >
+              {budgetPeriodsHook.createBudgetPeriod.isPending ? 'Creando...' : 'Crear Período'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        {/* Categories Allocation Table */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Percent className="h-5 w-5" />
-                  Asignación por categoría
-                </CardTitle>
-                <CardDescription>
-                  {expenseCategories.length} categorías de gastos disponibles
-                </CardDescription>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsCreateDialogOpen(true)}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Nueva categoría
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {expenseCategories.length === 0 ? (
-              <div className="rounded-lg border border-dashed p-8 text-center">
-                <AlertCircle className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
-                <p className="font-medium">No hay categorías de gastos</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Las categorías se crearán automáticamente al usar la aplicación.
-                </p>
-              </div>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Categoría</TableHead>
-                      <TableHead className="w-[120px]">% Asignar</TableHead>
-                      <TableHead className="text-right">Monto</TableHead>
-                      <TableHead className="text-right">Actual</TableHead>
-                      <TableHead className="w-[80px]">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {budgetsByCategory.map((item) => (
-                      <TableRow key={item.category.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: item.category.color }}
-                            />
-                            <span className="font-medium">{item.category.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="100"
-                            step="1"
-                            value={item.percent !== undefined ? item.percent : ''}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val === '' || val === null) {
-                                handleAllocationChange(item.category.id, 0);
-                              } else {
-                                handleAllocationChange(item.category.id, Number(val));
-                              }
-                            }}
-                            className="w-20 text-center"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          {hasDefinedBudget
-                            ? formatCurrency(item.amount)
-                            : '-'}
-                        </TableCell>
-                        <TableCell className="text-right text-sm text-muted-foreground">
-                          {item.existing ? (
-                            <div>
-                              <div>{formatCurrency(item.existing.amount)}</div>
-                              <div className="text-xs">
-                                {item.percentUsed.toFixed(0)}% usado
-                              </div>
-                            </div>
-                          ) : (
-                            '-'
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEditDialog(item.category)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      {/* Delete Period Dialog */}
+      <AlertDialog open={isDeletePeriodDialogOpen} onOpenChange={setIsDeletePeriodDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar período?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminarán también todas las asignaciones de
+              categoría asociadas a este período.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeletePeriod}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Create Category Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+      <Dialog open={isCreateCategoryDialogOpen} onOpenChange={setIsCreateCategoryDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Nueva categoría de gasto</DialogTitle>
@@ -583,9 +552,9 @@ function BudgetsContent({
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nombre de la categoría</Label>
+              <Label htmlFor="category-name">Nombre de la categoría</Label>
               <Input
-                id="name"
+                id="category-name"
                 placeholder="Ej: Mascotas, Suscripciones, etc."
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
@@ -597,18 +566,16 @@ function BudgetsContent({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="color">Color</Label>
+              <Label htmlFor="category-color">Color</Label>
               <div className="flex items-center gap-2">
                 <Input
-                  id="color"
+                  id="category-color"
                   type="color"
                   value={newCategoryColor}
                   onChange={(e) => setNewCategoryColor(e.target.value)}
                   className="w-20 h-10 cursor-pointer"
                 />
-                <span className="text-sm text-muted-foreground">
-                  {newCategoryColor}
-                </span>
+                <span className="text-sm text-muted-foreground">{newCategoryColor}</span>
               </div>
             </div>
           </div>
@@ -616,7 +583,7 @@ function BudgetsContent({
             <Button
               variant="outline"
               onClick={() => {
-                setIsCreateDialogOpen(false);
+                setIsCreateCategoryDialogOpen(false);
                 setNewCategoryName('');
                 setNewCategoryColor('#3b82f6');
               }}
@@ -628,68 +595,6 @@ function BudgetsContent({
               disabled={categoriesHook.createCategory.isPending}
             >
               {categoriesHook.createCategory.isPending ? 'Creando...' : 'Crear categoría'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Category Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar categoría</DialogTitle>
-            <DialogDescription>
-              Modifica el nombre o color de la categoría
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Nombre de la categoría</Label>
-              <Input
-                id="edit-name"
-                placeholder="Nombre de la categoría"
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleEditCategory();
-                  }
-                }}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-color">Color</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="edit-color"
-                  type="color"
-                  value={newCategoryColor}
-                  onChange={(e) => setNewCategoryColor(e.target.value)}
-                  className="w-20 h-10 cursor-pointer"
-                />
-                <span className="text-sm text-muted-foreground">
-                  {newCategoryColor}
-                </span>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsEditDialogOpen(false);
-                setEditingCategory(null);
-                setNewCategoryName('');
-                setNewCategoryColor('#3b82f6');
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleEditCategory}
-              disabled={categoriesHook.updateCategory.isPending}
-            >
-              {categoriesHook.updateCategory.isPending ? 'Guardando...' : 'Guardar cambios'}
             </Button>
           </DialogFooter>
         </DialogContent>

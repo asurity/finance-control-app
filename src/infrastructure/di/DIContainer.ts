@@ -228,7 +228,9 @@ export class DIContainer {
   getDeleteTransactionUseCase(): DeleteTransactionUseCase {
     return new DeleteTransactionUseCase(
       this.getTransactionRepository(),
-      this.getAccountRepository()
+      this.getAccountRepository(),
+      this.getBudgetPeriodRepository(),
+      this.getCategoryBudgetRepository()
     );
   }
 
