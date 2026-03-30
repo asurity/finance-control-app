@@ -16,6 +16,7 @@ export interface KPICardProps {
   description?: string;
   loading?: boolean;
   className?: string;
+  valueClassName?: string;
 }
 
 export function KPICard({
@@ -27,6 +28,7 @@ export function KPICard({
   description,
   loading,
   className,
+  valueClassName,
 }: KPICardProps) {
   if (loading) {
     return (
@@ -75,7 +77,7 @@ export function KPICard({
         )}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className={cn('text-2xl font-bold', valueClassName)}>{value}</div>
         
         {change !== undefined && (
           <div className={cn('flex items-center gap-1 text-xs mt-1', getTrendColor())}>

@@ -12,7 +12,7 @@ import { useTransactions } from '@/application/hooks/useTransactions';
 import { useBudgets } from '@/application/hooks/useBudgets';
 import { useCategories } from '@/application/hooks/useCategories';
 import { useAccounts } from '@/application/hooks/useAccounts';
-import { formatCurrency } from '@/lib/utils/format';
+import { formatCurrencyAbsolute, formatCurrencyWithSign } from '@/lib/utils/format';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -343,7 +343,7 @@ function ReportsContent({
           <CardContent>
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-green-600" />
-              <p className="text-2xl font-bold text-green-600">{formatCurrency(reportData.income)}</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{formatCurrencyAbsolute(reportData.income)}</p>
             </div>
           </CardContent>
         </Card>
@@ -355,7 +355,7 @@ function ReportsContent({
           <CardContent>
             <div className="flex items-center gap-2">
               <TrendingDown className="h-4 w-4 text-red-600" />
-              <p className="text-2xl font-bold text-red-600">{formatCurrency(reportData.expenses)}</p>
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400">{formatCurrencyAbsolute(reportData.expenses)}</p>
             </div>
           </CardContent>
         </Card>
@@ -365,8 +365,8 @@ function ReportsContent({
             <CardTitle className="text-sm font-medium text-muted-foreground">Balance Neto</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className={`text-2xl font-bold ${reportData.netBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(reportData.netBalance)}
+            <p className={`text-2xl font-bold ${reportData.netBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+              {formatCurrencyWithSign(reportData.netBalance)}
             </p>
           </CardContent>
         </Card>
@@ -412,7 +412,7 @@ function ReportsContent({
                         <span className="font-medium">{cat.categoryName}</span>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold">{formatCurrency(cat.amount)}</p>
+                        <p className="font-semibold text-red-600 dark:text-red-400">{formatCurrencyAbsolute(cat.amount)}</p>
                         <p className="text-xs text-muted-foreground">{cat.percentage.toFixed(1)}%</p>
                       </div>
                     </div>
@@ -455,16 +455,16 @@ function ReportsContent({
                       </Badge>
                     </div>
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Gastado: {formatCurrency(item.spent)}</span>
-                      <span>Presupuesto: {formatCurrency(item.budgeted)}</span>
+                      <span>Gastado: <span className="text-red-600 dark:text-red-400 font-medium">{formatCurrencyAbsolute(item.spent)}</span></span>
+                      <span>Presupuesto: <span className="font-medium">{formatCurrencyAbsolute(item.budgeted)}</span></span>
                     </div>
                     <Progress
                       value={Math.min(item.percentage, 100)}
                       className="h-2"
                     />
                     {item.remaining < 0 && (
-                      <p className="text-xs text-red-600">
-                        Excedido por {formatCurrency(Math.abs(item.remaining))}
+                      <p className="text-xs text-red-600 dark:text-red-400 font-medium">
+                        Excedido por {formatCurrencyAbsolute(item.remaining)}
                       </p>
                     )}
                   </div>
@@ -530,10 +530,10 @@ function ReportsContent({
                             </Badge>
                           </TableCell>
                           <TableCell className={`text-right font-semibold ${
-                            transaction.type === 'INCOME' ? 'text-green-600' : 'text-red-600'
+                            transaction.type === 'INCOME' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                           }`}>
                             {transaction.type === 'INCOME' ? '+' : '-'}
-                            {formatCurrency(transaction.amount)}
+                            {formatCurrencyAbsolute(transaction.amount)}
                           </TableCell>
                         </TableRow>
                       );

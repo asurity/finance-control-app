@@ -6,6 +6,8 @@
 // Format utilities
 export {
   formatCurrency,
+  formatCurrencyAbsolute,
+  formatCurrencyWithSign,
   formatDate,
   formatDateShort,
   formatDateTime,

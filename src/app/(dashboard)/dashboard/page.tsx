@@ -18,7 +18,7 @@ import { ExpensesByCategoryChart, ExpensesByCategoryChartSkeleton } from '@/pres
 import { RecentTransactionsWidget, RecentTransactionsWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/RecentTransactionsWidget';
 import { AccountsSummaryWidget, AccountsSummaryWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/AccountsSummaryWidget';
 import { AlertsWidget, AlertsWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/AlertsWidget';
-import { formatCurrency } from '@/lib/utils/format';
+import { formatCurrency, formatCurrencyAbsolute } from '@/lib/utils/format';
 import {
   Select,
   SelectContent,
@@ -130,6 +130,7 @@ export default function DashboardPage() {
           <KPICard
             title="Balance Total"
             value={formatCurrency(stats.currentBalance)}
+            valueClassName={stats.currentBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}
             change={stats.monthlyChangePercent}
             changeType={stats.monthlyChange > 0 ? 'positive' : stats.monthlyChange < 0 ? 'negative' : 'neutral'}
             icon={<DollarSign className="h-4 w-4" />}
@@ -143,6 +144,7 @@ export default function DashboardPage() {
           <KPICard
             title={`Ingresos ${period === 'month' ? 'del Mes' : period === 'quarter' ? 'del Trimestre' : 'del Año'}`}
             value={formatCurrency(stats.totalIncome)}
+            valueClassName="text-green-600 dark:text-green-400"
             icon={<TrendingUp className="h-4 w-4 text-green-600" />}
             description={`${stats.transactionCounts.income} transacciones`}
           />
@@ -154,7 +156,8 @@ export default function DashboardPage() {
         ) : (
           <KPICard
             title={`Gastos ${period === 'month' ? 'del Mes' : period === 'quarter' ? 'del Trimestre' : 'del Año'}`}
-            value={formatCurrency(stats.totalExpenses)}
+            value={formatCurrencyAbsolute(stats.totalExpenses)}
+            valueClassName="text-red-600 dark:text-red-400"
             icon={<TrendingDown className="h-4 w-4 text-red-600" />}
             description={`${stats.transactionCounts.expense} transacciones`}
           />
@@ -245,7 +248,8 @@ export default function DashboardPage() {
         ) : (
           <KPICard
             title="Categoría Top"
-            value={stats.topExpenseCategory ? formatCurrency(stats.topExpenseCategory.amount) : 'N/A'}
+            value={stats.topExpenseCategory ? formatCurrencyAbsolute(stats.topExpenseCategory.amount) : 'N/A'}
+            valueClassName="text-red-600 dark:text-red-400"
             icon={<TrendingDown className="h-4 w-4" />}
             description={
               stats.topExpenseCategory 

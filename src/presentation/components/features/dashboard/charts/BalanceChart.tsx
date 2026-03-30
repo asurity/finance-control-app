@@ -6,7 +6,7 @@
 'use client';
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { formatCurrency } from '@/lib/utils/format';
+import { formatCurrency, formatCurrencyAbsolute } from '@/lib/utils/format';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
@@ -44,11 +44,11 @@ export function BalanceChart({ data, trend = 'stable', startBalance = 0, endBala
           </p>
           <p className="text-sm text-green-600">
             <span className="text-muted-foreground">Ingresos: </span>
-            <span className="font-medium">{formatCurrency(data.income)}</span>
+            <span className="font-medium">{formatCurrencyAbsolute(data.income)}</span>
           </p>
           <p className="text-sm text-red-600">
             <span className="text-muted-foreground">Gastos: </span>
-            <span className="font-medium">{formatCurrency(data.expenses)}</span>
+            <span className="font-medium">{formatCurrencyAbsolute(data.expenses)}</span>
           </p>
         </div>
       );

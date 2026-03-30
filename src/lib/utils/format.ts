@@ -190,3 +190,46 @@ export function sanitizeFilename(filename: string): string {
     .replace(/[^a-z0-9.-]/g, '')
     .replace(/-+/g, '-');
 }
+
+/**
+ * Formatea un monto SIEMPRE como valor absoluto (positivo).
+ * Uso: display de gastos e ingresos individuales.
+ * @param amount - Monto a formatear
+ * @returns String formateado con símbolo de peso chileno (siempre positivo)
+ * @example formatCurrencyAbsolute(-1500000) // "$1.500.000"
+ * @example formatCurrencyAbsolute(1500000) // "$1.500.000"
+ */
+export function formatCurrencyAbsolute(amount: number): string {
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Math.abs(amount));
+}
+
+/**
+ * Formatea un monto con signo explícito (+$X o -$X).
+ * Uso: balance neto, ahorro, diferencias.
+ * @param amount - Monto a formatear
+ * @returns String formateado con signo explícito
+ * @example formatCurrencyWithSign(1500000) // "+$1.500.000"
+ * @example formatCurrencyWithSign(-1500000) // "-$1.500.000"
+ * @example formatCurrencyWithSign(0) // "$0"
+ */
+export function formatCurrencyWithSign(amount: number): string {
+  const formatted = new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Math.abs(amount));
+
+  if (amount > 0) {
+    return `+${formatted}`;
+  } else if (amount < 0) {
+    return `-${formatted}`;
+  } else {
+    return formatted;
+  }
+}

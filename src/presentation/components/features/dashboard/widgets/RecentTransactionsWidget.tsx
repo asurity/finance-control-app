@@ -6,7 +6,8 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency, formatDate } from '@/lib/utils/format';
+import { formatDate } from '@/lib/utils/format';
+import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
 import { TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
@@ -72,11 +73,13 @@ export function RecentTransactionsWidget({ transactions }: RecentTransactionsWid
                 </div>
               </div>
               <div className="text-right">
-                <p className={`text-sm font-bold ${
-                  transaction.type === 'INCOME' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {transaction.type === 'INCOME' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                </p>
+                <MoneyDisplay
+                  amount={transaction.amount}
+                  type={transaction.type === 'INCOME' ? 'income' : 'expense'}
+                  showSign
+                  size="sm"
+                  className="font-bold"
+                />
                 <p className="text-xs text-muted-foreground">
                   {transaction.accountName}
                 </p>

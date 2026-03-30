@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { formatCurrency } from '@/lib/utils/format';
+import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
 import { cn } from '@/lib/utils';
 import type { Transaction } from '@/types/firestore';
 import { useTransactions } from '@/application/hooks/useTransactions';
@@ -137,17 +137,12 @@ export function TransactionList({
 
               {/* Amount */}
               <TableCell className="text-right">
-                <span
-                  className={cn(
-                    'font-semibold',
-                    transaction.type === 'INCOME'
-                      ? 'text-green-600 dark:text-green-400'
-                      : 'text-red-600 dark:text-red-400'
-                  )}
-                >
-                  {transaction.type === 'INCOME' ? '+' : '-'}
-                  {formatCurrency(transaction.amount)}
-                </span>
+                <MoneyDisplay
+                  amount={transaction.amount}
+                  type={transaction.type === 'INCOME' ? 'income' : 'expense'}
+                  showSign
+                  size="sm"
+                />
               </TableCell>
 
               {/* Actions */}

@@ -6,7 +6,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency } from '@/lib/utils/format';
+import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
 import { Wallet, CreditCard, Building, Landmark, TrendingUp, ArrowRight, HandCoins } from 'lucide-react';
 import Link from 'next/link';
 
@@ -65,7 +65,7 @@ export function AccountsSummaryWidget({ accounts, totalBalance }: AccountsSummar
       <CardHeader>
         <CardTitle>Resumen de Cuentas</CardTitle>
         <CardDescription>
-          Balance total: {formatCurrency(totalBalance)}
+          Balance total: <MoneyDisplay amount={totalBalance} type="balance" size="sm" />
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -90,11 +90,12 @@ export function AccountsSummaryWidget({ accounts, totalBalance }: AccountsSummar
                     </p>
                   </div>
                 </div>
-                <p className={`text-sm font-bold ${
-                  isNegative ? 'text-red-600' : 'text-foreground'
-                }`}>
-                  {formatCurrency(account.balance)}
-                </p>
+                <MoneyDisplay
+                  amount={account.balance}
+                  type="balance"
+                  size="sm"
+                  className="font-bold"
+                />
               </div>
             );
           })}

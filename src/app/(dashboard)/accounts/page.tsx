@@ -12,7 +12,7 @@ import { useAccounts } from '@/application/hooks/useAccounts';
 import { CreateAccountSchema } from '@/application/validators/accountValidator';
 import type { z } from 'zod';
 import type { AccountType } from '@/types/firestore';
-import { formatCurrency } from '@/lib/utils/format';
+import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -364,7 +364,7 @@ function AccountsContent({
               Tus cuentas
             </CardTitle>
             <CardDescription>
-              Balance total actual: {formatCurrency(totalBalance)}
+              Balance total actual: <MoneyDisplay amount={totalBalance} type="balance" size="sm" />
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -409,8 +409,8 @@ function AccountsContent({
                             {account.isActive ? 'Activa' : 'Inactiva'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right font-semibold">
-                          {formatCurrency(account.balance)}
+                        <TableCell className="text-right">
+                          <MoneyDisplay amount={account.balance} type="balance" size="sm" />
                         </TableCell>
                       </TableRow>
                     ))}

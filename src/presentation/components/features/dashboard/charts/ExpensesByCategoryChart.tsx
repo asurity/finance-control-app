@@ -6,7 +6,7 @@
 'use client';
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { formatCurrency } from '@/lib/utils/format';
+import { formatCurrencyAbsolute } from '@/lib/utils/format';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ExpensesByCategoryChartProps {
@@ -68,7 +68,7 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
           <p className="text-sm font-semibold">{data.name}</p>
           <p className="text-sm">
             <span className="text-muted-foreground">Monto: </span>
-            <span className="font-medium">{formatCurrency(data.value)}</span>
+            <span className="font-medium text-red-600 dark:text-red-400">{formatCurrencyAbsolute(data.value)}</span>
           </p>
           <p className="text-sm">
             <span className="text-muted-foreground">Porcentaje: </span>
@@ -127,7 +127,7 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
       <CardHeader>
         <CardTitle>Gastos por Categoría</CardTitle>
         <CardDescription>
-          Distribución de {formatCurrency(totalExpenses)} en gastos
+          Distribución de {formatCurrencyAbsolute(totalExpenses)} en gastos
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -172,7 +172,7 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
                   />
                   <span>{cat.categoryName}</span>
                 </div>
-                <span className="font-medium">{formatCurrency(cat.amount)}</span>
+                <span className="font-medium text-red-600 dark:text-red-400">{formatCurrencyAbsolute(cat.amount)}</span>
               </div>
             ))}
           </div>
