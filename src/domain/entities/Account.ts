@@ -13,6 +13,8 @@ export class Account {
     public balance: number, // Mutable - changes with transactions
     public readonly currency: string,
     public isActive: boolean, // Mutable - can be activated/deactivated
+    public readonly bankName?: string,
+    public readonly cardNumber?: string, // Últimos 4 dígitos
     public readonly creditCardId?: string,
     public readonly creditLimit?: number,
     public readonly availableCredit?: number,
@@ -41,8 +43,15 @@ export class Account {
       throw new Error('Currency is required');
     }
 
-    // Credit card specific validations - only validate if fields are present
-    if (this.type === 'CREDIT_CARD') {
+    // Card number validation - if present, should be 4 digits
+    if (this.cardNumber !== undefined && this.cardNumber !== null && this.cardNumber.length > 0) {
+      if (!/^\d{4}$/.test(this.cardNumber)) {
+        throw new Error('Card number must be exactly 4 digits (last 4 digits only)');
+      }
+    }
+
+    // Credit card/Line of credit specific validations - only validate if fields are present
+    if (this.type === 'CREDIT_CARD' || this.type === 'LINE_OF_CREDIT') {
       // Credit limit is optional, but if present must be positive
       if (this.creditLimit !== undefined && this.creditLimit <= 0) {
         throw new Error('Credit limit must be positive when specified');
@@ -57,9 +66,9 @@ export class Account {
       }
     }
 
-    // Balance validation for non-credit card accounts
-    if (this.type !== 'CREDIT_CARD' && this.balance < 0) {
-      throw new Error('Account balance cannot be negative for non-credit card accounts');
+    // Balance validation for non-credit accounts
+    if (this.type !== 'CREDIT_CARD' && this.type !== 'LINE_OF_CREDIT' && this.balance < 0) {
+      throw new Error('Account balance cannot be negative for non-credit accounts');
     }
   }
 
@@ -77,8 +86,8 @@ export class Account {
     if (isIncome) {
       this.balance += amount;
     } else {
-      // Check if there's sufficient balance (except for credit cards)
-      if (this.type !== 'CREDIT_CARD' && this.balance < amount) {
+      // Check if there's sufficient balance (except for credit accounts)
+      if (this.type !== 'CREDIT_CARD' && this.type !== 'LINE_OF_CREDIT' && this.balance < amount) {
         throw new Error('Insufficient balance for this transaction');
       }
       this.balance -= amount;
@@ -95,8 +104,8 @@ export class Account {
       return false;
     }
 
-    // Credit cards use credit limit, not balance
-    if (this.type === 'CREDIT_CARD') {
+    // Credit accounts use credit limit, not balance
+    if (this.type === 'CREDIT_CARD' || this.type === 'LINE_OF_CREDIT') {
       return this.availableCredit !== undefined && this.availableCredit >= amount;
     }
 

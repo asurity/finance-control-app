@@ -2,4 +2,4 @@
 // Exports will be added as implementations are created
 export * from './repositories';
 export * from './mappers';
-export * from './di';
+export * from './di/DIContainer';

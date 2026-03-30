@@ -13,8 +13,11 @@ export interface CreateBudgetDTO {
   amount: number;
   period: BudgetPeriod;
   categoryId: string;
+  userId: string;
   startDate: Date;
   endDate: Date;
+  alertThreshold?: number; // Default: 80
+  isActive?: boolean; // Default: true
 }
 
 /**
@@ -27,6 +30,8 @@ export interface UpdateBudgetDTO {
   period?: BudgetPeriod;
   startDate?: Date;
   endDate?: Date;
+  alertThreshold?: number;
+  isActive?: boolean;
 }
 
 /**

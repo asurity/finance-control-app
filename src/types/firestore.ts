@@ -27,7 +27,7 @@ export interface OrganizationMember {
   joinedAt: Date;
 }
 
-export type AccountType = 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD' | 'CASH' | 'INVESTMENT';
+export type AccountType = 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD' | 'CASH' | 'INVESTMENT' | 'LINE_OF_CREDIT';
 
 export interface Account {
   id: string;
@@ -36,7 +36,10 @@ export interface Account {
   balance: number;
   currency: string;
   isActive: boolean;
-  // Credit card specific fields (when type is CREDIT_CARD)
+  // Bank information
+  bankName?: string; // Nombre del banco (ej: Banco Estado, BCI, Santander)
+  cardNumber?: string; // Últimos 4 dígitos de la tarjeta (por seguridad)
+  // Credit card/Line of credit specific fields (when type is CREDIT_CARD or LINE_OF_CREDIT)
   creditCardId?: string; // Reference to CreditCard document
   creditLimit?: number;
   availableCredit?: number;
@@ -86,10 +89,16 @@ export interface Budget {
   id: string;
   name: string;
   amount: number;
+  spent: number; // Amount spent so far
   period: BudgetPeriod;
   categoryId: string;
+  userId: string;
   startDate: Date;
   endDate: Date;
+  alertThreshold: number; // Percentage (0-100) for alerts
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // ========================================

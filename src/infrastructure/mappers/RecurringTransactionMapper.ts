@@ -26,9 +26,9 @@ export class RecurringTransactionMapper {
       doc.userId,
       doc.startDate instanceof Timestamp ? doc.startDate.toDate() : new Date(doc.startDate),
       doc.nextOccurrence instanceof Timestamp ? doc.nextOccurrence.toDate() : new Date(doc.nextOccurrence),
+      doc.isActive !== undefined ? doc.isActive : true,
       doc.endDate instanceof Timestamp ? doc.endDate.toDate() : doc.endDate ? new Date(doc.endDate) : undefined,
       doc.lastProcessedDate instanceof Timestamp ? doc.lastProcessedDate.toDate() : doc.lastProcessedDate ? new Date(doc.lastProcessedDate) : undefined,
-      doc.isActive !== undefined ? doc.isActive : true,
       doc.tags || [],
       doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : undefined,
       doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : undefined
@@ -127,7 +127,7 @@ export class RecurringTransactionMapper {
    * @param docs - Array of Firestore documents
    * @returns Array of RecurringTransaction domain entities
    */
-  static toDomainArray(docs: Array<DocumentData & { id: string }>): RecurringTransaction[] {
+  static toDomainArray(docs: Array<DocumentData & { id: string }>): RecurringTransactionEntity[] {
     return docs.map(doc => RecurringTransactionMapper.toDomain(doc));
   }
 }

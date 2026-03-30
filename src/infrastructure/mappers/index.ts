@@ -3,6 +3,8 @@ export * from './TransactionMapper';
 export * from './AccountMapper';
 export * from './CategoryMapper';
 export * from './BudgetMapper';
+export * from './BudgetPeriodMapper';
+export * from './CategoryBudgetMapper';
 export * from './CreditCardMapper';
 export * from './RecurringTransactionMapper';
 export * from './AlertMapper';

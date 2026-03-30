@@ -16,14 +16,13 @@ import { useAuth } from '@/contexts/AuthContext';
 export function InitializeCategories() {
   const { currentOrgId } = useOrganization();
   const { user } = useAuth();
-  const [initialized, setInitialized] = useState(false);
 
   // Don't render anything if no organization
   if (!currentOrgId || !user) {
     return null;
   }
 
-  return <InitializeCategoriesInner orgId={currentOrgId} userId={user.uid} />;
+  return <InitializeCategoriesInner orgId={currentOrgId} userId={user.id} />;
 }
 
 /**

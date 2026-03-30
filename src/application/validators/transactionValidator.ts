@@ -17,13 +17,12 @@ export const CreateTransactionSchema = z.object({
   accountId: z.string().min(1, 'Debe seleccionar una cuenta'),
   categoryId: z.string().min(1, 'Debe seleccionar una categoría'),
   userId: z.string().min(1, 'El ID de usuario es requerido'),
-  tags: z.array(z.string().min(1)).optional().default([]),
+  tags: z.array(z.string().min(1)).default([]),
   receiptUrl: z.string().url('Debe ser una URL válida').optional().or(z.literal('')),
-  creditCardId: z.string().min(1).optional(),
   installments: z
     .number()
     .int('Las cuotas deben ser un número entero')
-    .min(2, 'Las cuotas deben ser al menos 2')
+    .min(0, 'Las cuotas no pueden ser negativas')
     .max(60, 'Las cuotas no pueden exceder 60')
     .optional(),
   recurringTransactionId: z.string().optional(),

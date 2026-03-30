@@ -48,8 +48,14 @@ export interface IBudgetRepository extends IRepository<Budget> {
    */
   isExceeded(budgetId: string): Promise<boolean>;
 
-  /**
-   * Gets budget alerts (approaching limit or exceeded)
+  /**   * Updates the spent amount for a budget
+   * @param budgetId - Budget ID
+   * @param amount - Amount to add to spent
+   * @returns Promise resolving when update is complete
+   */
+  updateSpent(budgetId: string, amount: number): Promise<void>;
+
+  /**   * Gets budget alerts (approaching limit or exceeded)
    * @param thresholdPercent - Alert threshold percentage (default 80%)
    * @returns Promise resolving to array of budgets needing alerts
    */

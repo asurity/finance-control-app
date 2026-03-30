@@ -8,6 +8,8 @@ import {
   FirestoreAccountRepository,
   FirestoreCategoryRepository,
   FirestoreBudgetRepository,
+  FirestoreBudgetPeriodRepository,
+  FirestoreCategoryBudgetRepository,
   FirestoreCreditCardRepository,
   FirestoreRecurringTransactionRepository,
   FirestoreAlertRepository,
@@ -62,6 +64,22 @@ import { DeleteCreditCardUseCase } from '@/domain/use-cases/credit-cards/DeleteC
 import { CalculateCreditCardBalanceUseCase } from '@/domain/use-cases/credit-cards/CalculateCreditCardBalanceUseCase';
 import { GetUpcomingPaymentsUseCase } from '@/domain/use-cases/credit-cards/GetUpcomingPaymentsUseCase';
 
+// Budget Period Use Cases
+import { CreateBudgetPeriodUseCase } from '@/domain/use-cases/budget-periods/CreateBudgetPeriodUseCase';
+import { UpdateBudgetPeriodUseCase } from '@/domain/use-cases/budget-periods/UpdateBudgetPeriodUseCase';
+import { DeleteBudgetPeriodUseCase } from '@/domain/use-cases/budget-periods/DeleteBudgetPeriodUseCase';
+import { GetBudgetPeriodUseCase } from '@/domain/use-cases/budget-periods/GetBudgetPeriodUseCase';
+import { ListBudgetPeriodsUseCase } from '@/domain/use-cases/budget-periods/ListBudgetPeriodsUseCase';
+import { GetCurrentBudgetPeriodUseCase } from '@/domain/use-cases/budget-periods/GetCurrentBudgetPeriodUseCase';
+
+// Category Budget Use Cases
+import { SetCategoryBudgetUseCase } from '@/domain/use-cases/category-budgets/SetCategoryBudgetUseCase';
+import { UpdateCategoryBudgetPercentageUseCase } from '@/domain/use-cases/category-budgets/UpdateCategoryBudgetPercentageUseCase';
+import { DeleteCategoryBudgetUseCase } from '@/domain/use-cases/category-budgets/DeleteCategoryBudgetUseCase';
+import { GetCategoryBudgetStatusUseCase } from '@/domain/use-cases/category-budgets/GetCategoryBudgetStatusUseCase';
+import { GetBudgetPeriodSummaryUseCase } from '@/domain/use-cases/category-budgets/GetBudgetPeriodSummaryUseCase';
+import { ListCategoryBudgetsUseCase } from '@/domain/use-cases/category-budgets/ListCategoryBudgetsUseCase';
+
 /**
  * Singleton DI Container
  */
@@ -74,6 +92,8 @@ export class DIContainer {
   private accountRepo?: FirestoreAccountRepository;
   private categoryRepo?: FirestoreCategoryRepository;
   private budgetRepo?: FirestoreBudgetRepository;
+  private budgetPeriodRepo?: FirestoreBudgetPeriodRepository;
+  private categoryBudgetRepo?: FirestoreCategoryBudgetRepository;
   private creditCardRepo?: FirestoreCreditCardRepository;
   private recurringTransactionRepo?: FirestoreRecurringTransactionRepository;
   private alertRepo?: FirestoreAlertRepository;
@@ -99,6 +119,8 @@ export class DIContainer {
       this.accountRepo = undefined;
       this.categoryRepo = undefined;
       this.budgetRepo = undefined;
+      this.budgetPeriodRepo = undefined;
+      this.categoryBudgetRepo = undefined;
       this.creditCardRepo = undefined;
       this.recurringTransactionRepo = undefined;
       this.alertRepo = undefined;
@@ -175,6 +197,20 @@ export class DIContainer {
     return this.savingsGoalRepo;
   }
 
+  getBudgetPeriodRepository(): FirestoreBudgetPeriodRepository {
+    if (!this.budgetPeriodRepo) {
+      this.budgetPeriodRepo = new FirestoreBudgetPeriodRepository(this.getOrgId());
+    }
+    return this.budgetPeriodRepo;
+  }
+
+  getCategoryBudgetRepository(): FirestoreCategoryBudgetRepository {
+    if (!this.categoryBudgetRepo) {
+      this.categoryBudgetRepo = new FirestoreCategoryBudgetRepository(this.getOrgId());
+    }
+    return this.categoryBudgetRepo;
+  }
+
   // ========================================
   // Use Case Getters (with automatic dependency injection)
   // ========================================
@@ -182,7 +218,10 @@ export class DIContainer {
   getCreateTransactionUseCase(): CreateTransactionUseCase {
     return new CreateTransactionUseCase(
       this.getTransactionRepository(),
-      this.getAccountRepository()
+      this.getAccountRepository(),
+      this.getBudgetRepository(),
+      this.getBudgetPeriodRepository(),
+      this.getCategoryBudgetRepository()
     );
   }
 
@@ -383,18 +422,88 @@ export class DIContainer {
   getDeleteCreditCardUseCase(): DeleteCreditCardUseCase {
     return new DeleteCreditCardUseCase(
       this.getCreditCardRepository(),
+      this.getAccountRepository(),
       this.getTransactionRepository()
     );
   }
 
   getCalculateCreditCardBalanceUseCase(): CalculateCreditCardBalanceUseCase {
-    return new CalculateCreditCardBalanceUseCase(this.getTransactionRepository());
+    return new CalculateCreditCardBalanceUseCase(this.getCreditCardRepository());
   }
 
   getGetUpcomingPaymentsUseCase(): GetUpcomingPaymentsUseCase {
-    return new GetUpcomingPaymentsUseCase(
-      this.getCreditCardRepository(),
-      this.getTransactionRepository()
+    return new GetUpcomingPaymentsUseCase(this.getCreditCardRepository());
+  }
+
+  // ========================================
+  // Budget Period Use Cases
+  // ========================================
+
+  getCreateBudgetPeriodUseCase(): CreateBudgetPeriodUseCase {
+    return new CreateBudgetPeriodUseCase(this.getBudgetPeriodRepository());
+  }
+
+  getUpdateBudgetPeriodUseCase(): UpdateBudgetPeriodUseCase {
+    return new UpdateBudgetPeriodUseCase(
+      this.getBudgetPeriodRepository(),
+      this.getCategoryBudgetRepository()
     );
+  }
+
+  getDeleteBudgetPeriodUseCase(): DeleteBudgetPeriodUseCase {
+    return new DeleteBudgetPeriodUseCase(
+      this.getBudgetPeriodRepository(),
+      this.getCategoryBudgetRepository()
+    );
+  }
+
+  getGetBudgetPeriodUseCase(): GetBudgetPeriodUseCase {
+    return new GetBudgetPeriodUseCase(this.getBudgetPeriodRepository());
+  }
+
+  getListBudgetPeriodsUseCase(): ListBudgetPeriodsUseCase {
+    return new ListBudgetPeriodsUseCase(this.getBudgetPeriodRepository());
+  }
+
+  getGetCurrentBudgetPeriodUseCase(): GetCurrentBudgetPeriodUseCase {
+    return new GetCurrentBudgetPeriodUseCase(this.getBudgetPeriodRepository());
+  }
+
+  // ========================================
+  // Category Budget Use Cases
+  // ========================================
+
+  getSetCategoryBudgetUseCase(): SetCategoryBudgetUseCase {
+    return new SetCategoryBudgetUseCase(
+      this.getCategoryBudgetRepository(),
+      this.getBudgetPeriodRepository(),
+      this.getCategoryRepository()
+    );
+  }
+
+  getUpdateCategoryBudgetPercentageUseCase(): UpdateCategoryBudgetPercentageUseCase {
+    return new UpdateCategoryBudgetPercentageUseCase(
+      this.getCategoryBudgetRepository(),
+      this.getBudgetPeriodRepository()
+    );
+  }
+
+  getDeleteCategoryBudgetUseCase(): DeleteCategoryBudgetUseCase {
+    return new DeleteCategoryBudgetUseCase(this.getCategoryBudgetRepository());
+  }
+
+  getGetCategoryBudgetStatusUseCase(): GetCategoryBudgetStatusUseCase {
+    return new GetCategoryBudgetStatusUseCase(this.getCategoryBudgetRepository());
+  }
+
+  getGetBudgetPeriodSummaryUseCase(): GetBudgetPeriodSummaryUseCase {
+    return new GetBudgetPeriodSummaryUseCase(
+      this.getBudgetPeriodRepository(),
+      this.getCategoryBudgetRepository()
+    );
+  }
+
+  getListCategoryBudgetsUseCase(): ListCategoryBudgetsUseCase {
+    return new ListCategoryBudgetsUseCase(this.getCategoryBudgetRepository());
   }
 }

@@ -21,6 +21,8 @@ export class AccountMapper {
       doc.balance,
       doc.currency || 'CLP',
       doc.isActive !== undefined ? doc.isActive : true,
+      doc.bankName,
+      doc.cardNumber,
       doc.creditCardId,
       doc.creditLimit,
       doc.availableCredit,
@@ -43,6 +45,9 @@ export class AccountMapper {
       balance: account.balance,
       currency: account.currency || 'CLP',
       isActive: account.isActive !== undefined ? account.isActive : true,
+      // Bank information
+      bankName: account.bankName || null,
+      cardNumber: account.cardNumber || null,
       // Credit card specific fields
       creditCardId: account.creditCardId || null,
       creditLimit: account.creditLimit || null,
@@ -70,6 +75,8 @@ export class AccountMapper {
     if (account.balance !== undefined) data.balance = account.balance;
     if (account.currency !== undefined) data.currency = account.currency;
     if (account.isActive !== undefined) data.isActive = account.isActive;
+    if (account.bankName !== undefined) data.bankName = account.bankName;
+    if (account.cardNumber !== undefined) data.cardNumber = account.cardNumber;
     if (account.creditCardId !== undefined) data.creditCardId = account.creditCardId;
     if (account.creditLimit !== undefined) data.creditLimit = account.creditLimit;
     if (account.availableCredit !== undefined) data.availableCredit = account.availableCredit;

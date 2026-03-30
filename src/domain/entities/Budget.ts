@@ -10,10 +10,14 @@ export class Budget {
     public readonly id: string,
     public readonly name: string,
     public readonly amount: number,
+    public spent: number, // Mutable - changes with transactions
     public readonly period: BudgetPeriod,
     public readonly categoryId: string,
+    public readonly userId: string,
     public readonly startDate: Date,
     public readonly endDate: Date,
+    public readonly alertThreshold: number, // 0-100 percentage
+    public isActive: boolean, // Mutable
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date
   ) {
@@ -37,8 +41,20 @@ export class Budget {
       throw new Error('Budget amount must be greater than 0');
     }
 
+    if (this.spent < 0) {
+      throw new Error('Spent amount cannot be negative');
+    }
+
     if (!this.categoryId || this.categoryId.trim().length === 0) {
       throw new Error('Category ID is required');
+    }
+
+    if (!this.userId || this.userId.trim().length === 0) {
+      throw new Error('User ID is required');
+    }
+
+    if (this.alertThreshold < 0 || this.alertThreshold > 100) {
+      throw new Error('Alert threshold must be between 0 and 100');
     }
 
     // Date validations
@@ -102,11 +118,11 @@ export class Budget {
   }
 
   /**
-   * Checks if budget is currently active (within date range)
+   * Checks if budget is currently within date period
    * @param currentDate Date to check (defaults to now)
    * @returns True if current date is within budget period
    */
-  isActive(currentDate: Date = new Date()): boolean {
+  isWithinPeriod(currentDate: Date = new Date()): boolean {
     return currentDate >= this.startDate && currentDate <= this.endDate;
   }
 

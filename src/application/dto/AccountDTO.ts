@@ -17,6 +17,10 @@ export interface CreateAccountDTO {
   color?: string;
   icon?: string;
   isActive?: boolean;
+  // Bank information
+  bankName?: string;
+  cardNumber?: string; // Últimos 4 dígitos
+  // Credit card/line of credit fields
   creditLimit?: number;
   creditCardId?: string;
 }
@@ -31,6 +35,8 @@ export interface UpdateAccountDTO {
   color?: string;
   icon?: string;
   isActive?: boolean;
+  bankName?: string;
+  cardNumber?: string;
 }
 
 /**

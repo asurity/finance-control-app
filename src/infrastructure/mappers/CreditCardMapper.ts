@@ -92,7 +92,7 @@ export class CreditCardMapper {
    * @param docs - Array of Firestore documents
    * @returns Array of CreditCard domain entities
    */
-  static toDomainArray(docs: Array<DocumentData & { id: string }>): CreditCard[] {
+  static toDomainArray(docs: Array<DocumentData & { id: string }>): CreditCardEntity[] {
     return docs.map(doc => CreditCardMapper.toDomain(doc));
   }
 }

@@ -7,13 +7,13 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils/format';
-import { Wallet, CreditCard, Building, Landmark, TrendingUp, ArrowRight } from 'lucide-react';
+import { Wallet, CreditCard, Building, Landmark, TrendingUp, ArrowRight, HandCoins } from 'lucide-react';
 import Link from 'next/link';
 
 interface Account {
   id: string;
   name: string;
-  type: 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD' | 'CASH' | 'INVESTMENT';
+  type: 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD' | 'CASH' | 'INVESTMENT' | 'LINE_OF_CREDIT';
   balance: number;
   isActive: boolean;
 }
@@ -27,6 +27,7 @@ const accountIcons = {
   CHECKING: Building,
   SAVINGS: Landmark,
   CREDIT_CARD: CreditCard,
+  LINE_OF_CREDIT: HandCoins,
   CASH: Wallet,
   INVESTMENT: TrendingUp,
 };
@@ -35,6 +36,7 @@ const accountLabels = {
   CHECKING: 'Cuenta Corriente',
   SAVINGS: 'Cuenta de Ahorro',
   CREDIT_CARD: 'Tarjeta de Crédito',
+  LINE_OF_CREDIT: 'Línea de Crédito',
   CASH: 'Efectivo',
   INVESTMENT: 'Inversión',
 };

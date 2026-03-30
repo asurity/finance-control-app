@@ -19,10 +19,14 @@ export class BudgetMapper {
       doc.id,
       doc.name,
       doc.amount,
+      doc.spent || 0,
       doc.period,
       doc.categoryId,
+      doc.userId,
       doc.startDate instanceof Timestamp ? doc.startDate.toDate() : new Date(doc.startDate),
       doc.endDate instanceof Timestamp ? doc.endDate.toDate() : new Date(doc.endDate),
+      doc.alertThreshold || 80,
+      doc.isActive !== undefined ? doc.isActive : true,
       doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : undefined,
       doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : undefined
     );
@@ -37,8 +41,12 @@ export class BudgetMapper {
     return {
       name: budget.name,
       amount: budget.amount,
+      spent: budget.spent || 0,
       period: budget.period,
       categoryId: budget.categoryId,
+      userId: budget.userId,
+      alertThreshold: budget.alertThreshold || 80,
+      isActive: budget.isActive !== undefined ? budget.isActive : true,
       startDate: budget.startDate instanceof Date
         ? Timestamp.fromDate(budget.startDate)
         : Timestamp.fromDate(new Date(budget.startDate)),
@@ -62,8 +70,12 @@ export class BudgetMapper {
 
     if (budget.name !== undefined) data.name = budget.name;
     if (budget.amount !== undefined) data.amount = budget.amount;
+    if (budget.spent !== undefined) data.spent = budget.spent;
     if (budget.period !== undefined) data.period = budget.period;
     if (budget.categoryId !== undefined) data.categoryId = budget.categoryId;
+    if (budget.userId !== undefined) data.userId = budget.userId;
+    if (budget.alertThreshold !== undefined) data.alertThreshold = budget.alertThreshold;
+    if (budget.isActive !== undefined) data.isActive = budget.isActive;
     
     if (budget.startDate !== undefined) {
       data.startDate = budget.startDate instanceof Date

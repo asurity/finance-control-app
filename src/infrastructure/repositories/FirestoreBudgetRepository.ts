@@ -131,6 +131,16 @@ export class FirestoreBudgetRepository implements IBudgetRepository {
     return usage.isExceeded;
   }
 
+  async updateSpent(budgetId: string, amount: number): Promise<void> {
+    const budget = await this.getById(budgetId);
+    if (!budget) {
+      throw new Error('Budget not found');
+    }
+
+    const newSpent = (budget.spent || 0) + amount;
+    await this.update(budgetId, { spent: newSpent });
+  }
+
   async getBudgetAlerts(thresholdPercent: number = 80): Promise<Budget[]> {
     // Note: This requires calculating usage for all budgets
     // Should be implemented by a use case

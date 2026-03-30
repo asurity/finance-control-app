@@ -1,6 +1,9 @@
 import { BaseUseCase } from '../base/BaseUseCase';
 import { ITransactionRepository } from '@/domain/repositories/ITransactionRepository';
 import { IAccountRepository } from '@/domain/repositories/IAccountRepository';
+import { IBudgetRepository } from '@/domain/repositories/IBudgetRepository';
+import { IBudgetPeriodRepository } from '@/domain/repositories/IBudgetPeriodRepository';
+import { ICategoryBudgetRepository } from '@/domain/repositories/ICategoryBudgetRepository';
 import { Transaction, TransactionType } from '@/types/firestore';
 
 /**
@@ -35,7 +38,7 @@ export interface CreateTransactionOutput {
 
 /**
  * Use Case: Create Transaction
- * Handles transaction creation with automatic account balance updates
+ * Handles transaction creation with automatic account balance updates and budget tracking
  */
 export class CreateTransactionUseCase extends BaseUseCase<
   CreateTransactionInput,
@@ -43,7 +46,10 @@ export class CreateTransactionUseCase extends BaseUseCase<
 > {
   constructor(
     private transactionRepo: ITransactionRepository,
-    private accountRepo: IAccountRepository
+    private accountRepo: IAccountRepository,
+    private budgetRepo?: IBudgetRepository,
+    private budgetPeriodRepo?: IBudgetPeriodRepository,
+    private categoryBudgetRepo?: ICategoryBudgetRepository
   ) {
     super();
   }
@@ -119,6 +125,12 @@ export class CreateTransactionUseCase extends BaseUseCase<
     // Update account balance
     await this.updateAccountBalance(account.id, input.amount, input.type);
 
+    // Update budget spent amount (only for EXPENSE transactions)
+    if (input.type === 'EXPENSE') {
+      await this.updateBudgetSpent(input.categoryId, input.amount, input.date);
+      await this.updateCategoryBudget(input.userId, input.categoryId, input.amount, input.date);
+    }
+
     return { transactionId };
   }
 
@@ -139,5 +151,76 @@ export class CreateTransactionUseCase extends BaseUseCase<
     }
 
     await this.accountRepo.updateBalance(accountId, newBalance);
+  }
+
+  /**
+   * Updates the category budget spent amount for expense transactions
+   * @private
+   */
+  private async updateCategoryBudget(
+    userId: string,
+    categoryId: string,
+    amount: number,
+    transactionDate: Date
+  ): Promise<void> {
+    // Skip if budget repositories are not available
+    if (!this.budgetPeriodRepo || !this.categoryBudgetRepo) {
+      return;
+    }
+
+    try {
+      // Find the budget period that contains the transaction date
+      const budgetPeriod = await this.budgetPeriodRepo.getByDate(userId, transactionDate);
+      if (!budgetPeriod) {
+        // No budget period configured for this date, skip tracking
+        return;
+      }
+
+      // Find the category budget for this category in the budget period
+      const categoryBudget = await this.categoryBudgetRepo.getByBudgetPeriodAndCategory(
+        budgetPeriod.id,
+        categoryId
+      );
+      if (!categoryBudget) {
+        // No budget configured for this category, skip tracking
+        return;
+      }
+
+      // Increment the spent amount
+      await this.categoryBudgetRepo.incrementSpentAmount(categoryBudget.id, amount);
+    } catch (error) {
+      // Log error but don't fail the transaction creation
+      console.error('Error updating category budget:', error);
+    }
+  }
+
+  /**
+   * Updates the budget spent amount for expense transactions
+   * Finds active budgets for the category and updates their spent field
+   * @private
+   */
+  private async updateBudgetSpent(
+    categoryId: string,
+    amount: number,
+    transactionDate: Date
+  ): Promise<void> {
+    // Skip if budget repository is not available
+    if (!this.budgetRepo) {
+      return;
+    }
+
+    try {
+      // Find active budgets for this category that contain the transaction date
+      const activeBudgets = await this.budgetRepo.getActive(transactionDate);
+      const categoryBudgets = activeBudgets.filter(b => b.categoryId === categoryId && b.isActive);
+
+      // Update spent amount for each matching budget
+      for (const budget of categoryBudgets) {
+        await this.budgetRepo.updateSpent(budget.id, amount);
+      }
+    } catch (error) {
+      // Log error but don't fail the transaction creation
+      console.error('Error updating budget spent:', error);
+    }
   }
 }

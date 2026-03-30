@@ -108,8 +108,12 @@ export function useTransactions(orgId: string) {
     onSuccess: () => {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: transactionKeys.all(orgId) });
-      // Also invalidate account queries since balance changed
+      // Also invalidate related views since balances and aggregates changed
       queryClient.invalidateQueries({ queryKey: ['accounts', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['budgets', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['budget-periods', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['category-budgets', orgId] });
     },
   });
 
@@ -122,6 +126,10 @@ export function useTransactions(orgId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all(orgId) });
       queryClient.invalidateQueries({ queryKey: ['accounts', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['budgets', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['budget-periods', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['category-budgets', orgId] });
     },
   });
 
@@ -135,6 +143,11 @@ export function useTransactions(orgId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all(orgId) });
+      queryClient.invalidateQueries({ queryKey: ['accounts', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['budgets', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['budget-periods', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['category-budgets', orgId] });
     },
   });
 
