@@ -349,32 +349,32 @@
 
 ### 4.1 — Actualizar crédito disponible al crear transacciones (Domain + Infrastructure)
 
-- [ ] **Editar** `src/domain/use-cases/transactions/CreateTransactionUseCase.ts`
+- [x] **Editar** `src/domain/use-cases/transactions/CreateTransactionUseCase.ts`
   - Al procesar una transacción EXPENSE en cuenta tipo CREDIT_CARD o LINE_OF_CREDIT:
     - Validar que `amount <= availableCredit` (o `amount <= creditLimit - balance` si `availableCredit` no está sincronizado)
     - Actualizar `availableCredit = creditLimit - newBalance` en la cuenta
   - Al procesar una transacción INCOME (pago de tarjeta):
     - Recalcular `availableCredit` después del pago
 
-- [ ] **Editar** `src/domain/entities/Account.ts`
+- [x] **Editar** `src/domain/entities/Account.ts`
   - Agregar método `getAvailableCredit(): number` que calcula `creditLimit - balance` para cuentas de crédito
   - Agregar método `hasAvailableCredit(amount: number): boolean`
 
 ### 4.2 — Mejorar display de cuentas (Presentation)
 
-- [ ] **Editar** `src/app/(dashboard)/accounts/page.tsx`
+- [x] **Editar** `src/app/(dashboard)/accounts/page.tsx`
   - Agregar columna "Crédito Disponible" en la tabla, visible solo para CREDIT_CARD y LINE_OF_CREDIT
   - Mostrar con `<MoneyDisplay>`:
     - Crédito disponible: verde si > 30% del límite, amarillo si 10-30%, rojo si < 10%
   - Agregar columna "Límite" para cuentas de crédito
 
-- [ ] **Editar** `src/presentation/components/features/dashboard/widgets/AccountsSummaryWidget.tsx`
+- [x] **Editar** `src/presentation/components/features/dashboard/widgets/AccountsSummaryWidget.tsx`
   - Para cuentas de crédito, mostrar "Usado: $X / Límite: $X" en lugar de solo el balance
   - Agregar progress bar de uso de crédito
 
 ### 4.3 — Commit de Fase 4
 
-- [ ] Commit y tag:
+- [x] Commit y tag:
   ```bash
   git add -A
   git commit -m "feat: mejoras en gestión de cuentas y validación de crédito
