@@ -76,6 +76,54 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
     return { totalIncome: income, totalExpenses: expenses };
   }, [periodTransactions]);
 
+  // Calculate insights
+  const insights = useMemo(() => {
+    if (!categoryComparison.length || !periodTransactions?.length) return null;
+
+    // Category where most was saved (biggest positive difference)
+    const bestCategory = [...categoryComparison]
+      .filter((c) => c.budgeted > 0)
+      .sort((a, b) => b.remaining - a.remaining)[0];
+
+    // Category most exceeded
+    const worstCategory = [...categoryComparison]
+      .filter((c) => c.budgeted > 0)
+      .sort((a, b) => a.remaining - b.remaining)[0];
+
+    // Day with highest spending
+    const expensesByDay: Record<string, number> = {};
+    periodTransactions
+      .filter((t) => t.type === 'EXPENSE')
+      .forEach((t) => {
+        const day = format(new Date(t.date), 'yyyy-MM-dd');
+        expensesByDay[day] = (expensesByDay[day] || 0) + t.amount;
+      });
+
+    const highestSpendingDay = Object.entries(expensesByDay)
+      .sort(([, a], [, b]) => b - a)[0];
+
+    // Transactions grouped by category with subtotals
+    const categorySubtotals = periodTransactions
+      .filter((t) => t.type === 'EXPENSE')
+      .reduce((acc, t) => {
+        const catName = allCategories.find((c) => c.id === t.categoryId)?.name || 'Sin categoría';
+        if (!acc[catName]) acc[catName] = { amount: 0, count: 0 };
+        acc[catName].amount += t.amount;
+        acc[catName].count += 1;
+        return acc;
+      }, {} as Record<string, { amount: number; count: number }>);
+
+    return {
+      bestCategory: bestCategory?.remaining > 0 ? bestCategory : null,
+      worstCategory: worstCategory?.remaining < 0 ? worstCategory : null,
+      highestSpendingDay: highestSpendingDay
+        ? { date: highestSpendingDay[0], amount: highestSpendingDay[1] }
+        : null,
+      categorySubtotals: Object.entries(categorySubtotals)
+        .sort(([, a], [, b]) => b.amount - a.amount),
+    };
+  }, [categoryComparison, periodTransactions, allCategories]);
+
   // Prepare category budget comparison data
   const categoryComparison = useMemo(() => {
     if (!categoryBudgetsData?.categoryBudgets || !allCategories.length) return [];
@@ -235,6 +283,113 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
           </CardContent>
         </Card>
       </div>
+
+      {/* Insights del Período */}
+      {insights && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              💡 Insights del Período
+            </CardTitle>
+            <CardDescription>Análisis automático de tu comportamiento financiero</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              {insights.bestCategory && (
+                <div className="rounded-lg bg-green-50 dark:bg-green-900/20 p-4">
+                  <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                    🏆 Mayor ahorro
+                  </p>
+                  <p className="text-sm mt-1">
+                    <span className="font-semibold">{insights.bestCategory.categoryName}</span>: ahorraste{' '}
+                    {formatCurrencyAbsolute(insights.bestCategory.remaining)} vs presupuesto
+                  </p>
+                </div>
+              )}
+              {insights.worstCategory && (
+                <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-4">
+                  <p className="text-sm font-medium text-red-700 dark:text-red-400">
+                    ⚠️ Mayor exceso
+                  </p>
+                  <p className="text-sm mt-1">
+                    <span className="font-semibold">{insights.worstCategory.categoryName}</span>: excedido por{' '}
+                    {formatCurrencyAbsolute(Math.abs(insights.worstCategory.remaining))}
+                  </p>
+                </div>
+              )}
+              {insights.highestSpendingDay && (
+                <div className="rounded-lg bg-orange-50 dark:bg-orange-900/20 p-4">
+                  <p className="text-sm font-medium text-orange-700 dark:text-orange-400">
+                    📅 Día de mayor gasto
+                  </p>
+                  <p className="text-sm mt-1">
+                    {format(new Date(insights.highestSpendingDay.date), "EEEE d 'de' MMMM", { locale: es })}:{' '}
+                    {formatCurrencyAbsolute(insights.highestSpendingDay.amount)}
+                  </p>
+                </div>
+              )}
+              {totalIncome > 0 && (
+                <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-4">
+                  <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                    💰 Tasa de ahorro
+                  </p>
+                  <p className="text-sm mt-1">
+                    {((totalIncome - totalExpenses) / totalIncome * 100).toFixed(1)}% de tus ingresos
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Gastos agrupados por categoría */}
+      {insights && insights.categorySubtotals.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Gastos por Categoría</CardTitle>
+            <CardDescription>Transacciones agrupadas con subtotales</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Categoría</TableHead>
+                    <TableHead className="text-center">Transacciones</TableHead>
+                    <TableHead className="text-right">Subtotal</TableHead>
+                    <TableHead className="text-right">% del Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {insights.categorySubtotals.map(([name, data]) => (
+                    <TableRow key={name}>
+                      <TableCell className="font-medium">{name}</TableCell>
+                      <TableCell className="text-center">{data.count}</TableCell>
+                      <TableCell className="text-right">
+                        <MoneyDisplay amount={data.amount} type="expense" size="sm" />
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground">
+                        {totalExpenses > 0 ? ((data.amount / totalExpenses) * 100).toFixed(1) : 0}%
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="font-bold">
+                    <TableCell>Total</TableCell>
+                    <TableCell className="text-center">
+                      {insights.categorySubtotals.reduce((sum, [, d]) => sum + d.count, 0)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <MoneyDisplay amount={totalExpenses} type="expense" size="sm" />
+                    </TableCell>
+                    <TableCell className="text-right">100%</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Category Budget vs Actual Table */}
       <Card>

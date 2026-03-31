@@ -22,6 +22,7 @@ import { useBudgetPeriods } from '@/application/hooks/useBudgetPeriods';
 import { useCategories } from '@/application/hooks/useCategories';
 import { useAccounts } from '@/application/hooks/useAccounts';
 import { formatCurrencyAbsolute, formatCurrencyWithSign } from '@/lib/utils/format';
+import { DateRangePicker } from '@/presentation/components/shared/DateRangePicker';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -253,24 +254,40 @@ function ReportsContent({
   // Export to CSV
   const handleExportCSV = () => {
     try {
-      const headers = ['Fecha', 'Tipo', 'Descripción', 'Categoría', 'Cuenta', 'Monto'];
-      const rows = transactions
-        .filter((t) => t.userId === userId)
-        .map((t) => {
+      const headers = ['Fecha', 'Tipo', 'Descripción', 'Categoría', 'Cuenta', 'Monto', 'Cuotas'];
+      const userTransactions = transactions.filter((t) => t.userId === userId);
+      const rows = userTransactions.map((t) => {
           const category = categories.find((c) => c.id === t.categoryId)?.name || 'Sin categoría';
           const account = accounts.find((a) => a.id === t.accountId)?.name || 'Sin cuenta';
+          const installmentInfo = t.isInstallment
+            ? `${t.installmentNumber || ''}/${t.totalInstallments || ''}`
+            : '';
           return [
             format(new Date(t.date), 'dd/MM/yyyy', { locale: es }),
             t.type === 'INCOME' ? 'Ingreso' : 'Gasto',
-            t.description,
-            category,
-            account,
+            `"${t.description.replace(/"/g, '""')}"`,
+            `"${category}"`,
+            `"${account}"`,
             t.amount.toString(),
+            installmentInfo,
           ];
         });
 
+      // Add totals row
+      const totalIncome = userTransactions
+        .filter((t) => t.type === 'INCOME')
+        .reduce((sum, t) => sum + t.amount, 0);
+      const totalExpenses = userTransactions
+        .filter((t) => t.type === 'EXPENSE')
+        .reduce((sum, t) => sum + t.amount, 0);
+      rows.push([]);
+      rows.push(['', '', '', '', 'Total Ingresos', totalIncome.toString(), '']);
+      rows.push(['', '', '', '', 'Total Gastos', totalExpenses.toString(), '']);
+      rows.push(['', '', '', '', 'Balance', (totalIncome - totalExpenses).toString(), '']);
+
       const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -333,7 +350,7 @@ function ReportsContent({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <div className="space-y-2">
                   <Label>Periodo predefinido</Label>
                   <Select
@@ -355,26 +372,16 @@ function ReportsContent({
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Fecha de inicio</Label>
-                  <Input
-                    type="date"
-                    value={format(startDate, 'yyyy-MM-dd')}
-                    onChange={(e) => {
-                      setStartDate(new Date(e.target.value));
+                  <Label>Rango de fechas</Label>
+                  <DateRangePicker
+                    startDate={startDate}
+                    endDate={endDate}
+                    onRangeChange={(start, end) => {
+                      setStartDate(start);
+                      setEndDate(end);
                       setPeriodPreset('custom');
                     }}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Fecha de fin</Label>
-                  <Input
-                    type="date"
-                    value={format(endDate, 'yyyy-MM-dd')}
-                    onChange={(e) => {
-                      setEndDate(new Date(e.target.value));
-                      setPeriodPreset('custom');
-                    }}
+                    className="w-full"
                   />
                 </div>
 
