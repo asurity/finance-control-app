@@ -46,7 +46,7 @@ export interface DashboardStatistics {
  */
 export interface GetDashboardStatisticsInput {
   userId: string;
-  period: 'month' | 'quarter' | 'year';
+  period: 'week' | 'month' | 'quarter' | 'year';
 }
 
 /**
@@ -201,7 +201,7 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
     };
   }
 
-  private calculateDateRange(period: 'month' | 'quarter' | 'year'): {
+  private calculateDateRange(period: 'week' | 'month' | 'quarter' | 'year'): {
     startDate: Date;
     endDate: Date;
     previousStartDate: Date;
@@ -214,6 +214,22 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
     let previousStartDate = new Date(now);
 
     switch (period) {
+      case 'week':
+        // Week starts on Monday (0=Sunday, 1=Monday, ..., 6=Saturday)
+        const dayOfWeek = now.getDay();
+        const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - daysFromMonday);
+        startDate.setHours(0, 0, 0, 0);
+        
+        previousStartDate = new Date(startDate);
+        previousStartDate.setDate(previousStartDate.getDate() - 7);
+        
+        previousEndDate = new Date(startDate);
+        previousEndDate.setDate(previousEndDate.getDate() - 1);
+        previousEndDate.setHours(23, 59, 59, 999);
+        break;
+
       case 'month':
         startDate.setDate(1);
         startDate.setHours(0, 0, 0, 0);

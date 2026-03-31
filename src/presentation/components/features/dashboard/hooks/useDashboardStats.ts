@@ -8,7 +8,7 @@ import { DIContainer } from '@/infrastructure/di/DIContainer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
 
-export type DashboardPeriod = 'month' | 'quarter' | 'year';
+export type DashboardPeriod = 'week' | 'month' | 'quarter' | 'year';
 
 /**
  * Hook for fetching dashboard statistics

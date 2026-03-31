@@ -12,12 +12,15 @@ import { useExpensesByCategory } from '@/presentation/components/features/dashbo
 import { useRecentTransactions } from '@/presentation/components/features/dashboard/hooks/useRecentTransactions';
 import { useAccountsSummary } from '@/presentation/components/features/dashboard/hooks/useAccountsSummary';
 import { useUnreadAlerts } from '@/presentation/components/features/dashboard/hooks/useUnreadAlerts';
+import { useDailyWeeklyStats } from '@/presentation/components/features/dashboard/hooks/useDailyWeeklyStats';
 import { KPICard, KPICardSkeleton } from '@/presentation/components/shared/Cards/KPICard';
 import { BalanceChart, BalanceChartSkeleton } from '@/presentation/components/features/dashboard/charts/BalanceChart';
 import { ExpensesByCategoryChart, ExpensesByCategoryChartSkeleton } from '@/presentation/components/features/dashboard/charts/ExpensesByCategoryChart';
 import { RecentTransactionsWidget, RecentTransactionsWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/RecentTransactionsWidget';
 import { AccountsSummaryWidget, AccountsSummaryWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/AccountsSummaryWidget';
 import { AlertsWidget, AlertsWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/AlertsWidget';
+import { DailyExpenseWidget, DailyExpenseWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/DailyExpenseWidget';
+import { WeeklyExpenseWidget, WeeklyExpenseWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/WeeklyExpenseWidget';
 import { formatCurrency, formatCurrencyAbsolute } from '@/lib/utils/format';
 import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
 import {
@@ -36,7 +39,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
 
 export default function DashboardPage() {
-  const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('month');
+  const [period, setPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
   const { user } = useAuth();
   const { currentOrgId } = useOrganization();
   const { data: stats, isLoading, error, refetch, isFetching } = useDashboardStats(period);
@@ -45,6 +48,7 @@ export default function DashboardPage() {
   const { data: recentTransactions, isLoading: isLoadingTransactions } = useRecentTransactions(5);
   const { data: accountsSummary, isLoading: isLoadingAccounts } = useAccountsSummary();
   const { data: unreadAlerts, isLoading: isLoadingAlerts } = useUnreadAlerts(3);
+  const { data: dailyWeeklyStats, isLoading: isLoadingDailyWeekly } = useDailyWeeklyStats();
   const queryClient = useQueryClient();
 
   const handleRefresh = async () => {
@@ -61,6 +65,8 @@ export default function DashboardPage() {
 
   const getPeriodLabel = () => {
     switch (period) {
+      case 'week':
+        return 'Esta semana';
       case 'month':
         return 'Este mes';
       case 'quarter':
@@ -111,6 +117,7 @@ export default function DashboardPage() {
               <SelectValue placeholder="Seleccionar período" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="week">Esta semana</SelectItem>
               <SelectItem value="month">Este mes</SelectItem>
               <SelectItem value="quarter">Este trimestre</SelectItem>
               <SelectItem value="year">Este año</SelectItem>
@@ -120,6 +127,21 @@ export default function DashboardPage() {
             <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
           </Button>
         </div>
+      </div>
+
+      {/* Daily & Weekly Widgets - Immediate Information */}
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+        {isLoadingDailyWeekly || !dailyWeeklyStats ? (
+          <>
+            <DailyExpenseWidgetSkeleton />
+            <WeeklyExpenseWidgetSkeleton />
+          </>
+        ) : (
+          <>
+            <DailyExpenseWidget stats={dailyWeeklyStats} />
+            <WeeklyExpenseWidget stats={dailyWeeklyStats} />
+          </>
+        )}
       </div>
 
       {/* Balance del Período - Card Destacado */}
@@ -184,7 +206,7 @@ export default function DashboardPage() {
           <KPICardSkeleton />
         ) : (
           <KPICard
-            title={`Ingresos ${period === 'month' ? 'del Mes' : period === 'quarter' ? 'del Trimestre' : 'del Año'}`}
+            title={`Ingresos ${period === 'week' ? 'de la Semana' : period === 'month' ? 'del Mes' : period === 'quarter' ? 'del Trimestre' : 'del Año'}`}
             value={formatCurrency(stats.totalIncome)}
             valueClassName="text-green-600 dark:text-green-400"
             icon={<TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />}
@@ -197,7 +219,7 @@ export default function DashboardPage() {
           <KPICardSkeleton />
         ) : (
           <KPICard
-            title={`Gastos ${period === 'month' ? 'del Mes' : period === 'quarter' ? 'del Trimestre' : 'del Año'}`}
+            title={`Gastos ${period === 'week' ? 'de la Semana' : period === 'month' ? 'del Mes' : period === 'quarter' ? 'del Trimestre' : 'del Año'}`}
             value={formatCurrencyAbsolute(stats.totalExpenses)}
             valueClassName="text-red-600 dark:text-red-400"
             icon={<TrendingDown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600" />}
