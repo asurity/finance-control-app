@@ -45,6 +45,7 @@ import { CreateAccountUseCase } from '@/domain/use-cases/accounts/CreateAccountU
 import { UpdateAccountUseCase } from '@/domain/use-cases/accounts/UpdateAccountUseCase';
 import { DeleteAccountUseCase } from '@/domain/use-cases/accounts/DeleteAccountUseCase';
 import { GetAccountByIdUseCase } from '@/domain/use-cases/accounts/GetAccountByIdUseCase';
+import { GetDebtSummaryUseCase } from '@/domain/use-cases/accounts/GetDebtSummaryUseCase';
 
 // Budget Use Cases
 import { CreateBudgetUseCase } from '@/domain/use-cases/budgets/CreateBudgetUseCase';
@@ -366,6 +367,13 @@ export class DIContainer {
 
   getGetAccountByIdUseCase(): GetAccountByIdUseCase {
     return new GetAccountByIdUseCase(this.getAccountRepository());
+  }
+
+  getGetDebtSummaryUseCase(): GetDebtSummaryUseCase {
+    return new GetDebtSummaryUseCase(
+      this.getAccountRepository(),
+      this.getCreditCardRepository()
+    );
   }
 
   // ========================================

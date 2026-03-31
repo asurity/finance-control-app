@@ -10,14 +10,13 @@ import { useDashboardStats } from '@/presentation/components/features/dashboard/
 import { useBalanceHistory } from '@/presentation/components/features/dashboard/hooks/useBalanceHistory';
 import { useExpensesByCategory } from '@/presentation/components/features/dashboard/hooks/useExpensesByCategory';
 import { useRecentTransactions } from '@/presentation/components/features/dashboard/hooks/useRecentTransactions';
-import { useAccountsSummary } from '@/presentation/components/features/dashboard/hooks/useAccountsSummary';
 import { useUnreadAlerts } from '@/presentation/components/features/dashboard/hooks/useUnreadAlerts';
 import { useDailyWeeklyStats } from '@/presentation/components/features/dashboard/hooks/useDailyWeeklyStats';
 import { KPICard, KPICardSkeleton } from '@/presentation/components/shared/Cards/KPICard';
 import { BalanceChart, BalanceChartSkeleton } from '@/presentation/components/features/dashboard/charts/BalanceChart';
 import { ExpensesByCategoryChart, ExpensesByCategoryChartSkeleton } from '@/presentation/components/features/dashboard/charts/ExpensesByCategoryChart';
 import { RecentTransactionsWidget, RecentTransactionsWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/RecentTransactionsWidget';
-import { AccountsSummaryWidget, AccountsSummaryWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/AccountsSummaryWidget';
+import { DebtSummaryWidget } from '@/presentation/components/features/dashboard/widgets/DebtSummaryWidget';
 import { AlertsWidget, AlertsWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/AlertsWidget';
 import { DailyExpenseWidget, DailyExpenseWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/DailyExpenseWidget';
 import { WeeklyExpenseWidget, WeeklyExpenseWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/WeeklyExpenseWidget';
@@ -46,7 +45,6 @@ export default function DashboardPage() {
   const { data: balanceHistory, isLoading: isLoadingBalance } = useBalanceHistory(period);
   const { data: expensesByCategory, isLoading: isLoadingExpenses } = useExpensesByCategory(period);
   const { data: recentTransactions, isLoading: isLoadingTransactions } = useRecentTransactions(5);
-  const { data: accountsSummary, isLoading: isLoadingAccounts } = useAccountsSummary();
   const { data: unreadAlerts, isLoading: isLoadingAlerts } = useUnreadAlerts(3);
   const { data: dailyWeeklyStats, isLoading: isLoadingDailyWeekly } = useDailyWeeklyStats();
   const queryClient = useQueryClient();
@@ -358,15 +356,8 @@ export default function DashboardPage() {
           <RecentTransactionsWidget transactions={recentTransactions} />
         ) : null}
 
-        {/* Accounts Summary Widget */}
-        {isLoadingAccounts ? (
-          <AccountsSummaryWidgetSkeleton />
-        ) : accountsSummary ? (
-          <AccountsSummaryWidget 
-            accounts={accountsSummary.accounts} 
-            totalBalance={accountsSummary.totalBalance}
-          />
-        ) : null}
+        {/* Debt Summary Widget */}
+        <DebtSummaryWidget />
 
         {/* Alerts Widget */}
         {isLoadingAlerts ? (
