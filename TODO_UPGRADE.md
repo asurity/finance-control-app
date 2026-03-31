@@ -1339,23 +1339,23 @@ git tag v0.9.3-reports-upgrade
 
 ### 14.1 — Agregar campo parentId a Category (sub-categorías)
 
-- [ ] **Editar** `src/types/firestore.ts`
+- [x] **Editar** `src/types/firestore.ts`
   - Agregar a `Category`:
     ```typescript
     parentId?: string; // ID de categoría padre (null = categoría raíz)
     ```
 
-- [ ] **Editar** `src/domain/entities/Category.ts`
+- [x] **Editar** `src/domain/entities/Category.ts`
   - Agregar campo `parentId?: string` al constructor
   - Método `isSubcategory(): boolean`
 
-- [ ] **Editar** mappers y repositorios para soportar el nuevo campo
+- [x] **Editar** mappers y repositorios para soportar el nuevo campo
   - `CategoryMapper.ts`: mapear `parentId`
   - `FirestoreCategoryRepository.ts`: agregar `getSubcategories(parentId: string)`
 
 ### 14.2 — UI para gestionar sub-categorías
 
-- [ ] **Editar** la tabla de categorías en `src/app/(dashboard)/budgets/page.tsx` (tab de asignación)
+- [x] **Editar** la tabla de categorías en `src/app/(dashboard)/budgets/page.tsx` (tab de asignación)
   - Mostrar categorías como árbol expandible:
     ```
     ▸ Alimentación (30%)
@@ -1371,7 +1371,7 @@ git tag v0.9.3-reports-upgrade
 
 ### 14.3 — Sugerencia de categoría al crear transacción
 
-- [ ] **Crear** `src/domain/use-cases/categories/SuggestCategoryUseCase.ts`
+- [x] **Crear** `src/domain/use-cases/categories/SuggestCategoryUseCase.ts`
   - Input: `{ description: string; type: TransactionType; userId: string }`
   - Lógica:
     - Buscar transacciones anteriores del usuario con descripción similar (usando includes o palabras clave)
@@ -1380,14 +1380,14 @@ git tag v0.9.3-reports-upgrade
   - Output: `{ suggestedCategoryId: string | null; confidence: 'high' | 'medium' | 'low' }`
   - **No es IA** — es pattern matching simple sobre historial. Eficiente y determinístico.
 
-- [ ] **Integrar** en `QuickExpenseForm` y `TransactionForm`
+- [x] **Integrar** en `QuickExpenseForm` y `TransactionForm`
   - Al cambiar el campo de descripción (con debounce de 500ms), ejecutar sugerencia
   - Si hay sugerencia con confianza alta, pre-seleccionar la categoría
   - Si confianza media, mostrar como hint: "¿Es esto [Categoría]?"
 
 ### 14.4 — Nuevas categorías de ingreso
 
-- [ ] **Editar** `src/lib/constants/defaultCategories.ts`
+- [x] **Editar** `src/lib/constants/defaultCategories.ts`
   - Agregar categorías de ingreso faltantes:
     - Reembolsos
     - Regalos / Donaciones

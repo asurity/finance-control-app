@@ -67,3 +67,9 @@ export {
   type SeedDefaultCategoriesInput,
   type SeedDefaultCategoriesOutput,
 } from './categories/SeedDefaultCategoriesUseCase';
+
+export {
+  SuggestCategoryUseCase,
+  type SuggestCategoryInput,
+  type SuggestCategoryOutput,
+} from './categories/SuggestCategoryUseCase';
