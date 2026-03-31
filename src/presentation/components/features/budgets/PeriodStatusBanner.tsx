@@ -6,7 +6,7 @@ import { useOrganization } from '@/hooks/useOrganization';
 import { useBudgetPeriods } from '@/application/hooks/useBudgetPeriods';
 import { AlertTriangle, AlertCircle, Plus, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatStrDate } from '@/lib/utils/format';
+import { formatDate } from '@/lib/utils/format';
 import { useRouter } from 'next/navigation';
 
 export function PeriodStatusBanner() {
@@ -16,7 +16,7 @@ export function PeriodStatusBanner() {
 
   // Def hooks without conditional
   const orgId = currentOrganization?.id || '';
-  const userId = user?.uid || '';
+  const userId = user?.id || '';
   const { usePeriodExpiration } = useBudgetPeriods(orgId);
   const { data: status, isLoading } = usePeriodExpiration(userId);
 
@@ -83,7 +83,7 @@ export function PeriodStatusBanner() {
               El período &quot;{status.activePeriod.name || 'actual'}&quot; vence pronto
             </h4>
             <p className="text-sm text-amber-700/80 dark:text-amber-500/80 mt-1">
-              Vence el {formatStrDate(status.activePeriod.endDate.toISOString())} (
+              Vence el {formatDate(status.activePeriod.endDate.toISOString())} (
               {status.daysUntilExpiration} días restantes). Prepara el siguiente.
             </p>
           </div>

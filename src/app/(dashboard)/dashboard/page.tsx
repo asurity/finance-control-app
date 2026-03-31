@@ -5,7 +5,7 @@
  * Main dashboard with real-time KPIs and metrics
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useDashboardStats } from '@/presentation/components/features/dashboard/hooks/useDashboardStats';
@@ -102,17 +102,40 @@ export default function DashboardPage() {
 
   // New hooks for Phase 07 charts
   const budgetVsActual = useBudgetVsActual(currentOrgId || '');
+
+  // Calculate date range for weekly pattern based on selected period
+  const periodDates = useMemo(() => {
+    const now = new Date();
+    const end = now;
+    let start: Date;
+    switch (period) {
+      case 'week':
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+        break;
+      case 'month':
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case 'quarter':
+        start = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+        break;
+      case 'year':
+        start = new Date(now.getFullYear(), 0, 1);
+        break;
+    }
+    return { startDate: start, endDate: end };
+  }, [period]);
+
   const weeklyPattern = useWeeklyPattern(
     currentOrgId || '',
-    stats?.dateRange.startDate || new Date(),
-    stats?.dateRange.endDate || new Date()
+    periodDates.startDate,
+    periodDates.endDate
   );
   const balanceSparkline = balanceHistory?.dataPoints.map((point) => point.balance) ?? [];
   const incomeSparkline = balanceHistory?.dataPoints.map((point) => point.income) ?? [];
   const expensesSparkline = balanceHistory?.dataPoints.map((point) => point.expenses) ?? [];
 
   // Recurring transactions hook for Phase 09
-  const recurringHook = useRecurringTransactions(currentOrgId || '', user?.uid || '');
+  const recurringHook = useRecurringTransactions(currentOrgId || '', user?.id || '');
   const { mutate: processRecurring } = recurringHook.processRecurringTransaction;
 
   // Onboarding detection
@@ -121,12 +144,12 @@ export default function DashboardPage() {
   const { data: allAccounts, isLoading: isLoadingAccounts } = accountsHook.useAllAccounts();
 
   useEffect(() => {
-    if (!user?.uid || isLoadingAccounts) return;
+    if (!user?.id || isLoadingAccounts) return;
     // If user has no accounts, check if onboarding was already completed
     if (allAccounts && allAccounts.length === 0) {
       const checkOnboarding = async () => {
         try {
-          const settingsDoc = await getDoc(doc(db, `userSettings/${user.uid}`));
+          const settingsDoc = await getDoc(doc(db, `userSettings/${user.id}`));
           if (!settingsDoc.exists() || !settingsDoc.data()?.onboardingCompleted) {
             setShowOnboarding(true);
           }
@@ -137,20 +160,20 @@ export default function DashboardPage() {
       };
       checkOnboarding();
     }
-  }, [user?.uid, allAccounts, isLoadingAccounts]);
+  }, [user?.id, allAccounts, isLoadingAccounts]);
 
   // Automatic processing of recurring transactions on dashboard load
   useEffect(() => {
-    if (currentOrgId && user?.uid) {
+    if (currentOrgId && user?.id) {
       // Process recurring transactions silently in the background
-      processRecurring(undefined, {
+      processRecurring('', {
         onError: (error) => {
           console.error('Error processing recurring transactions:', error);
           // Don't show toast on error, just log it
         },
       });
     }
-  }, [currentOrgId, user?.uid]);
+  }, [currentOrgId, user?.id]);
 
   const queryClient = useQueryClient();
 
@@ -219,10 +242,10 @@ export default function DashboardPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Onboarding Wizard */}
-      {showOnboarding && currentOrgId && user?.uid && (
+      {showOnboarding && currentOrgId && user?.id && (
         <OnboardingWizard
           orgId={currentOrgId}
-          userId={user.uid}
+          userId={user.id}
           onComplete={() => setShowOnboarding(false)}
         />
       )}

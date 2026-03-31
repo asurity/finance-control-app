@@ -76,6 +76,36 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
     return { totalIncome: income, totalExpenses: expenses };
   }, [periodTransactions]);
 
+  // Prepare category budget comparison data
+  const categoryComparison = useMemo(() => {
+    if (!categoryBudgetsData?.categoryBudgets || !allCategories.length) return [];
+
+    return categoryBudgetsData.categoryBudgets
+      .map((cb) => {
+        const category = allCategories.find((c) => c.id === cb.categoryId);
+        const spent = cb.spentAmount || 0;
+        const budgeted = cb.allocatedAmount || 0;
+        const remaining = budgeted - spent;
+        const usagePercent = budgeted > 0 ? (spent / budgeted) * 100 : 0;
+
+        let status: 'success' | 'warning' | 'danger' = 'success';
+        if (usagePercent > 100) status = 'danger';
+        else if (usagePercent > 80) status = 'warning';
+
+        return {
+          categoryId: cb.categoryId,
+          categoryName: category?.name || 'Sin categoría',
+          percentage: cb.percentage || 0,
+          budgeted,
+          spent,
+          remaining,
+          usagePercent,
+          status,
+        };
+      })
+      .sort((a, b) => b.budgeted - a.budgeted);
+  }, [categoryBudgetsData, allCategories]);
+
   // Calculate insights
   const insights = useMemo(() => {
     if (!categoryComparison.length || !periodTransactions?.length) return null;
@@ -123,36 +153,6 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
         .sort(([, a], [, b]) => b.amount - a.amount),
     };
   }, [categoryComparison, periodTransactions, allCategories]);
-
-  // Prepare category budget comparison data
-  const categoryComparison = useMemo(() => {
-    if (!categoryBudgetsData?.categoryBudgets || !allCategories.length) return [];
-
-    return categoryBudgetsData.categoryBudgets
-      .map((cb) => {
-        const category = allCategories.find((c) => c.id === cb.categoryId);
-        const spent = cb.spentAmount || 0;
-        const budgeted = cb.allocatedAmount || 0;
-        const remaining = budgeted - spent;
-        const usagePercent = budgeted > 0 ? (spent / budgeted) * 100 : 0;
-
-        let status: 'success' | 'warning' | 'danger' = 'success';
-        if (usagePercent > 100) status = 'danger';
-        else if (usagePercent > 80) status = 'warning';
-
-        return {
-          categoryId: cb.categoryId,
-          categoryName: category?.name || 'Sin categoría',
-          percentage: cb.percentage || 0,
-          budgeted,
-          spent,
-          remaining,
-          usagePercent,
-          status,
-        };
-      })
-      .sort((a, b) => b.budgeted - a.budgeted);
-  }, [categoryBudgetsData, allCategories]);
 
   const isLoading =
     isLoadingPeriod || isLoadingCategoryBudgets || isLoadingSummary || isLoadingTransactions;

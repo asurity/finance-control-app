@@ -125,7 +125,7 @@ function StepAccount({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<AccountFormValues>({
-    resolver: zodResolver(accountSchema),
+    resolver: zodResolver(accountSchema) as any,
     defaultValues: {
       name: '',
       type: 'CHECKING',
@@ -259,7 +259,7 @@ function StepBudgetPeriod({
   const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
   const form = useForm<BudgetFormValues>({
-    resolver: zodResolver(budgetSchema),
+    resolver: zodResolver(budgetSchema) as any,
     defaultValues: {
       totalAmount: 500000,
     },
@@ -276,7 +276,7 @@ function StepBudgetPeriod({
         name: `Presupuesto ${now.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}`,
       });
       toast.success('Período de presupuesto creado');
-      onCreated(result.id);
+      onCreated(result.budgetPeriodId);
       onNext();
     } catch (error) {
       toast.error('Error al crear el período');

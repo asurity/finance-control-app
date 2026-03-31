@@ -341,6 +341,7 @@ function AccountsContent({
                   </span>
                   <MoneyDisplay
                     amount={Math.abs(debtSummary.netWorth)}
+                    type="balance"
                     className="text-3xl font-bold"
                     showSign={false}
                   />
@@ -357,6 +358,7 @@ function AccountsContent({
                     </div>
                     <MoneyDisplay
                       amount={debtSummary.totalAssets}
+                      type="income"
                       className="font-semibold"
                       showSign={false}
                     />
@@ -375,6 +377,7 @@ function AccountsContent({
                     </div>
                     <MoneyDisplay
                       amount={debtSummary.totalDebt}
+                      type="expense"
                       className="font-semibold"
                       showSign={false}
                     />

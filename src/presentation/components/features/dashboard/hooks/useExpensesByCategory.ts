@@ -10,7 +10,7 @@ import { DIContainer } from '@/infrastructure/di/DIContainer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
 
-export function useExpensesByCategory(period: 'month' | 'quarter' | 'year') {
+export function useExpensesByCategory(period: 'week' | 'month' | 'quarter' | 'year') {
   const { user } = useAuth();
   const { currentOrgId } = useOrganization();
 
@@ -23,7 +23,8 @@ export function useExpensesByCategory(period: 'month' | 'quarter' | 'year') {
       container.setOrgId(currentOrgId);
 
       const useCase = container.getGetExpensesByCategoryUseCase();
-      return useCase.execute({ userId: user.id, period });
+      const useCasePeriod = period === 'week' ? 'month' : period;
+      return useCase.execute({ userId: user.id, period: useCasePeriod });
     },
     enabled: !!user && !!currentOrgId,
     staleTime: 5 * 60 * 1000, // 5 minutes
