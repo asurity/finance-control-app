@@ -67,9 +67,7 @@ export function BudgetPeriodSummaryCard({
           <TrendingUp className="h-5 w-5" />
           Resumen del Período
         </CardTitle>
-        <CardDescription>
-          {budgetPeriod.name || 'Período de presupuesto activo'}
-        </CardDescription>
+        <CardDescription>{budgetPeriod.name || 'Período de presupuesto activo'}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Grid de métricas principales */}
@@ -89,16 +87,16 @@ export function BudgetPeriodSummaryCard({
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Gastado</p>
-            <p className="text-2xl font-bold text-red-600">
-              {formatCurrency(summary.totalSpent)}
-            </p>
+            <p className="text-2xl font-bold text-red-600">{formatCurrency(summary.totalSpent)}</p>
             <p className="text-xs text-muted-foreground">
               {summary.spentPercentage.toFixed(1)}% del asignado
             </p>
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Disponible</p>
-            <p className={`text-2xl font-bold ${summary.totalRemaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <p
+              className={`text-2xl font-bold ${summary.totalRemaining >= 0 ? 'text-green-600' : 'text-red-600'}`}
+            >
               {formatCurrency(Math.abs(summary.totalRemaining))}
             </p>
             {summary.totalRemaining < 0 && (
@@ -113,8 +111,8 @@ export function BudgetPeriodSummaryCard({
             <span className="text-muted-foreground">Progreso del gasto</span>
             <span className="font-medium">{summary.spentPercentage.toFixed(1)}%</span>
           </div>
-          <Progress 
-            value={Math.min(summary.spentPercentage, 100)} 
+          <Progress
+            value={Math.min(summary.spentPercentage, 100)}
             className={summary.spentPercentage > 100 ? 'bg-red-100' : undefined}
           />
         </div>
@@ -124,19 +122,19 @@ export function BudgetPeriodSummaryCard({
           <Calendar className="h-4 w-4 text-muted-foreground" />
           <div className="flex-1">
             <p className="text-sm font-medium">
-              {daysRemaining > 0 
-                ? `${daysRemaining} días restantes` 
-                : budgetPeriod.hasExpired() 
-                  ? 'Período expirado' 
+              {daysRemaining > 0
+                ? `${daysRemaining} días restantes`
+                : budgetPeriod.hasExpired()
+                  ? 'Período expirado'
                   : 'Período aún no iniciado'}
             </p>
             <Progress value={timeProgress} className="h-1 mt-1" />
           </div>
           <Badge variant={budgetPeriod.isActive() ? 'default' : 'secondary'}>
-            {budgetPeriod.isActive() 
-              ? 'Activo' 
-              : budgetPeriod.hasExpired() 
-                ? 'Expirado' 
+            {budgetPeriod.isActive()
+              ? 'Activo'
+              : budgetPeriod.hasExpired()
+                ? 'Expirado'
                 : 'Próximo'}
           </Badge>
         </div>
@@ -148,7 +146,9 @@ export function BudgetPeriodSummaryCard({
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>{summary.exceededCategories}</strong> {summary.exceededCategories === 1 ? 'categoría ha' : 'categorías han'} excedido su presupuesto
+                  <strong>{summary.exceededCategories}</strong>{' '}
+                  {summary.exceededCategories === 1 ? 'categoría ha' : 'categorías han'} excedido su
+                  presupuesto
                 </AlertDescription>
               </Alert>
             )}
@@ -156,7 +156,9 @@ export function BudgetPeriodSummaryCard({
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>{summary.approachingLimitCategories}</strong> {summary.approachingLimitCategories === 1 ? 'categoría está' : 'categorías están'} cerca del límite (≥80%)
+                  <strong>{summary.approachingLimitCategories}</strong>{' '}
+                  {summary.approachingLimitCategories === 1 ? 'categoría está' : 'categorías están'}{' '}
+                  cerca del límite (≥80%)
                 </AlertDescription>
               </Alert>
             )}

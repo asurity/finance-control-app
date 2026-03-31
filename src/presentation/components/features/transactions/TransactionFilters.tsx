@@ -18,7 +18,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, subDays } from 'date-fns';
+import {
+  format,
+  startOfDay,
+  endOfDay,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  subMonths,
+  subDays,
+} from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { TransactionFilterState, DateRangePreset } from '@/types/filters';
 
@@ -107,8 +117,8 @@ export function TransactionFilters({
   };
 
   // Filter categories by transaction type
-  const filteredCategories = categories.filter(cat => 
-    filters.type === 'ALL' || cat.type === filters.type
+  const filteredCategories = categories.filter(
+    (cat) => filters.type === 'ALL' || cat.type === filters.type
   );
 
   const activeFiltersCount = [
@@ -184,7 +194,7 @@ export function TransactionFilters({
                   const newDate = new Date(e.target.value);
                   if (!isNaN(newDate.getTime())) {
                     updateFilters({
-                      dateRange: { ...filters.dateRange, startDate: startOfDay(newDate) }
+                      dateRange: { ...filters.dateRange, startDate: startOfDay(newDate) },
                     });
                   }
                 }}
@@ -200,7 +210,7 @@ export function TransactionFilters({
                   const newDate = new Date(e.target.value);
                   if (!isNaN(newDate.getTime())) {
                     updateFilters({
-                      dateRange: { ...filters.dateRange, endDate: endOfDay(newDate) }
+                      dateRange: { ...filters.dateRange, endDate: endOfDay(newDate) },
                     });
                   }
                 }}
@@ -214,7 +224,9 @@ export function TransactionFilters({
               <Label htmlFor="type">Tipo</Label>
               <Select
                 value={filters.type}
-                onValueChange={(value: 'ALL' | 'INCOME' | 'EXPENSE') => updateFilters({ type: value, categoryId: null })}
+                onValueChange={(value: 'ALL' | 'INCOME' | 'EXPENSE') =>
+                  updateFilters({ type: value, categoryId: null })
+                }
               >
                 <SelectTrigger id="type">
                   <SelectValue />
@@ -231,7 +243,9 @@ export function TransactionFilters({
               <Label htmlFor="category">Categoría</Label>
               <Select
                 value={filters.categoryId || 'ALL'}
-                onValueChange={(value) => updateFilters({ categoryId: value === 'ALL' ? null : value })}
+                onValueChange={(value) =>
+                  updateFilters({ categoryId: value === 'ALL' ? null : value })
+                }
               >
                 <SelectTrigger id="category">
                   <SelectValue placeholder="Todas las categorías" />
@@ -251,18 +265,22 @@ export function TransactionFilters({
               <Label htmlFor="account">Cuenta</Label>
               <Select
                 value={filters.accountId || 'ALL'}
-                onValueChange={(value) => updateFilters({ accountId: value === 'ALL' ? null : value })}
+                onValueChange={(value) =>
+                  updateFilters({ accountId: value === 'ALL' ? null : value })
+                }
               >
                 <SelectTrigger id="account">
                   <SelectValue placeholder="Todas las cuentas" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">Todas</SelectItem>
-                  {accounts.filter(acc => acc.isActive).map((acc) => (
-                    <SelectItem key={acc.id} value={acc.id}>
-                      {acc.name}
-                    </SelectItem>
-                  ))}
+                  {accounts
+                    .filter((acc) => acc.isActive)
+                    .map((acc) => (
+                      <SelectItem key={acc.id} value={acc.id}>
+                        {acc.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -329,7 +347,8 @@ export function TransactionFilters({
             </Button>
             {activeFiltersCount > 0 && (
               <span className="text-sm text-muted-foreground">
-                {activeFiltersCount} {activeFiltersCount === 1 ? 'filtro activo' : 'filtros activos'}
+                {activeFiltersCount}{' '}
+                {activeFiltersCount === 1 ? 'filtro activo' : 'filtros activos'}
               </span>
             )}
           </div>

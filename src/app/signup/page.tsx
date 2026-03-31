@@ -70,7 +70,7 @@ export default function SignupPage() {
       // Mensajes de error en español con mayor detalle
       let errorMessage = 'Error al crear la cuenta';
       let errorDescription = '';
-      
+
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'Este correo ya está registrado';
         errorDescription = 'Intenta iniciar sesión o recuperar tu contraseña';
@@ -106,10 +106,10 @@ export default function SignupPage() {
       // Don't manually redirect - let the effect above handle it
     } catch (error: any) {
       console.error('Error al registrar con Google:', error);
-      
+
       let errorMessage = 'Error al registrar con Google';
       let errorDescription = '';
-      
+
       if (error.code === 'auth/popup-closed-by-user') {
         errorMessage = 'Proceso cancelado';
         errorDescription = 'Cerraste la ventana de autenticación';
@@ -125,7 +125,7 @@ export default function SignupPage() {
       } else if (error.message) {
         errorDescription = error.message;
       }
-      
+
       toast.error(errorMessage, {
         description: errorDescription,
       });
@@ -159,9 +159,7 @@ export default function SignupPage() {
                 {...register('name')}
                 disabled={isLoading}
               />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
-              )}
+              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Correo electrónico</Label>
@@ -172,9 +170,7 @@ export default function SignupPage() {
                 {...register('email')}
                 disabled={isLoading}
               />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>

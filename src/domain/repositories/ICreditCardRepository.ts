@@ -3,7 +3,7 @@ import { CreditCard, CreditCardStatement } from '@/types/firestore';
 
 /**
  * Credit card repository interface
- * 
+ *
  * Extends base repository with credit card-specific operations.
  */
 export interface ICreditCardRepository extends IRepository<CreditCard> {

@@ -25,7 +25,7 @@ export const accountKeys = {
 export function useAccounts(orgId: string) {
   const queryClient = useQueryClient();
   const container = DIContainer.getInstance();
-  
+
   // Set organization ID in DI container
   container.setOrgId(orgId);
 
@@ -175,7 +175,7 @@ export function useAccounts(orgId: string) {
     useAccountsByType,
     useAccountById,
     useNetWorth,
-    
+
     // Mutations
     createAccount,
     updateAccount,

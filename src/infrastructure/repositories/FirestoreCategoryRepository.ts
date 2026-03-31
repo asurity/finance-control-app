@@ -38,9 +38,9 @@ export class FirestoreCategoryRepository implements ICategoryRepository {
   async getById(id: string): Promise<Category | null> {
     const docRef = doc(db, this.collectionPath, id);
     const docSnap = await getDoc(docRef);
-    
+
     if (!docSnap.exists()) return null;
-    
+
     return CategoryMapper.toDomain({ id: docSnap.id, ...docSnap.data() });
   }
 
@@ -50,11 +50,11 @@ export class FirestoreCategoryRepository implements ICategoryRepository {
       // Query without orderBy to avoid composite index requirement
       const q = query(ref, where('orgId', '==', this.orgId));
       const snapshot = await getDocs(q);
-      
-      const categories = snapshot.docs.map(doc => 
+
+      const categories = snapshot.docs.map((doc) =>
         CategoryMapper.toDomain({ id: doc.id, ...doc.data() })
       );
-      
+
       // Sort by name in memory
       return categories.sort((a, b) => a.name.localeCompare(b.name));
     } catch (error) {
@@ -84,17 +84,13 @@ export class FirestoreCategoryRepository implements ICategoryRepository {
     try {
       const ref = collection(db, this.collectionPath);
       // Query without orderBy to avoid composite index requirement
-      const q = query(
-        ref,
-        where('orgId', '==', this.orgId),
-        where('type', '==', type)
-      );
-      
+      const q = query(ref, where('orgId', '==', this.orgId), where('type', '==', type));
+
       const snapshot = await getDocs(q);
-      const categories = snapshot.docs.map(doc => 
+      const categories = snapshot.docs.map((doc) =>
         CategoryMapper.toDomain({ id: doc.id, ...doc.data() })
       );
-      
+
       // Sort by name in memory
       return categories.sort((a, b) => a.name.localeCompare(b.name));
     } catch (error) {
@@ -105,7 +101,7 @@ export class FirestoreCategoryRepository implements ICategoryRepository {
 
   async getDefaultCategories(): Promise<Category[]> {
     // Return default categories from constants without IDs
-    return DEFAULT_CATEGORIES.map(cat => ({
+    return DEFAULT_CATEGORIES.map((cat) => ({
       ...cat,
       id: '', // Will be assigned when created
     }));
@@ -113,7 +109,7 @@ export class FirestoreCategoryRepository implements ICategoryRepository {
 
   async seedDefaultCategories(): Promise<void> {
     const defaultCategories = this.getDefaultCategories();
-    
+
     for (const category of await defaultCategories) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, ...categoryData } = category;

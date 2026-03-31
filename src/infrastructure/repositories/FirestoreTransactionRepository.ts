@@ -18,7 +18,7 @@ import { TransactionMapper } from '@/infrastructure/mappers/TransactionMapper';
 
 /**
  * Firestore implementation of Transaction Repository
- * 
+ *
  * Handles all transaction persistence operations using Firestore.
  */
 export class FirestoreTransactionRepository implements ITransactionRepository {
@@ -40,9 +40,9 @@ export class FirestoreTransactionRepository implements ITransactionRepository {
   async getById(id: string): Promise<Transaction | null> {
     const docRef = doc(db, this.collectionPath, id);
     const docSnap = await getDoc(docRef);
-    
+
     if (!docSnap.exists()) return null;
-    
+
     return TransactionMapper.toDomain({ id: docSnap.id, ...docSnap.data() });
   }
 
@@ -50,10 +50,8 @@ export class FirestoreTransactionRepository implements ITransactionRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(ref, where('orgId', '==', this.orgId), orderBy('date', 'desc'));
     const snapshot = await getDocs(q);
-    
-    return snapshot.docs.map(doc => 
-      TransactionMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+
+    return snapshot.docs.map((doc) => TransactionMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async update(id: string, data: Partial<Transaction>): Promise<void> {
@@ -82,11 +80,9 @@ export class FirestoreTransactionRepository implements ITransactionRepository {
       where('date', '<=', Timestamp.fromDate(endDate)),
       orderBy('date', 'desc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      TransactionMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => TransactionMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getByCategory(categoryId: string): Promise<Transaction[]> {
@@ -97,11 +93,9 @@ export class FirestoreTransactionRepository implements ITransactionRepository {
       where('categoryId', '==', categoryId),
       orderBy('date', 'desc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      TransactionMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => TransactionMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getByAccount(accountId: string): Promise<Transaction[]> {
@@ -112,11 +106,9 @@ export class FirestoreTransactionRepository implements ITransactionRepository {
       where('accountId', '==', accountId),
       orderBy('date', 'desc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      TransactionMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => TransactionMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getByType(type: TransactionType): Promise<Transaction[]> {
@@ -127,11 +119,9 @@ export class FirestoreTransactionRepository implements ITransactionRepository {
       where('type', '==', type),
       orderBy('date', 'desc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      TransactionMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => TransactionMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async createInstallment(data: Omit<Transaction, 'id'>, installments: number): Promise<string[]> {
@@ -169,14 +159,15 @@ export class FirestoreTransactionRepository implements ITransactionRepository {
       where('installmentGroupId', '==', installmentGroupId),
       orderBy('installmentNumber', 'asc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      TransactionMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => TransactionMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
-  async getStatistics(startDate: Date, endDate: Date): Promise<{
+  async getStatistics(
+    startDate: Date,
+    endDate: Date
+  ): Promise<{
     totalIncome: number;
     totalExpenses: number;
     balance: number;
@@ -195,17 +186,19 @@ export class FirestoreTransactionRepository implements ITransactionRepository {
       .reduce((sum, t) => sum + t.amount, 0);
 
     const transactionCount = transactions.length;
-    const averageTransaction = transactionCount > 0 
-      ? (totalIncome + totalExpenses) / transactionCount 
-      : 0;
+    const averageTransaction =
+      transactionCount > 0 ? (totalIncome + totalExpenses) / transactionCount : 0;
 
     // Calculate top category by expenses
     const categoryTotals = transactions
       .filter((t) => t.type === 'EXPENSE')
-      .reduce((acc, t) => {
-        acc[t.categoryId] = (acc[t.categoryId] || 0) + t.amount;
-        return acc;
-      }, {} as Record<string, number>);
+      .reduce(
+        (acc, t) => {
+          acc[t.categoryId] = (acc[t.categoryId] || 0) + t.amount;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
 
     let topCategory: { categoryId: string; amount: number } | null = null;
     let maxAmount = 0;
@@ -229,39 +222,27 @@ export class FirestoreTransactionRepository implements ITransactionRepository {
 
   async getByUser(userId: string): Promise<Transaction[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(
-      ref,
-      where('userId', '==', userId),
-      orderBy('date', 'desc')
-    );
-    
+    const q = query(ref, where('userId', '==', userId), orderBy('date', 'desc'));
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      TransactionMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => TransactionMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getByCreditCard(creditCardId: string): Promise<Transaction[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(
-      ref,
-      where('creditCardId', '==', creditCardId),
-      orderBy('date', 'desc')
-    );
-    
+    const q = query(ref, where('creditCardId', '==', creditCardId), orderBy('date', 'desc'));
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      TransactionMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => TransactionMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getByTags(tags: string[]): Promise<Transaction[]> {
     // Note: Firestore doesn't support array-contains-any with multiple values efficiently
     // We'll fetch all and filter in memory for now
     const allTransactions = await this.getAll();
-    
-    return allTransactions.filter(transaction =>
-      transaction.tags && tags.some(tag => transaction.tags!.includes(tag))
+
+    return allTransactions.filter(
+      (transaction) => transaction.tags && tags.some((tag) => transaction.tags!.includes(tag))
     );
   }
 }

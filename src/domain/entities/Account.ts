@@ -175,12 +175,12 @@ export class Account {
     if (this.type !== 'CREDIT_CARD' && this.type !== 'LINE_OF_CREDIT') {
       return undefined;
     }
-    
+
     // If availableCredit is set, use it. Otherwise calculate
     if (this.availableCredit !== undefined) {
       return this.availableCredit;
     }
-    
+
     if (this.creditLimit !== undefined) {
       // LINE_OF_CREDIT: balance is available credit (positive)
       if (this.type === 'LINE_OF_CREDIT') {
@@ -189,7 +189,7 @@ export class Account {
       // CREDIT_CARD: balance is debt (negative), available = limit - debt
       return Math.max(0, this.creditLimit - Math.abs(this.balance));
     }
-    
+
     return undefined;
   }
 
@@ -202,7 +202,7 @@ export class Account {
     if (amount <= 0) {
       return false;
     }
-    
+
     const availableCredit = this.getAvailableCredit();
     return availableCredit !== undefined && availableCredit >= amount;
   }

@@ -59,9 +59,7 @@ export class GetBudgetPeriodSummaryUseCase extends BaseUseCase<
     }
 
     // Get all category budgets for this period
-    const categoryBudgets = await this.categoryBudgetRepo.getByBudgetPeriodId(
-      input.budgetPeriodId
-    );
+    const categoryBudgets = await this.categoryBudgetRepo.getByBudgetPeriodId(input.budgetPeriodId);
 
     // Calculate summary statistics
     const totalAllocated = categoryBudgets.reduce((sum, cb) => sum + cb.allocatedAmount, 0);

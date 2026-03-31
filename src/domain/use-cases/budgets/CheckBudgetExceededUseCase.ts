@@ -55,10 +55,7 @@ export class CheckBudgetExceededUseCase extends BaseUseCase<
     );
 
     // Calculate current spending
-    const currentSpending = relevantTransactions.reduce(
-      (sum, t) => sum + t.amount,
-      0
-    );
+    const currentSpending = relevantTransactions.reduce((sum, t) => sum + t.amount, 0);
 
     // Calculate remaining amount
     const remainingAmount = budget.amount - currentSpending;

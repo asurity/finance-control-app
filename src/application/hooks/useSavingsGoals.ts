@@ -15,7 +15,8 @@ export const savingsGoalKeys = {
   all: (orgId: string, userId: string) => ['savings-goals', orgId, userId] as const,
   active: (orgId: string, userId: string) => ['savings-goals', orgId, userId, 'active'] as const,
   byId: (orgId: string, goalId: string) => ['savings-goals', orgId, goalId] as const,
-  contributions: (orgId: string, goalId: string) => ['savings-goal-contributions', orgId, goalId] as const,
+  contributions: (orgId: string, goalId: string) =>
+    ['savings-goal-contributions', orgId, goalId] as const,
 };
 
 /**
@@ -24,7 +25,7 @@ export const savingsGoalKeys = {
 export function useSavingsGoals(orgId: string, userId: string) {
   const queryClient = useQueryClient();
   const container = DIContainer.getInstance();
-  
+
   // Set organization ID in DI container
   container.setOrgId(orgId);
 
@@ -67,7 +68,7 @@ export function useSavingsGoals(orgId: string, userId: string) {
       queryFn: async () => {
         const goal = await savingsGoalRepo.getById(goalId);
         if (!goal) return null;
-        
+
         // Calculate progress
         const progress = (goal.currentAmount / goal.targetAmount) * 100;
         return {
@@ -128,8 +129,17 @@ export function useSavingsGoals(orgId: string, userId: string) {
    * Mutation: Add contribution to goal
    */
   const addContribution = useMutation({
-    mutationFn: ({ goalId, amount, fromAccountId, note }: { goalId: string; amount: number; fromAccountId: string; note?: string }) =>
-      contributeToGoalUseCase.execute({ goalId, amount, fromAccountId, userId, note }),
+    mutationFn: ({
+      goalId,
+      amount,
+      fromAccountId,
+      note,
+    }: {
+      goalId: string;
+      amount: number;
+      fromAccountId: string;
+      note?: string;
+    }) => contributeToGoalUseCase.execute({ goalId, amount, fromAccountId, userId, note }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: savingsGoalKeys.all(orgId, userId) });
       toast.success('Aporte registrado exitosamente');
@@ -170,7 +180,7 @@ export function useSavingsGoals(orgId: string, userId: string) {
     useActiveSavingsGoals,
     useSavingsGoalById,
     useGoalContributions,
-    
+
     // Mutations
     createSavingsGoal,
     updateSavingsGoal,

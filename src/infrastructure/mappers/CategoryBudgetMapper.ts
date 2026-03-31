@@ -3,7 +3,7 @@ import { CategoryBudget } from '@/domain/entities/CategoryBudget';
 
 /**
  * Category Budget mapper
- * 
+ *
  * Transforms between Firestore document format and domain entity format.
  * Handles Timestamp ↔ Date conversions.
  */

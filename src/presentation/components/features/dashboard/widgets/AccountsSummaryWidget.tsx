@@ -8,7 +8,15 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
 import { Progress } from '@/components/ui/progress';
-import { Wallet, CreditCard, Building, Landmark, TrendingUp, ArrowRight, HandCoins } from 'lucide-react';
+import {
+  Wallet,
+  CreditCard,
+  Building,
+  Landmark,
+  TrendingUp,
+  ArrowRight,
+  HandCoins,
+} from 'lucide-react';
 import Link from 'next/link';
 
 interface Account {
@@ -45,7 +53,7 @@ const accountLabels = {
 };
 
 export function AccountsSummaryWidget({ accounts, totalBalance }: AccountsSummaryWidgetProps) {
-  const activeAccounts = accounts.filter(acc => acc.isActive);
+  const activeAccounts = accounts.filter((acc) => acc.isActive);
 
   if (activeAccounts.length === 0) {
     return (
@@ -75,13 +83,14 @@ export function AccountsSummaryWidget({ accounts, totalBalance }: AccountsSummar
         <div className="space-y-3">
           {activeAccounts.map((account) => {
             const Icon = accountIcons[account.type];
-            const isCreditAccount = account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT';
+            const isCreditAccount =
+              account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT';
             const creditLimit = account.creditLimit || 0;
-            
+
             // Calculate used credit and available credit based on account type
             let usedCredit = 0;
             let availableCredit = 0;
-            
+
             if (isCreditAccount && creditLimit > 0) {
               if (account.type === 'LINE_OF_CREDIT') {
                 // LINE_OF_CREDIT: balance is available (positive), used = limit - balance
@@ -93,11 +102,12 @@ export function AccountsSummaryWidget({ accounts, totalBalance }: AccountsSummar
                 availableCredit = creditLimit - usedCredit;
               }
             }
-            
-            const creditUtilization = isCreditAccount && creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
-            
+
+            const creditUtilization =
+              isCreditAccount && creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
+
             return (
-              <div 
+              <div
                 key={account.id}
                 className="flex items-center justify-between py-2 border-b last:border-0"
               >
@@ -107,24 +117,30 @@ export function AccountsSummaryWidget({ accounts, totalBalance }: AccountsSummar
                   </div>
                   <div>
                     <p className="text-sm font-medium">{account.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {accountLabels[account.type]}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{accountLabels[account.type]}</p>
                   </div>
                 </div>
                 {isCreditAccount && creditLimit > 0 ? (
                   <div className="text-right space-y-1">
                     <div className="text-sm">
                       <span className="text-muted-foreground">Usado: </span>
-                      <MoneyDisplay amount={usedCredit} type="expense" size="sm" className="inline" />
+                      <MoneyDisplay
+                        amount={usedCredit}
+                        type="expense"
+                        size="sm"
+                        className="inline"
+                      />
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Límite: <MoneyDisplay amount={creditLimit} type="neutral" size="sm" className="inline" />
+                      Límite:{' '}
+                      <MoneyDisplay
+                        amount={creditLimit}
+                        type="neutral"
+                        size="sm"
+                        className="inline"
+                      />
                     </div>
-                    <Progress 
-                      value={creditUtilization} 
-                      className="h-1.5 w-24"
-                    />
+                    <Progress value={creditUtilization} className="h-1.5 w-24" />
                   </div>
                 ) : (
                   <MoneyDisplay
@@ -138,7 +154,10 @@ export function AccountsSummaryWidget({ accounts, totalBalance }: AccountsSummar
             );
           })}
         </div>
-        <Link href="/accounts" className="flex items-center justify-center gap-2 mt-4 text-sm text-primary hover:underline">
+        <Link
+          href="/accounts"
+          className="flex items-center justify-center gap-2 mt-4 text-sm text-primary hover:underline"
+        >
           Administrar cuentas
           <ArrowRight className="h-4 w-4" />
         </Link>

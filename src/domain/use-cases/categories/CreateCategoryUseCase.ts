@@ -18,10 +18,7 @@ export interface CreateCategoryOutput {
  * Use Case: Create Category
  * Creates a new custom category (non-system)
  */
-export class CreateCategoryUseCase extends BaseUseCase<
-  CreateCategoryInput,
-  CreateCategoryOutput
-> {
+export class CreateCategoryUseCase extends BaseUseCase<CreateCategoryInput, CreateCategoryOutput> {
   constructor(private categoryRepo: ICategoryRepository) {
     super();
   }
@@ -33,9 +30,7 @@ export class CreateCategoryUseCase extends BaseUseCase<
     // Check for duplicate names
     const existingCategories = await this.categoryRepo.getAll();
     const duplicate = existingCategories.find(
-      (cat) =>
-        cat.name.toLowerCase() === input.name.toLowerCase() &&
-        cat.type === input.type
+      (cat) => cat.name.toLowerCase() === input.name.toLowerCase() && cat.type === input.type
     );
 
     if (duplicate) {

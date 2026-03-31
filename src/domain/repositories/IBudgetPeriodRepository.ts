@@ -3,7 +3,7 @@ import { BudgetPeriod } from '../entities/BudgetPeriod';
 
 /**
  * Budget Period repository interface
- * 
+ *
  * Extends base repository with budget period-specific operations.
  */
 export interface IBudgetPeriodRepository extends IRepository<BudgetPeriod> {
@@ -53,10 +53,5 @@ export interface IBudgetPeriodRepository extends IRepository<BudgetPeriod> {
    * @param excludeId - Budget period ID to exclude from check (for updates)
    * @returns Promise resolving to true if overlap exists
    */
-  hasOverlap(
-    userId: string,
-    startDate: Date,
-    endDate: Date,
-    excludeId?: string
-  ): Promise<boolean>;
+  hasOverlap(userId: string, startDate: Date, endDate: Date, excludeId?: string): Promise<boolean>;
 }

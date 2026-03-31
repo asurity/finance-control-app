@@ -40,7 +40,7 @@ export default function TransactionsPage() {
   // Debounce quick search
   useEffect(() => {
     const timer = setTimeout(() => {
-      setFilters(prev => ({ ...prev, searchText: quickSearch }));
+      setFilters((prev) => ({ ...prev, searchText: quickSearch }));
     }, 300);
 
     return () => clearTimeout(timer);
@@ -73,9 +73,9 @@ interface TransactionsContentProps {
   onQuickSearchChange: (search: string) => void;
 }
 
-function TransactionsContent({ 
-  orgId, 
-  filters, 
+function TransactionsContent({
+  orgId,
+  filters,
   onFiltersChange,
   quickSearch,
   onQuickSearchChange,
@@ -84,53 +84,62 @@ function TransactionsContent({
   const accountsHook = useAccounts(orgId);
   const categoriesHook = useCategories(orgId);
 
-  const { data: transactionsData = [], isLoading: transactionsLoading } = 
-    transactionsHook.useTransactionsByDateRange(filters.dateRange.startDate, filters.dateRange.endDate);
-  
-  const { data: accounts = [], isLoading: accountsLoading } = 
-    accountsHook.useAllAccounts();
-  
-  const { data: categories = [], isLoading: categoriesLoading } = 
-    categoriesHook.useAllCategories();
+  const { data: transactionsData = [], isLoading: transactionsLoading } =
+    transactionsHook.useTransactionsByDateRange(
+      filters.dateRange.startDate,
+      filters.dateRange.endDate
+    );
+
+  const { data: accounts = [], isLoading: accountsLoading } = accountsHook.useAllAccounts();
+
+  const { data: categories = [], isLoading: categoriesLoading } = categoriesHook.useAllCategories();
 
   const accountsMap = useMemo(() => {
-    return accounts.reduce((acc, account) => {
-      acc[account.id] = account.name;
-      return acc;
-    }, {} as Record<string, string>);
+    return accounts.reduce(
+      (acc, account) => {
+        acc[account.id] = account.name;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
   }, [accounts]);
 
   const categoriesMap = useMemo(() => {
-    return categories.reduce((acc, category) => {
-      acc[category.id] = category.name;
-      return acc;
-    }, {} as Record<string, string>);
+    return categories.reduce(
+      (acc, category) => {
+        acc[category.id] = category.name;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
   }, [categories]);
 
   // Apply all filters client-side
   const filteredTransactions = useMemo(() => {
     return transactionsData
-      .filter(t => filters.type === 'ALL' || t.type === filters.type)
-      .filter(t => !filters.categoryId || t.categoryId === filters.categoryId)
-      .filter(t => !filters.accountId || t.accountId === filters.accountId)
-      .filter(t => !filters.searchText || 
-        t.description.toLowerCase().includes(filters.searchText.toLowerCase())
+      .filter((t) => filters.type === 'ALL' || t.type === filters.type)
+      .filter((t) => !filters.categoryId || t.categoryId === filters.categoryId)
+      .filter((t) => !filters.accountId || t.accountId === filters.accountId)
+      .filter(
+        (t) =>
+          !filters.searchText ||
+          t.description.toLowerCase().includes(filters.searchText.toLowerCase())
       )
-      .filter(t => filters.minAmount === null || t.amount >= filters.minAmount)
-      .filter(t => filters.maxAmount === null || t.amount <= filters.maxAmount)
+      .filter((t) => filters.minAmount === null || t.amount >= filters.minAmount)
+      .filter((t) => filters.maxAmount === null || t.amount <= filters.maxAmount)
       .sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [transactionsData, filters]);
 
   // Calculate totals from filtered transactions
   const totals = useMemo(() => {
     const income = filteredTransactions
-      .filter(t => t.type === 'INCOME')
+      .filter((t) => t.type === 'INCOME')
       .reduce((sum, t) => sum + t.amount, 0);
-    
+
     const expenses = filteredTransactions
-      .filter(t => t.type === 'EXPENSE')
+      .filter((t) => t.type === 'EXPENSE')
       .reduce((sum, t) => sum + t.amount, 0);
-    
+
     return {
       income,
       expenses,
@@ -146,12 +155,14 @@ function TransactionsContent({
       {/* Header with Quick Search */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">Transacciones</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
+            Transacciones
+          </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Gestiona todos tus ingresos y gastos
           </p>
         </div>
-        
+
         {/* Quick Search */}
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -198,7 +209,8 @@ function TransactionsContent({
         <CardHeader>
           <CardTitle>Resultados</CardTitle>
           <CardDescription>
-            Mostrando {filteredTransactions.length} de {transactionsData.length} transacciones • {periodLabel}
+            Mostrando {filteredTransactions.length} de {transactionsData.length} transacciones •{' '}
+            {periodLabel}
           </CardDescription>
         </CardHeader>
         <CardContent>

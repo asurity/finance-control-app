@@ -115,7 +115,4 @@ export const DEFAULT_INCOME_CATEGORIES: Omit<Category, 'id'>[] = [
 /**
  * Todas las categorías predeterminadas del sistema
  */
-export const DEFAULT_CATEGORIES = [
-  ...DEFAULT_EXPENSE_CATEGORIES,
-  ...DEFAULT_INCOME_CATEGORIES,
-];
+export const DEFAULT_CATEGORIES = [...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES];

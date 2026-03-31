@@ -9,15 +9,15 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
 import { Progress } from '@/components/ui/progress';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle, 
-  CheckCircle2, 
-  XCircle, 
+import {
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
   Info,
   Calendar,
-  DollarSign 
+  DollarSign,
 } from 'lucide-react';
 import { useFinancialProjection } from '../hooks/useFinancialProjection';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -57,7 +57,8 @@ export function FinancialProjectionWidget() {
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Error al calcular proyección: {error instanceof Error ? error.message : 'Error desconocido'}
+              Error al calcular proyección:{' '}
+              {error instanceof Error ? error.message : 'Error desconocido'}
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -71,28 +72,28 @@ export function FinancialProjectionWidget() {
 
   // Determine styling based on status
   const statusConfig = {
-    'excellent': {
+    excellent: {
       borderColor: 'border-green-500',
       bgColor: 'bg-green-50 dark:bg-green-950/20',
       icon: <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-500" />,
       iconBg: 'bg-green-100 dark:bg-green-900/30',
       progressColor: 'bg-green-500',
     },
-    'good': {
+    good: {
       borderColor: 'border-blue-500',
       bgColor: 'bg-blue-50 dark:bg-blue-950/20',
       icon: <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-500" />,
       iconBg: 'bg-blue-100 dark:bg-blue-900/30',
       progressColor: 'bg-blue-500',
     },
-    'warning': {
+    warning: {
       borderColor: 'border-yellow-500',
       bgColor: 'bg-yellow-50 dark:bg-yellow-950/20',
       icon: <AlertTriangle className="w-6 h-6 text-yellow-600 dark:text-yellow-500" />,
       iconBg: 'bg-yellow-100 dark:bg-yellow-900/30',
       progressColor: 'bg-yellow-500',
     },
-    'danger': {
+    danger: {
       borderColor: 'border-red-500',
       bgColor: 'bg-red-50 dark:bg-red-950/20',
       icon: <XCircle className="w-6 h-6 text-red-600 dark:text-red-500" />,
@@ -123,13 +124,12 @@ export function FinancialProjectionWidget() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className={`flex items-start gap-3 p-4 rounded-lg ${config.bgColor}`}>
-            <div className={`rounded-full p-2 ${config.iconBg}`}>
-              {config.icon}
-            </div>
+            <div className={`rounded-full p-2 ${config.iconBg}`}>{config.icon}</div>
             <div className="flex-1 space-y-2">
               <p className="font-medium text-sm">No hay presupuesto activo</p>
               <p className="text-sm text-muted-foreground">
-                Crea un período de presupuesto para ver tu proyección financiera y saber si te alcanzará hasta fin de mes.
+                Crea un período de presupuesto para ver tu proyección financiera y saber si te
+                alcanzará hasta fin de mes.
               </p>
               <Link href="/budgets">
                 <Button size="sm" className="mt-2">
@@ -146,9 +146,10 @@ export function FinancialProjectionWidget() {
   const { currentPeriod, spending, projection: proj } = projection;
 
   // Calculate budget usage percentage
-  const budgetUsage = currentPeriod && currentPeriod.totalBudget > 0
-    ? Math.min((spending.totalSpent / currentPeriod.totalBudget) * 100, 100)
-    : 0;
+  const budgetUsage =
+    currentPeriod && currentPeriod.totalBudget > 0
+      ? Math.min((spending.totalSpent / currentPeriod.totalBudget) * 100, 100)
+      : 0;
 
   return (
     <Card className={`border-2 ${config.borderColor}`}>
@@ -167,13 +168,11 @@ export function FinancialProjectionWidget() {
         </div>
         <CardDescription>¿Te va a alcanzar hasta fin de mes?</CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* Main Message */}
         <div className={`flex items-start gap-3 p-4 rounded-lg ${config.bgColor}`}>
-          <div className={`rounded-full p-2 ${config.iconBg}`}>
-            {config.icon}
-          </div>
+          <div className={`rounded-full p-2 ${config.iconBg}`}>{config.icon}</div>
           <div className="flex-1">
             <p className="font-medium">{projection.message}</p>
           </div>
@@ -186,14 +185,14 @@ export function FinancialProjectionWidget() {
               <DollarSign className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-medium">Puedes gastar hoy</span>
             </div>
-            <MoneyDisplay 
-              amount={proj.safeToSpendToday} 
+            <MoneyDisplay
+              amount={proj.safeToSpendToday}
               type={proj.safeToSpendToday > 0 ? 'balance' : 'neutral'}
               className="text-lg font-bold"
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            {proj.safeToSpendToday > 0 
+            {proj.safeToSpendToday > 0
               ? 'Presupuesto diario recomendado para llegar a fin de mes'
               : 'Has excedido el presupuesto del período'}
           </p>
@@ -205,11 +204,7 @@ export function FinancialProjectionWidget() {
             <span className="text-muted-foreground">Presupuesto usado</span>
             <span className="font-medium">{budgetUsage.toFixed(1)}%</span>
           </div>
-          <Progress 
-            value={budgetUsage} 
-            className="h-3"
-            indicatorClassName={config.progressColor}
-          />
+          <Progress value={budgetUsage} className="h-3" indicatorClassName={config.progressColor} />
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>
               Gastado: <MoneyDisplay amount={spending.totalSpent} type="expense" size="sm" />
@@ -226,18 +221,18 @@ export function FinancialProjectionWidget() {
         <div className="grid grid-cols-2 gap-3 pt-2 border-t text-sm">
           <div>
             <p className="text-muted-foreground text-xs">Promedio diario</p>
-            <MoneyDisplay 
-              amount={spending.dailyAverageSpent} 
-              type="expense" 
+            <MoneyDisplay
+              amount={spending.dailyAverageSpent}
+              type="expense"
               size="sm"
               className="font-medium"
             />
           </div>
           <div>
             <p className="text-muted-foreground text-xs">Presupuesto diario ideal</p>
-            <MoneyDisplay 
-              amount={spending.dailyBudgetRemaining} 
-              type="neutral" 
+            <MoneyDisplay
+              amount={spending.dailyBudgetRemaining}
+              type="neutral"
               size="sm"
               className="font-medium"
             />
@@ -249,7 +244,12 @@ export function FinancialProjectionWidget() {
           <Alert variant="destructive" className="py-2">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription className="text-xs">
-              Día estimado sin presupuesto: <strong>{new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'long' }).format(proj.dayBudgetRunsOut)}</strong>
+              Día estimado sin presupuesto:{' '}
+              <strong>
+                {new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'long' }).format(
+                  proj.dayBudgetRunsOut
+                )}
+              </strong>
             </AlertDescription>
           </Alert>
         )}

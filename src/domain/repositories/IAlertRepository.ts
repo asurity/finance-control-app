@@ -3,7 +3,7 @@ import { Alert, AlertType, AlertPriority } from '@/types/firestore';
 
 /**
  * Alert repository interface
- * 
+ *
  * Extends base repository with alert-specific operations.
  */
 export interface IAlertRepository extends IRepository<Alert> {

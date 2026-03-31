@@ -20,15 +20,14 @@ interface DailyExpenseWidgetProps {
 
 export function DailyExpenseWidget({ stats, date = new Date() }: DailyExpenseWidgetProps) {
   const { today, dailyBudget, todayVsBudget } = stats;
-  
-  const budgetProgress = dailyBudget && dailyBudget > 0 
-    ? Math.min((today.totalExpenses / dailyBudget) * 100, 100)
-    : 0;
+
+  const budgetProgress =
+    dailyBudget && dailyBudget > 0 ? Math.min((today.totalExpenses / dailyBudget) * 100, 100) : 0;
 
   // Color coding based on budget usage
   let progressColor = 'bg-green-500';
   let statusText = 'Dentro del presupuesto';
-  
+
   if (todayVsBudget === 'over') {
     progressColor = 'bg-red-500';
     statusText = 'Sobre presupuesto';
@@ -55,10 +54,10 @@ export function DailyExpenseWidget({ stats, date = new Date() }: DailyExpenseWid
         {/* Main expense amount */}
         <div>
           <p className="text-xs text-muted-foreground mb-1">Total gastado</p>
-          <MoneyDisplay 
-            amount={today.totalExpenses} 
-            type="expense" 
-            size="xl" 
+          <MoneyDisplay
+            amount={today.totalExpenses}
+            type="expense"
+            size="xl"
             className="font-bold"
           />
         </div>
@@ -70,17 +69,10 @@ export function DailyExpenseWidget({ stats, date = new Date() }: DailyExpenseWid
               <span className="text-muted-foreground">{statusText}</span>
               <span className="font-medium">{budgetProgress.toFixed(0)}%</span>
             </div>
-            <Progress 
-              value={budgetProgress} 
-              className="h-2"
-            />
+            <Progress value={budgetProgress} className="h-2" />
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>Presupuesto diario:</span>
-              <MoneyDisplay 
-                amount={dailyBudget} 
-                type="neutral" 
-                size="sm"
-              />
+              <MoneyDisplay amount={dailyBudget} type="neutral" size="sm" />
             </div>
           </div>
         ) : (
@@ -93,7 +85,8 @@ export function DailyExpenseWidget({ stats, date = new Date() }: DailyExpenseWid
         <div className="flex items-center gap-2 pt-2 border-t text-sm text-muted-foreground">
           <Receipt className="w-4 h-4" />
           <span>
-            {today.transactionCount} {today.transactionCount === 1 ? 'transacción' : 'transacciones'} hoy
+            {today.transactionCount}{' '}
+            {today.transactionCount === 1 ? 'transacción' : 'transacciones'} hoy
           </span>
         </div>
       </CardContent>

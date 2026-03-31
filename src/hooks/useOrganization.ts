@@ -116,7 +116,9 @@ export function useOrganization() {
         nextOrganizations[0]?.id ||
         null;
 
-      const selectedOrgId = nextOrganizations.some((organization) => organization.id === storedOrgId)
+      const selectedOrgId = nextOrganizations.some(
+        (organization) => organization.id === storedOrgId
+      )
         ? storedOrgId
         : fallbackOrgId;
 

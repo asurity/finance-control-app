@@ -51,14 +51,16 @@ export function RecentTransactionsWidget({ transactions }: RecentTransactionsWid
       <CardContent>
         <div className="space-y-3">
           {transactions.slice(0, 5).map((transaction) => (
-            <div 
+            <div
               key={transaction.id}
               className="flex items-center justify-between py-2 border-b last:border-0"
             >
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-full ${
-                  transaction.type === 'INCOME' ? 'bg-green-100' : 'bg-red-100'
-                }`}>
+                <div
+                  className={`p-2 rounded-full ${
+                    transaction.type === 'INCOME' ? 'bg-green-100' : 'bg-red-100'
+                  }`}
+                >
                   {transaction.type === 'INCOME' ? (
                     <TrendingUp className="h-4 w-4 text-green-600" />
                   ) : (
@@ -80,14 +82,15 @@ export function RecentTransactionsWidget({ transactions }: RecentTransactionsWid
                   size="sm"
                   className="font-bold"
                 />
-                <p className="text-xs text-muted-foreground">
-                  {transaction.accountName}
-                </p>
+                <p className="text-xs text-muted-foreground">{transaction.accountName}</p>
               </div>
             </div>
           ))}
         </div>
-        <Link href="/transactions" className="flex items-center justify-center gap-2 mt-4 text-sm text-primary hover:underline">
+        <Link
+          href="/transactions"
+          className="flex items-center justify-center gap-2 mt-4 text-sm text-primary hover:underline"
+        >
           Ver todas las transacciones
           <ArrowRight className="h-4 w-4" />
         </Link>

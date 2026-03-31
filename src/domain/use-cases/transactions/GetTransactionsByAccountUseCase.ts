@@ -34,9 +34,7 @@ export class GetTransactionsByAccountUseCase extends BaseUseCase<
     super();
   }
 
-  async execute(
-    input: GetTransactionsByAccountInput
-  ): Promise<GetTransactionsByAccountOutput> {
+  async execute(input: GetTransactionsByAccountInput): Promise<GetTransactionsByAccountOutput> {
     if (!input.accountId || input.accountId.trim().length === 0) {
       throw new Error('Account ID is required');
     }
@@ -56,7 +54,7 @@ export class GetTransactionsByAccountUseCase extends BaseUseCase<
         throw new Error('Invalid end date');
       }
 
-      filteredTransactions = transactions.filter(t => {
+      filteredTransactions = transactions.filter((t) => {
         const transactionDate = t.date instanceof Date ? t.date : new Date(t.date);
         return transactionDate >= input.startDate! && transactionDate <= input.endDate!;
       });
@@ -66,7 +64,7 @@ export class GetTransactionsByAccountUseCase extends BaseUseCase<
     let totalIncome = 0;
     let totalExpense = 0;
 
-    filteredTransactions.forEach(transaction => {
+    filteredTransactions.forEach((transaction) => {
       if (transaction.type === 'INCOME') {
         totalIncome += transaction.amount;
       } else if (transaction.type === 'EXPENSE') {

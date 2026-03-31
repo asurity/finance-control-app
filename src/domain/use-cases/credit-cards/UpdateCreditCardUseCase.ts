@@ -90,8 +90,10 @@ export class UpdateCreditCardUseCase extends BaseUseCase<
       throw new Error('Interest rate must be between 0 and 100');
     }
 
-    if (data.minimumPaymentPercent !== undefined &&
-        (data.minimumPaymentPercent <= 0 || data.minimumPaymentPercent > 100)) {
+    if (
+      data.minimumPaymentPercent !== undefined &&
+      (data.minimumPaymentPercent <= 0 || data.minimumPaymentPercent > 100)
+    ) {
       throw new Error('Minimum payment percent must be between 0 and 100');
     }
   }

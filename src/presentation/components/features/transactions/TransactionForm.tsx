@@ -47,7 +47,12 @@ interface TransactionFormProps {
 // Infer form values type from schema
 type TransactionFormValues = z.infer<typeof CreateTransactionSchema>;
 
-export function TransactionForm({ orgId, userId, onSuccess, defaultType = 'EXPENSE' }: TransactionFormProps) {
+export function TransactionForm({
+  orgId,
+  userId,
+  onSuccess,
+  defaultType = 'EXPENSE',
+}: TransactionFormProps) {
   const [selectedAccountType, setSelectedAccountType] = useState<AccountType | null>(null);
 
   // Initialize hooks
@@ -57,13 +62,14 @@ export function TransactionForm({ orgId, userId, onSuccess, defaultType = 'EXPEN
 
   // Get data from hooks
   const { data: accounts = [], isLoading: accountsLoading } = accountsHook.useActiveAccounts();
-  const { data: allCategories = [], isLoading: categoriesLoading } = categoriesHook.useAllCategories();
+  const { data: allCategories = [], isLoading: categoriesLoading } =
+    categoriesHook.useAllCategories();
 
   // Get smart defaults
   const smartDefaults = useSmartDefaults({
     orgId,
     userId,
-    transactionType: defaultType
+    transactionType: defaultType,
   });
 
   // Initialize form
@@ -98,16 +104,14 @@ export function TransactionForm({ orgId, userId, onSuccess, defaultType = 'EXPEN
   const watchAccountId = form.watch('accountId');
 
   // Filter categories by transaction type
-  const filteredCategories = allCategories.filter(
-    (category) => category.type === watchType
-  );
+  const filteredCategories = allCategories.filter((category) => category.type === watchType);
 
   // Update selected account type when account changes
   useEffect(() => {
     if (watchAccountId && accounts.length > 0) {
       const selectedAccount = accounts.find((acc) => acc.id === watchAccountId);
       setSelectedAccountType(selectedAccount?.type || null);
-      
+
       // Reset installments field if account type is not CREDIT_CARD
       if (selectedAccount?.type !== 'CREDIT_CARD') {
         form.setValue('installments', undefined);
@@ -124,12 +128,12 @@ export function TransactionForm({ orgId, userId, onSuccess, defaultType = 'EXPEN
   const onSubmit = async (data: TransactionFormValues) => {
     try {
       await createTransaction.mutateAsync(data);
-      
+
       // Save last used account to localStorage
       if (typeof window !== 'undefined') {
         localStorage.setItem(`lastAccountId_${orgId}`, data.accountId);
       }
-      
+
       toast.success('Transacción registrada exitosamente');
       form.reset();
       onSuccess?.();
@@ -185,9 +189,7 @@ export function TransactionForm({ orgId, userId, onSuccess, defaultType = 'EXPEN
                   onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                 />
               </FormControl>
-              <FormDescription>
-                Ingresa el monto de la transacción
-              </FormDescription>
+              <FormDescription>Ingresa el monto de la transacción</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -201,10 +203,7 @@ export function TransactionForm({ orgId, userId, onSuccess, defaultType = 'EXPEN
             <FormItem>
               <FormLabel>Descripción</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="Describe la transacción..."
-                  {...field}
-                />
+                <Textarea placeholder="Describe la transacción..." {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -231,9 +230,7 @@ export function TransactionForm({ orgId, userId, onSuccess, defaultType = 'EXPEN
                   max={format(new Date(), 'yyyy-MM-dd')}
                 />
               </FormControl>
-              <FormDescription>
-                Fecha en que se realizó la transacción
-              </FormDescription>
+              <FormDescription>Fecha en que se realizó la transacción</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -262,7 +259,8 @@ export function TransactionForm({ orgId, userId, onSuccess, defaultType = 'EXPEN
               </Select>
               {accounts.length === 0 ? (
                 <FormDescription>
-                  Primero debes crear una cuenta en la sección Cuentas para registrar ingresos o gastos.
+                  Primero debes crear una cuenta en la sección Cuentas para registrar ingresos o
+                  gastos.
                 </FormDescription>
               ) : null}
               <FormMessage />
@@ -322,7 +320,8 @@ export function TransactionForm({ orgId, userId, onSuccess, defaultType = 'EXPEN
                   />
                 </FormControl>
                 <FormDescription>
-                  0 = sin cuotas (pago inmediato), 1 = pago en siguiente corte, 2+ = cuotas diferidas
+                  0 = sin cuotas (pago inmediato), 1 = pago en siguiente corte, 2+ = cuotas
+                  diferidas
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -338,16 +337,9 @@ export function TransactionForm({ orgId, userId, onSuccess, defaultType = 'EXPEN
             <FormItem>
               <FormLabel>URL del Recibo (Opcional)</FormLabel>
               <FormControl>
-                <Input
-                  type="url"
-                  placeholder="https://..."
-                  {...field}
-                  value={field.value || ''}
-                />
+                <Input type="url" placeholder="https://..." {...field} value={field.value || ''} />
               </FormControl>
-              <FormDescription>
-                URL de la imagen o PDF del recibo
-              </FormDescription>
+              <FormDescription>URL de la imagen o PDF del recibo</FormDescription>
               <FormMessage />
             </FormItem>
           )}

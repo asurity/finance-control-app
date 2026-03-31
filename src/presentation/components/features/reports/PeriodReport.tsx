@@ -40,18 +40,19 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
   const categoriesHook = useCategories(orgId);
 
   // Fetch budget period details
-  const { data: budgetPeriod, isLoading: isLoadingPeriod } = budgetPeriodsHook.useBudgetPeriod(budgetPeriodId);
+  const { data: budgetPeriod, isLoading: isLoadingPeriod } =
+    budgetPeriodsHook.useBudgetPeriod(budgetPeriodId);
 
   // Fetch category budgets for this period
-  const { data: categoryBudgetsData, isLoading: isLoadingCategoryBudgets } = 
+  const { data: categoryBudgetsData, isLoading: isLoadingCategoryBudgets } =
     categoryBudgetsHook.useCategoryBudgetsByPeriod(budgetPeriodId);
 
   // Fetch period summary
-  const { data: periodSummary, isLoading: isLoadingSummary } = 
+  const { data: periodSummary, isLoading: isLoadingSummary } =
     categoryBudgetsHook.useBudgetPeriodSummary(budgetPeriodId);
 
   // Fetch transactions for the period date range
-  const { data: periodTransactions = [], isLoading: isLoadingTransactions } = 
+  const { data: periodTransactions = [], isLoading: isLoadingTransactions } =
     transactionsHook.useTransactionsByDateRange(
       budgetPeriod?.budgetPeriod?.startDate || new Date(),
       budgetPeriod?.budgetPeriod?.endDate || new Date()
@@ -65,11 +66,11 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
     if (!periodTransactions) return { totalIncome: 0, totalExpenses: 0 };
 
     const income = periodTransactions
-      .filter(t => t.type === 'INCOME')
+      .filter((t) => t.type === 'INCOME')
       .reduce((sum, t) => sum + t.amount, 0);
 
     const expenses = periodTransactions
-      .filter(t => t.type === 'EXPENSE')
+      .filter((t) => t.type === 'EXPENSE')
       .reduce((sum, t) => sum + t.amount, 0);
 
     return { totalIncome: income, totalExpenses: expenses };
@@ -80,8 +81,8 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
     if (!categoryBudgetsData?.categoryBudgets || !allCategories.length) return [];
 
     return categoryBudgetsData.categoryBudgets
-      .map(cb => {
-        const category = allCategories.find(c => c.id === cb.categoryId);
+      .map((cb) => {
+        const category = allCategories.find((c) => c.id === cb.categoryId);
         const spent = cb.spentAmount || 0;
         const budgeted = cb.allocatedAmount || 0;
         const remaining = budgeted - spent;
@@ -105,7 +106,8 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
       .sort((a, b) => b.budgeted - a.budgeted);
   }, [categoryBudgetsData, allCategories]);
 
-  const isLoading = isLoadingPeriod || isLoadingCategoryBudgets || isLoadingSummary || isLoadingTransactions;
+  const isLoading =
+    isLoadingPeriod || isLoadingCategoryBudgets || isLoadingSummary || isLoadingTransactions;
 
   if (isLoading) {
     return (
@@ -145,7 +147,8 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
                 {period.name || 'Período de Presupuesto'}
               </CardTitle>
               <CardDescription>
-                {format(period.startDate, "d 'de' MMMM", { locale: es })} - {format(period.endDate, "d 'de' MMMM 'de' yyyy", { locale: es })}
+                {format(period.startDate, "d 'de' MMMM", { locale: es })} -{' '}
+                {format(period.endDate, "d 'de' MMMM 'de' yyyy", { locale: es })}
               </CardDescription>
             </div>
             {period.description && (
@@ -160,12 +163,12 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
         {/* Card 1: Presupuesto Total */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Presupuesto Total</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Presupuesto Total
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrencyAbsolute(totalBudgeted)}
-            </div>
+            <div className="text-2xl font-bold">{formatCurrencyAbsolute(totalBudgeted)}</div>
             <p className="text-xs text-muted-foreground mt-1">Monto asignado al período</p>
           </CardContent>
         </Card>
@@ -173,7 +176,9 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
         {/* Card 2: Total Ejecutado */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Ejecutado</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Ejecutado
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -190,7 +195,9 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
         {/* Card 3: Balance Presupuestario */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Balance Presupuestario</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Balance Presupuestario
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <MoneyDisplay amount={budgetBalance} type="balance" size="lg" />
@@ -203,7 +210,9 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
         {/* Card 4: Balance Real */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Balance Real</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Balance Real
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <MoneyDisplay amount={realBalance} type="balance" size="lg" />
@@ -271,22 +280,23 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
                       <TableCell className="text-center">
                         <Badge
                           variant={
-                            item.status === 'danger' ? 'destructive' :
-                            item.status === 'warning' ? 'default' :
-                            'secondary'
+                            item.status === 'danger'
+                              ? 'destructive'
+                              : item.status === 'warning'
+                                ? 'default'
+                                : 'secondary'
                           }
                         >
-                          {item.status === 'danger' ? 'Excedido' :
-                           item.status === 'warning' ? 'Alerta' :
-                           'OK'}
+                          {item.status === 'danger'
+                            ? 'Excedido'
+                            : item.status === 'warning'
+                              ? 'Alerta'
+                              : 'OK'}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <Progress 
-                            value={Math.min(item.usagePercent, 100)} 
-                            className="h-2"
-                          />
+                          <Progress value={Math.min(item.usagePercent, 100)} className="h-2" />
                           <p className="text-xs text-center text-muted-foreground">
                             {item.usagePercent.toFixed(0)}%
                           </p>

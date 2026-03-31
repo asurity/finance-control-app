@@ -51,7 +51,7 @@ export class CalculateBudgetUsageUseCase extends BaseUseCase<
 
     // Filter by category and type (only expenses)
     const categoryTransactions = transactions.filter(
-      t => t.categoryId === budget.categoryId && t.type === 'EXPENSE'
+      (t) => t.categoryId === budget.categoryId && t.type === 'EXPENSE'
     );
 
     // Calculate total spent

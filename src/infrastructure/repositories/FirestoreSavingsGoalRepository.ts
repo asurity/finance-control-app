@@ -38,9 +38,9 @@ export class FirestoreSavingsGoalRepository implements ISavingsGoalRepository {
   async getById(id: string): Promise<SavingsGoal | null> {
     const docRef = doc(db, this.collectionPath, id);
     const docSnap = await getDoc(docRef);
-    
+
     if (!docSnap.exists()) return null;
-    
+
     return SavingsGoalMapper.toDomain({ id: docSnap.id, ...docSnap.data() });
   }
 
@@ -48,10 +48,8 @@ export class FirestoreSavingsGoalRepository implements ISavingsGoalRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(ref, where('orgId', '==', this.orgId), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
-    
-    return snapshot.docs.map(doc => 
-      SavingsGoalMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+
+    return snapshot.docs.map((doc) => SavingsGoalMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async update(id: string, data: Partial<SavingsGoal>): Promise<void> {
@@ -79,11 +77,9 @@ export class FirestoreSavingsGoalRepository implements ISavingsGoalRepository {
       where('status', '==', 'ACTIVE'),
       orderBy('targetDate', 'asc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      SavingsGoalMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => SavingsGoalMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getByStatus(status: SavingsGoalStatus): Promise<SavingsGoal[]> {
@@ -94,11 +90,9 @@ export class FirestoreSavingsGoalRepository implements ISavingsGoalRepository {
       where('status', '==', status),
       orderBy('createdAt', 'desc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      SavingsGoalMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => SavingsGoalMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getByUser(userId: string): Promise<SavingsGoal[]> {
@@ -109,11 +103,9 @@ export class FirestoreSavingsGoalRepository implements ISavingsGoalRepository {
       where('userId', '==', userId),
       orderBy('createdAt', 'desc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      SavingsGoalMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => SavingsGoalMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async addContribution(
@@ -173,7 +165,7 @@ export class FirestoreSavingsGoalRepository implements ISavingsGoalRepository {
     const now = new Date();
     const thresholdDate = new Date(now.getTime() + daysThreshold * 24 * 60 * 60 * 1000);
 
-    return goals.filter(goal => {
+    return goals.filter((goal) => {
       if (!goal.targetDate) return false;
       const targetDate = new Date(goal.targetDate);
       return targetDate <= thresholdDate && targetDate >= now;
@@ -182,8 +174,8 @@ export class FirestoreSavingsGoalRepository implements ISavingsGoalRepository {
 
   async getTotalSavings(userId: string): Promise<number> {
     const goals = await this.getByUser(userId);
-    const activeGoals = goals.filter(g => g.status === 'ACTIVE');
-    
+    const activeGoals = goals.filter((g) => g.status === 'ACTIVE');
+
     return activeGoals.reduce((sum, goal) => sum + goal.currentAmount, 0);
   }
 }

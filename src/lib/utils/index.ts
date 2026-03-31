@@ -20,4 +20,3 @@ export {
   capitalize,
   sanitizeFilename,
 } from './format';
-

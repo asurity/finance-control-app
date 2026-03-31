@@ -81,3 +81,21 @@ export interface BudgetPeriodResponseDTO {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface CloneBudgetPeriodDTO {
+  sourcePeriodId: string;
+  newStartDate: Date;
+  newEndDate: Date;
+  newTotalAmount?: number;
+  userId: string;
+}
+
+export interface CheckPeriodExpirationDTO {
+  userId: string;
+}
+
+export interface SuggestCategoryBudgetsDTO {
+  userId: string;
+  startDate: Date;
+  endDate: Date;
+}

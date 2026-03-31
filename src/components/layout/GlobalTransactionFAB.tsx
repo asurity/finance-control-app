@@ -77,12 +77,12 @@ export function GlobalTransactionFAB() {
               {showAdvancedExpenseForm ? 'Nuevo Gasto (Completo)' : 'Registrar Gasto'}
             </SheetTitle>
             <SheetDescription>
-              {showAdvancedExpenseForm 
+              {showAdvancedExpenseForm
                 ? 'Formulario completo con todos los campos disponibles'
                 : 'Formulario rápido para registrar gastos en segundos'}
             </SheetDescription>
           </SheetHeader>
-          
+
           <div className="mt-6">
             {showAdvancedExpenseForm ? (
               <TransactionForm
@@ -111,12 +111,12 @@ export function GlobalTransactionFAB() {
               {showAdvancedIncomeForm ? 'Nuevo Ingreso (Completo)' : 'Registrar Ingreso'}
             </SheetTitle>
             <SheetDescription>
-              {showAdvancedIncomeForm 
+              {showAdvancedIncomeForm
                 ? 'Formulario completo con todos los campos disponibles'
                 : 'Formulario rápido para registrar ingresos en segundos'}
             </SheetDescription>
           </SheetHeader>
-          
+
           <div className="mt-6">
             {showAdvancedIncomeForm ? (
               <TransactionForm

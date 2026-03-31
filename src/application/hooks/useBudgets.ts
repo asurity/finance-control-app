@@ -25,7 +25,7 @@ export const budgetKeys = {
 export function useBudgets(orgId: string) {
   const queryClient = useQueryClient();
   const container = DIContainer.getInstance();
-  
+
   // Set organization ID in DI container
   container.setOrgId(orgId);
 
@@ -142,7 +142,7 @@ export function useBudgets(orgId: string) {
     useBudgetsByPeriod,
     useBudgetById,
     useBudgetUsage,
-    
+
     // Mutations
     createBudget,
     updateBudget,

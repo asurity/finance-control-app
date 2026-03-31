@@ -19,10 +19,10 @@ export function useBalanceHistory(period: 'month' | 'quarter' | 'year') {
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
       if (!currentOrgId) throw new Error('Organization not selected');
-      
+
       const container = DIContainer.getInstance();
       container.setOrgId(currentOrgId);
-      
+
       const useCase = container.getGetBalanceHistoryUseCase();
       return useCase.execute({ userId: user.id, period });
     },

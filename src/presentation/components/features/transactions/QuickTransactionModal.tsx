@@ -37,12 +37,12 @@ interface QuickTransactionModalProps {
  * Modal/Sheet inteligente que muestra formularios quick en móvil y desktop
  * Permite cambiar a formulario completo si es necesario
  */
-export function QuickTransactionModal({ 
-  orgId, 
+export function QuickTransactionModal({
+  orgId,
   userId,
   defaultType = 'EXPENSE',
   triggerLabel = 'Nueva Transacción',
-  triggerVariant = 'default'
+  triggerVariant = 'default',
 }: QuickTransactionModalProps) {
   const [open, setOpen] = useState(false);
   const [showAdvancedForm, setShowAdvancedForm] = useState(false);
@@ -61,10 +61,10 @@ export function QuickTransactionModal({
     }
   };
 
-  const title = showAdvancedForm 
+  const title = showAdvancedForm
     ? `Nuevo ${defaultType === 'EXPENSE' ? 'Gasto' : 'Ingreso'} (Completo)`
     : `Registrar ${defaultType === 'EXPENSE' ? 'Gasto' : 'Ingreso'}`;
-  
+
   const description = showAdvancedForm
     ? 'Formulario completo con todos los campos disponibles'
     : `Formulario rápido para registrar ${defaultType === 'EXPENSE' ? 'gastos' : 'ingresos'} en segundos`;
@@ -72,28 +72,26 @@ export function QuickTransactionModal({
   const content = (
     <>
       {showAdvancedForm ? (
-        <TransactionForm 
-          orgId={orgId} 
-          userId={userId} 
+        <TransactionForm
+          orgId={orgId}
+          userId={userId}
           onSuccess={handleSuccess}
           defaultType={defaultType}
         />
+      ) : defaultType === 'EXPENSE' ? (
+        <QuickExpenseForm
+          orgId={orgId}
+          userId={userId}
+          onSuccess={handleSuccess}
+          onAdvancedMode={() => setShowAdvancedForm(true)}
+        />
       ) : (
-        defaultType === 'EXPENSE' ? (
-          <QuickExpenseForm
-            orgId={orgId}
-            userId={userId}
-            onSuccess={handleSuccess}
-            onAdvancedMode={() => setShowAdvancedForm(true)}
-          />
-        ) : (
-          <QuickIncomeForm
-            orgId={orgId}
-            userId={userId}
-            onSuccess={handleSuccess}
-            onAdvancedMode={() => setShowAdvancedForm(true)}
-          />
-        )
+        <QuickIncomeForm
+          orgId={orgId}
+          userId={userId}
+          onSuccess={handleSuccess}
+          onAdvancedMode={() => setShowAdvancedForm(true)}
+        />
       )}
     </>
   );
@@ -109,17 +107,13 @@ export function QuickTransactionModal({
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={handleOpenChange}>
-        <SheetTrigger asChild>
-          {trigger}
-        </SheetTrigger>
+        <SheetTrigger asChild>{trigger}</SheetTrigger>
         <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
           <SheetHeader>
             <SheetTitle>{title}</SheetTitle>
             <SheetDescription>{description}</SheetDescription>
           </SheetHeader>
-          <div className="mt-6">
-            {content}
-          </div>
+          <div className="mt-6">{content}</div>
         </SheetContent>
       </Sheet>
     );
@@ -127,9 +121,7 @@ export function QuickTransactionModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {trigger}
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

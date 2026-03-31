@@ -3,10 +3,7 @@
  */
 
 export { SetCategoryBudgetUseCase } from './SetCategoryBudgetUseCase';
-export type {
-  SetCategoryBudgetInput,
-  SetCategoryBudgetOutput,
-} from './SetCategoryBudgetUseCase';
+export type { SetCategoryBudgetInput, SetCategoryBudgetOutput } from './SetCategoryBudgetUseCase';
 
 export { UpdateCategoryBudgetPercentageUseCase } from './UpdateCategoryBudgetPercentageUseCase';
 export type {

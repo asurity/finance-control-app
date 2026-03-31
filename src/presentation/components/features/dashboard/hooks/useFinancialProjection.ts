@@ -21,7 +21,9 @@ export function useFinancialProjection(referenceDate: Date = new Date()) {
     queryKey: ['financial-projection', currentOrgId, user?.id],
     queryFn: async () => {
       if (!currentOrgId || !user) {
-        throw new Error(`Organization or user not available. OrgId: ${currentOrgId}, UserId: ${user?.id}`);
+        throw new Error(
+          `Organization or user not available. OrgId: ${currentOrgId}, UserId: ${user?.id}`
+        );
       }
 
       try {

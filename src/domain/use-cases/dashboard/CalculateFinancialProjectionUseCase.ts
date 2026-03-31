@@ -89,7 +89,7 @@ export class CalculateFinancialProjectionUseCase extends BaseUseCase<
     const periodStart = new Date(activePeriod.startDate);
     const periodEnd = new Date(activePeriod.endDate);
     const today = startOfDay(referenceDate);
-    
+
     const daysTotal = differenceInDays(periodEnd, periodStart) + 1;
     const daysElapsed = Math.min(differenceInDays(today, periodStart) + 1, daysTotal);
     const daysRemaining = Math.max(daysTotal - daysElapsed, 0);
@@ -99,7 +99,7 @@ export class CalculateFinancialProjectionUseCase extends BaseUseCase<
 
     // Calculate total spent
     const totalSpent = transactions
-      .filter(t => t.type === 'EXPENSE')
+      .filter((t) => t.type === 'EXPENSE')
       .reduce((sum, t) => sum + t.amount, 0);
 
     // Calculate daily average (avoid division by zero)
@@ -122,7 +122,7 @@ export class CalculateFinancialProjectionUseCase extends BaseUseCase<
     if (willExceedBudget && dailyAverageSpent > 0) {
       const daysUntilEmpty = Math.floor(budgetRemaining / dailyAverageSpent);
       dayBudgetRunsOut = addDays(today, daysUntilEmpty);
-      
+
       // If day is after period end, set to null (you'll make it to the end)
       if (dayBudgetRunsOut > periodEnd) {
         dayBudgetRunsOut = null;
@@ -142,26 +142,30 @@ export class CalculateFinancialProjectionUseCase extends BaseUseCase<
 
     if (spendingRate < 70) {
       status = 'excellent';
-      message = projectedExcessOrSavings > 0
-        ? `¡Excelente! A este ritmo ahorrarás ${this.formatCurrency(projectedExcessOrSavings)}`
-        : `Vas muy bien con el presupuesto`;
+      message =
+        projectedExcessOrSavings > 0
+          ? `¡Excelente! A este ritmo ahorrarás ${this.formatCurrency(projectedExcessOrSavings)}`
+          : `Vas muy bien con el presupuesto`;
     } else if (spendingRate < 90) {
       status = 'good';
-      message = projectedExcessOrSavings > 0
-        ? `A este ritmo ahorrarás ${this.formatCurrency(projectedExcessOrSavings)}`
-        : `Vas dentro del presupuesto`;
+      message =
+        projectedExcessOrSavings > 0
+          ? `A este ritmo ahorrarás ${this.formatCurrency(projectedExcessOrSavings)}`
+          : `Vas dentro del presupuesto`;
     } else if (spendingRate < 100) {
       status = 'warning';
-      message = willExceedBudget && dayBudgetRunsOut
-        ? `⚠️ El día ${dayBudgetRunsOut.getDate()} podrías quedarte sin presupuesto`
-        : `Estás cerca del límite del presupuesto`;
+      message =
+        willExceedBudget && dayBudgetRunsOut
+          ? `⚠️ El día ${dayBudgetRunsOut.getDate()} podrías quedarte sin presupuesto`
+          : `Estás cerca del límite del presupuesto`;
     } else {
       status = 'danger';
       if (dayBudgetRunsOut) {
         const daysUntilEmpty = differenceInDays(dayBudgetRunsOut, today);
-        message = daysUntilEmpty <= 0
-          ? `🚨 Te excediste del presupuesto por ${this.formatCurrency(Math.abs(budgetRemaining))}`
-          : `🚨 En ${daysUntilEmpty} día${daysUntilEmpty !== 1 ? 's' : ''} te quedas sin presupuesto`;
+        message =
+          daysUntilEmpty <= 0
+            ? `🚨 Te excediste del presupuesto por ${this.formatCurrency(Math.abs(budgetRemaining))}`
+            : `🚨 En ${daysUntilEmpty} día${daysUntilEmpty !== 1 ? 's' : ''} te quedas sin presupuesto`;
       } else {
         message = `🚨 Excederás el presupuesto por ${this.formatCurrency(Math.abs(projectedExcessOrSavings))}`;
       }

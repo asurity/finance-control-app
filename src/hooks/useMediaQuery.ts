@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 /**
  * useMediaQuery Hook
  * Detecta si una media query CSS coincide con el estado actual de la ventana
- * 
+ *
  * @param query - Media query CSS string (ej: '(max-width: 768px)')
  * @returns boolean indicando si la media query coincide
  */
@@ -17,7 +17,7 @@ export function useMediaQuery(query: string): boolean {
     }
 
     const media = window.matchMedia(query);
-    
+
     // Set initial value
     setMatches(media.matches);
 

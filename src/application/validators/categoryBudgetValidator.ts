@@ -112,7 +112,9 @@ export const UpdateSpentAmountSchema = z.object({
 
 // Export type inference
 export type SetCategoryBudgetInput = z.infer<typeof SetCategoryBudgetSchema>;
-export type UpdateCategoryBudgetPercentageInput = z.infer<typeof UpdateCategoryBudgetPercentageSchema>;
+export type UpdateCategoryBudgetPercentageInput = z.infer<
+  typeof UpdateCategoryBudgetPercentageSchema
+>;
 export type DeleteCategoryBudgetInput = z.infer<typeof DeleteCategoryBudgetSchema>;
 export type GetCategoryBudgetStatusInput = z.infer<typeof GetCategoryBudgetStatusSchema>;
 export type GetBudgetPeriodSummaryInput = z.infer<typeof GetBudgetPeriodSummarySchema>;

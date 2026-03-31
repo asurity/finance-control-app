@@ -3,7 +3,7 @@ import { Category, CategoryType } from '@/types/firestore';
 
 /**
  * Category repository interface
- * 
+ *
  * Extends base repository with category-specific operations.
  */
 export interface ICategoryRepository extends IRepository<Category> {

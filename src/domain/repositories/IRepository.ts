@@ -1,9 +1,9 @@
 /**
  * Base repository interface
- * 
+ *
  * Provides common CRUD operations for all entities.
  * All specific repositories should extend this interface.
- * 
+ *
  * @template T - The entity type
  */
 export interface IRepository<T> {

@@ -51,7 +51,7 @@ export class CheckBudgetAlertsUseCase extends BaseUseCase<
       );
 
       const categoryTransactions = transactions.filter(
-        t => t.categoryId === budget.categoryId && t.type === 'EXPENSE'
+        (t) => t.categoryId === budget.categoryId && t.type === 'EXPENSE'
       );
 
       const spentAmount = categoryTransactions.reduce((sum, t) => sum + t.amount, 0);

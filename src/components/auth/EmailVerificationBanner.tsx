@@ -26,10 +26,10 @@ export function EmailVerificationBanner() {
       });
     } catch (error: any) {
       console.error('Error al reenviar correo:', error);
-      
+
       let errorMessage = 'Error al enviar correo';
       let errorDescription = '';
-      
+
       if (error.message === 'El correo ya está verificado') {
         errorMessage = 'Correo ya verificado';
         errorDescription = 'Tu correo electrónico ya está verificado';
@@ -41,7 +41,7 @@ export function EmailVerificationBanner() {
       } else if (error.message) {
         errorDescription = error.message;
       }
-      
+
       toast.error(errorMessage, {
         description: errorDescription,
       });
@@ -57,8 +57,8 @@ export function EmailVerificationBanner() {
         <div className="flex-1">
           <p className="font-medium">Verifica tu correo electrónico</p>
           <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-            Te enviamos un correo de verificación a <strong>{firebaseUser.email}</strong>.
-            Revisa tu bandeja de entrada y haz clic en el enlace.
+            Te enviamos un correo de verificación a <strong>{firebaseUser.email}</strong>. Revisa tu
+            bandeja de entrada y haz clic en el enlace.
           </p>
         </div>
         <div className="flex items-center gap-2">

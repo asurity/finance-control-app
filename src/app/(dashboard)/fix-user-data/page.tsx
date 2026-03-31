@@ -10,12 +10,14 @@ import { CheckCircle2, XCircle, Loader2, AlertCircle } from 'lucide-react';
 
 export default function FixUserDataPage() {
   const { user } = useAuth();
-  const [status, setStatus] = useState<'idle' | 'checking' | 'fixing' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'checking' | 'fixing' | 'success' | 'error'>(
+    'idle'
+  );
   const [logs, setLogs] = useState<string[]>([]);
   const [results, setResults] = useState<any>(null);
 
   const addLog = (message: string) => {
-    setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
+    setLogs((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
     console.log(message);
   };
 
@@ -44,7 +46,7 @@ export default function FixUserDataPage() {
       addLog('\n1️⃣ Verificando documento de usuario...');
       const userRef = doc(db, 'users', user.id);
       const userDoc = await getDoc(userRef);
-      
+
       if (!userDoc.exists()) {
         addLog('   ❌ No existe. Creando...');
         setStatus('fixing');
@@ -65,7 +67,7 @@ export default function FixUserDataPage() {
       addLog('\n2️⃣ Verificando organización personal...');
       const orgRef = doc(db, 'organizations', orgId);
       const orgDoc = await getDoc(orgRef);
-      
+
       if (!orgDoc.exists()) {
         addLog('   ❌ No existe. Creando...');
         setStatus('fixing');
@@ -86,7 +88,7 @@ export default function FixUserDataPage() {
       addLog('\n3️⃣ Verificando membership...');
       const memberRef = doc(db, 'organizationMembers', `${orgId}_${user.id}`);
       const memberDoc = await getDoc(memberRef);
-      
+
       if (!memberDoc.exists()) {
         addLog('   ❌ No existe. Creando...');
         setStatus('fixing');
@@ -131,13 +133,19 @@ export default function FixUserDataPage() {
           ) : (
             <>
               <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm"><strong>Usuario:</strong> {user.email}</p>
-                <p className="text-sm"><strong>ID:</strong> {user.id}</p>
-                <p className="text-sm"><strong>Nombre:</strong> {user.name}</p>
+                <p className="text-sm">
+                  <strong>Usuario:</strong> {user.email}
+                </p>
+                <p className="text-sm">
+                  <strong>ID:</strong> {user.id}
+                </p>
+                <p className="text-sm">
+                  <strong>Nombre:</strong> {user.name}
+                </p>
               </div>
 
-              <Button 
-                onClick={checkAndFixUserData} 
+              <Button
+                onClick={checkAndFixUserData}
                 disabled={status === 'checking' || status === 'fixing'}
                 className="w-full"
               >
@@ -169,12 +177,36 @@ export default function FixUserDataPage() {
                     <h3 className="font-semibold text-green-900">¡Reparación completada!</h3>
                   </div>
                   <ul className="space-y-1 text-sm text-green-800">
-                    <li>• Usuario: {results.user.exists ? 'Ya existía' : results.user.created ? 'Creado' : 'Sin cambios'}</li>
-                    <li>• Organización: {results.organization.exists ? 'Ya existía' : results.organization.created ? 'Creada' : 'Sin cambios'}</li>
-                    <li>• Membership: {results.membership.exists ? 'Ya existía' : results.membership.created ? 'Creado' : 'Sin cambios'}</li>
+                    <li>
+                      • Usuario:{' '}
+                      {results.user.exists
+                        ? 'Ya existía'
+                        : results.user.created
+                          ? 'Creado'
+                          : 'Sin cambios'}
+                    </li>
+                    <li>
+                      • Organización:{' '}
+                      {results.organization.exists
+                        ? 'Ya existía'
+                        : results.organization.created
+                          ? 'Creada'
+                          : 'Sin cambios'}
+                    </li>
+                    <li>
+                      • Membership:{' '}
+                      {results.membership.exists
+                        ? 'Ya existía'
+                        : results.membership.created
+                          ? 'Creado'
+                          : 'Sin cambios'}
+                    </li>
                   </ul>
                   <p className="mt-3 text-sm font-medium text-green-900">
-                    Ahora puedes ir al <a href="/dashboard" className="underline">Dashboard</a>
+                    Ahora puedes ir al{' '}
+                    <a href="/dashboard" className="underline">
+                      Dashboard
+                    </a>
                   </p>
                 </div>
               )}
@@ -185,7 +217,9 @@ export default function FixUserDataPage() {
                     <XCircle className="h-5 w-5 text-red-600" />
                     <h3 className="font-semibold text-red-900">Error al reparar</h3>
                   </div>
-                  <p className="mt-2 text-sm text-red-800">Revisa los logs arriba para más detalles</p>
+                  <p className="mt-2 text-sm text-red-800">
+                    Revisa los logs arriba para más detalles
+                  </p>
                 </div>
               )}
             </>

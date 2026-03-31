@@ -45,14 +45,18 @@ export function MoneyDisplay({
   switch (type) {
     case 'income':
       formattedAmount = showSign
-        ? (amount >= 0 ? `+${formatCurrencyAbsolute(amount)}` : `-${formatCurrencyAbsolute(amount)}`)
+        ? amount >= 0
+          ? `+${formatCurrencyAbsolute(amount)}`
+          : `-${formatCurrencyAbsolute(amount)}`
         : formatCurrencyAbsolute(amount);
       colorClass = 'text-green-600 dark:text-green-400';
       break;
 
     case 'expense':
       formattedAmount = showSign
-        ? (amount >= 0 ? `+${formatCurrencyAbsolute(amount)}` : `-${formatCurrencyAbsolute(amount)}`)
+        ? amount >= 0
+          ? `+${formatCurrencyAbsolute(amount)}`
+          : `-${formatCurrencyAbsolute(amount)}`
         : formatCurrencyAbsolute(amount);
       colorClass = 'text-red-600 dark:text-red-400';
       break;
@@ -60,9 +64,8 @@ export function MoneyDisplay({
     case 'balance':
       // Balance always shows sign
       formattedAmount = formatCurrencyWithSign(amount);
-      colorClass = amount >= 0
-        ? 'text-green-600 dark:text-green-400'
-        : 'text-red-600 dark:text-red-400';
+      colorClass =
+        amount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
       break;
 
     case 'neutral':

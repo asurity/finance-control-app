@@ -13,10 +13,4 @@ export interface TransactionFilterState {
   maxAmount: number | null;
 }
 
-export type DateRangePreset = 
-  | 'today'
-  | 'week'
-  | 'month'
-  | 'lastMonth'
-  | 'last3Months'
-  | 'custom';
+export type DateRangePreset = 'today' | 'week' | 'month' | 'lastMonth' | 'last3Months' | 'custom';

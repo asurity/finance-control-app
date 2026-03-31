@@ -13,13 +13,13 @@ import { Transaction } from '@/types/firestore';
  */
 export const transactionKeys = {
   all: (orgId: string) => ['transactions', orgId] as const,
-  byDateRange: (orgId: string, startDate: Date, endDate: Date) => 
+  byDateRange: (orgId: string, startDate: Date, endDate: Date) =>
     ['transactions', orgId, 'dateRange', startDate.toISOString(), endDate.toISOString()] as const,
-  byAccount: (orgId: string, accountId: string) => 
+  byAccount: (orgId: string, accountId: string) =>
     ['transactions', orgId, 'account', accountId] as const,
-  byCategory: (orgId: string, categoryId: string) => 
+  byCategory: (orgId: string, categoryId: string) =>
     ['transactions', orgId, 'category', categoryId] as const,
-  statistics: (orgId: string, startDate: Date, endDate: Date) => 
+  statistics: (orgId: string, startDate: Date, endDate: Date) =>
     ['transactions', orgId, 'statistics', startDate.toISOString(), endDate.toISOString()] as const,
 };
 
@@ -29,7 +29,7 @@ export const transactionKeys = {
 export function useTransactions(orgId: string) {
   const queryClient = useQueryClient();
   const container = DIContainer.getInstance();
-  
+
   // Set organization ID in DI container
   container.setOrgId(orgId);
 
@@ -121,7 +121,7 @@ export function useTransactions(orgId: string) {
    * Mutation: Delete transaction
    */
   const deleteTransaction = useMutation({
-    mutationFn: (input: DeleteTransactionDTO) => 
+    mutationFn: (input: DeleteTransactionDTO) =>
       deleteTransactionUseCase.execute({ transactionId: input.id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: transactionKeys.all(orgId) });
@@ -158,7 +158,7 @@ export function useTransactions(orgId: string) {
     useTransactionsByAccount,
     useTransactionsByCategory,
     useTransactionStatistics,
-    
+
     // Mutations
     createTransaction,
     deleteTransaction,

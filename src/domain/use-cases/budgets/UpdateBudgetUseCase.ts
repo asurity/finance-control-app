@@ -21,10 +21,7 @@ export interface UpdateBudgetOutput {
  * Use Case: Update Budget
  * Updates budget information (amount, period, dates, etc.)
  */
-export class UpdateBudgetUseCase extends BaseUseCase<
-  UpdateBudgetInput,
-  UpdateBudgetOutput
-> {
+export class UpdateBudgetUseCase extends BaseUseCase<UpdateBudgetInput, UpdateBudgetOutput> {
   constructor(private budgetRepo: IBudgetRepository) {
     super();
   }

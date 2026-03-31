@@ -28,50 +28,50 @@ export default function AnalyzeAlondritaPage() {
 
   const runAnalysis = async () => {
     if (!user || !currentOrgId) return;
-    
+
     try {
       setLoading(true);
       setError(null);
       setAnalysis(null);
-      
+
       const container = DIContainer.getInstance();
       container.setOrgId(currentOrgId);
-      
+
       const transactionRepo = container.getTransactionRepository();
       const categoryRepo = container.getCategoryRepository();
       const budgetPeriodRepo = container.getBudgetPeriodRepository();
       const categoryBudgetRepo = container.getCategoryBudgetRepository();
-      
+
       console.log('🔍 ANÁLISIS DE ALONDRITA - INICIADO');
       console.log('═'.repeat(100));
-      
+
       // Step 1: Get category
       console.log('\n📂 Paso 1: Obteniendo categoría...');
       const category = await categoryRepo.getById(CATEGORY_ID);
-      
+
       if (!category) {
         throw new Error('Categoría Alondrita no encontrada');
       }
-      
+
       console.log(`✅ Categoría: ${category.name}`);
       console.log(`   ID: ${category.id}`);
       console.log(`   Tipo: ${category.type}`);
-      
+
       // Step 2: Get ALL transactions for this category
       console.log('\n💰 Paso 2: Obteniendo transacciones...');
       const allTransactions = await transactionRepo.getAll();
       const categoryTransactions = allTransactions
-        .filter(tx => tx.categoryId === CATEGORY_ID)
+        .filter((tx) => tx.categoryId === CATEGORY_ID)
         .sort((a, b) => b.date.getTime() - a.date.getTime());
-      
+
       console.log(`   Total transacciones: ${categoryTransactions.length}`);
-      
-      const expenses = categoryTransactions.filter(tx => tx.type === 'EXPENSE');
+
+      const expenses = categoryTransactions.filter((tx) => tx.type === 'EXPENSE');
       const totalExpense = expenses.reduce((sum, tx) => sum + tx.amount, 0);
-      
+
       console.log(`   Gastos (EXPENSE): ${expenses.length}`);
       console.log(`   Total gastado: ${totalExpense.toLocaleString('es-CL')} CLP`);
-      
+
       categoryTransactions.forEach((tx, i) => {
         console.log(`\n   #${i + 1} ${tx.description}`);
         console.log(`      Monto: ${tx.amount.toLocaleString('es-CL')} CLP`);
@@ -81,71 +81,87 @@ export default function AnalyzeAlondritaPage() {
           console.log(`      Cuota: ${tx.installmentNumber}/${tx.totalInstallments}`);
         }
       });
-      
+
       // Step 3: Get budget periods
       console.log('\n\n📅 Paso 3: Analizando períodos de presupuesto...');
       const allPeriods = await budgetPeriodRepo.getAll();
       console.log(`   Total períodos: ${allPeriods.length}`);
-      
+
       const now = new Date();
-      const activePeriod = allPeriods.find(p => p.isActive());
-      
+      const activePeriod = allPeriods.find((p) => p.isActive());
+
       if (!activePeriod) {
         console.log('   ⚠️  No hay período activo');
       } else {
         console.log(`   ✅ Período activo: ${activePeriod.name}`);
         console.log(`      Inicio: ${format(activePeriod.startDate, 'dd/MM/yyyy HH:mm:ss')}`);
         console.log(`      Fin: ${format(activePeriod.endDate, 'dd/MM/yyyy HH:mm:ss')}`);
-        
+
         // Filter by active period
-        const txInPeriod = expenses.filter(tx => 
-          tx.date >= activePeriod.startDate && tx.date <= activePeriod.endDate
+        const txInPeriod = expenses.filter(
+          (tx) => tx.date >= activePeriod.startDate && tx.date <= activePeriod.endDate
         );
-        
-        const txOutsidePeriod = expenses.filter(tx =>
-          tx.date < activePeriod.startDate || tx.date > activePeriod.endDate
+
+        const txOutsidePeriod = expenses.filter(
+          (tx) => tx.date < activePeriod.startDate || tx.date > activePeriod.endDate
         );
-        
+
         const totalInPeriod = txInPeriod.reduce((sum, tx) => sum + tx.amount, 0);
-        
+
         console.log(`\n   📊 Transacciones EN período: ${txInPeriod.length}`);
         console.log(`      Total: ${totalInPeriod.toLocaleString('es-CL')} CLP`);
-        
+
         txInPeriod.forEach((tx, i) => {
-          console.log(`      ${i + 1}. ${tx.description}: ${tx.amount.toLocaleString('es-CL')} CLP (${format(tx.date, 'dd/MM/yyyy')})`);
+          console.log(
+            `      ${i + 1}. ${tx.description}: ${tx.amount.toLocaleString('es-CL')} CLP (${format(tx.date, 'dd/MM/yyyy')})`
+          );
         });
-        
+
         if (txOutsidePeriod.length > 0) {
           console.log(`\n   ⚠️  Transacciones FUERA de período: ${txOutsidePeriod.length}`);
           txOutsidePeriod.forEach((tx, i) => {
-            console.log(`      ${i + 1}. ${tx.description}: ${tx.amount.toLocaleString('es-CL')} CLP (${format(tx.date, 'dd/MM/yyyy')})`);
+            console.log(
+              `      ${i + 1}. ${tx.description}: ${tx.amount.toLocaleString('es-CL')} CLP (${format(tx.date, 'dd/MM/yyyy')})`
+            );
           });
         }
-        
+
         // Step 4: Get category budget
         console.log('\n\n💼 Paso 4: Verificando category budget...');
         const categoryBudget = await categoryBudgetRepo.getByBudgetPeriodAndCategory(
           activePeriod.id,
           CATEGORY_ID
         );
-        
+
         if (!categoryBudget) {
           console.log('   ⚠️  No existe category budget');
         } else {
           console.log(`   ✅ Category Budget encontrado`);
           console.log(`      Porcentaje: ${categoryBudget.percentage}%`);
-          console.log(`      Asignado: ${categoryBudget.allocatedAmount.toLocaleString('es-CL')} CLP`);
-          console.log(`      Gastado (spentAmount): ${categoryBudget.spentAmount.toLocaleString('es-CL')} CLP`);
-          console.log(`      Restante: ${categoryBudget.getRemainingAmount().toLocaleString('es-CL')} CLP`);
-          
+          console.log(
+            `      Asignado: ${categoryBudget.allocatedAmount.toLocaleString('es-CL')} CLP`
+          );
+          console.log(
+            `      Gastado (spentAmount): ${categoryBudget.spentAmount.toLocaleString('es-CL')} CLP`
+          );
+          console.log(
+            `      Restante: ${categoryBudget.getRemainingAmount().toLocaleString('es-CL')} CLP`
+          );
+
           console.log('\n   🔎 COMPARACIÓN:');
-          console.log(`      spentAmount en DB: ${categoryBudget.spentAmount.toLocaleString('es-CL')} CLP`);
+          console.log(
+            `      spentAmount en DB: ${categoryBudget.spentAmount.toLocaleString('es-CL')} CLP`
+          );
           console.log(`      Total calculado: ${totalInPeriod.toLocaleString('es-CL')} CLP`);
           console.log(`      Mostrado en UI: ${DISPLAYED_AMOUNT.toLocaleString('es-CL')} CLP`);
-          console.log(`      Diferencia DB vs Calculado: ${Math.abs(categoryBudget.spentAmount - totalInPeriod).toLocaleString('es-CL')} CLP`);
-          console.log(`      Diferencia UI vs Calculado: ${Math.abs(DISPLAYED_AMOUNT - totalInPeriod).toLocaleString('es-CL')} CLP`);
+          console.log(
+            `      Diferencia DB vs Calculado: ${Math.abs(categoryBudget.spentAmount - totalInPeriod).toLocaleString('es-CL')} CLP`
+          );
+          console.log(
+            `      Diferencia UI vs Calculado: ${Math.abs(DISPLAYED_AMOUNT - totalInPeriod).toLocaleString('es-CL')} CLP`
+          );
         }
-        
+
         setAnalysis({
           category,
           allTransactions: categoryTransactions,
@@ -159,10 +175,9 @@ export default function AnalyzeAlondritaPage() {
           displayedAmount: DISPLAYED_AMOUNT,
         });
       }
-      
+
       console.log('\n' + '═'.repeat(100));
       console.log('✅ Análisis completado');
-      
     } catch (err: any) {
       console.error('❌ Error:', err);
       setError(err.message || 'Error al analizar');
@@ -193,9 +208,7 @@ export default function AnalyzeAlondritaPage() {
       <Card>
         <CardHeader>
           <CardTitle>Información del Problema</CardTitle>
-          <CardDescription>
-            Categoría ID: {CATEGORY_ID}
-          </CardDescription>
+          <CardDescription>Categoría ID: {CATEGORY_ID}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
@@ -206,8 +219,9 @@ export default function AnalyzeAlondritaPage() {
                   Discrepancia Detectada
                 </p>
                 <p className="text-sm text-yellow-800 dark:text-yellow-200 mt-1">
-                  La tabla de presupuestos muestra <strong>$17,740 CLP</strong> pero hay evidencia de más gastos.
-                  Este análisis identificará qué transacciones no están siendo contabilizadas.
+                  La tabla de presupuestos muestra <strong>$17,740 CLP</strong> pero hay evidencia
+                  de más gastos. Este análisis identificará qué transacciones no están siendo
+                  contabilizadas.
                 </p>
               </div>
             </div>
@@ -269,18 +283,24 @@ export default function AnalyzeAlondritaPage() {
               {analysis.activePeriod && (
                 <>
                   <div className="pt-4 border-t">
-                    <h3 className="font-semibold mb-2">Período Activo: {analysis.activePeriod.name}</h3>
+                    <h3 className="font-semibold mb-2">
+                      Período Activo: {analysis.activePeriod.name}
+                    </h3>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-muted-foreground">Inicio</p>
                         <p className="font-medium">
-                          {format(analysis.activePeriod.startDate, "dd/MM/yyyy HH:mm:ss", { locale: es })}
+                          {format(analysis.activePeriod.startDate, 'dd/MM/yyyy HH:mm:ss', {
+                            locale: es,
+                          })}
                         </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Fin</p>
                         <p className="font-medium">
-                          {format(analysis.activePeriod.endDate, "dd/MM/yyyy HH:mm:ss", { locale: es })}
+                          {format(analysis.activePeriod.endDate, 'dd/MM/yyyy HH:mm:ss', {
+                            locale: es,
+                          })}
                         </p>
                       </div>
                     </div>
@@ -290,14 +310,18 @@ export default function AnalyzeAlondritaPage() {
                     <h3 className="font-semibold mb-3">Transacciones en Período</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-                        <span className="text-sm font-medium">En período ({analysis.txInPeriod.length})</span>
+                        <span className="text-sm font-medium">
+                          En período ({analysis.txInPeriod.length})
+                        </span>
                         <span className="font-bold text-green-700 dark:text-green-300">
                           ${analysis.totalInPeriod.toLocaleString('es-CL')}
                         </span>
                       </div>
                       {analysis.txOutsidePeriod.length > 0 && (
                         <div className="flex justify-between items-center p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
-                          <span className="text-sm font-medium">Fuera de período ({analysis.txOutsidePeriod.length})</span>
+                          <span className="text-sm font-medium">
+                            Fuera de período ({analysis.txOutsidePeriod.length})
+                          </span>
                           <Badge variant="outline">No contabilizadas</Badge>
                         </div>
                       )}
@@ -322,8 +346,19 @@ export default function AnalyzeAlondritaPage() {
                         </div>
                         <div className="flex justify-between font-semibold">
                           <span>Diferencia:</span>
-                          <span className={Math.abs(analysis.categoryBudget.spentAmount - analysis.totalInPeriod) > 1 ? 'text-red-600' : 'text-green-600'}>
-                            ${Math.abs(analysis.categoryBudget.spentAmount - analysis.totalInPeriod).toLocaleString('es-CL')}
+                          <span
+                            className={
+                              Math.abs(
+                                analysis.categoryBudget.spentAmount - analysis.totalInPeriod
+                              ) > 1
+                                ? 'text-red-600'
+                                : 'text-green-600'
+                            }
+                          >
+                            $
+                            {Math.abs(
+                              analysis.categoryBudget.spentAmount - analysis.totalInPeriod
+                            ).toLocaleString('es-CL')}
                           </span>
                         </div>
                       </div>
@@ -347,12 +382,10 @@ export default function AnalyzeAlondritaPage() {
                       <div>
                         <p className="font-medium">{tx.description}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {format(tx.date, "dd/MM/yyyy HH:mm:ss", { locale: es })}
+                          {format(tx.date, 'dd/MM/yyyy HH:mm:ss', { locale: es })}
                         </p>
                       </div>
-                      <p className="font-bold text-red-600">
-                        ${tx.amount.toLocaleString('es-CL')}
-                      </p>
+                      <p className="font-bold text-red-600">${tx.amount.toLocaleString('es-CL')}</p>
                     </div>
                   </div>
                 ))}

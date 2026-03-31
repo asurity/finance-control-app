@@ -57,11 +57,11 @@ export default function LoginPage() {
       // Don't manually redirect - let the effect above handle it
     } catch (error: any) {
       console.error('Error al iniciar sesión:', error);
-      
+
       // Mensajes de error en español con mayor detalle
       let errorMessage = 'Error al iniciar sesión';
       let errorDescription = '';
-      
+
       if (error.code === 'auth/user-not-found') {
         errorMessage = 'Usuario no encontrado';
         errorDescription = 'No existe una cuenta con este correo';
@@ -83,7 +83,7 @@ export default function LoginPage() {
       } else if (error.message) {
         errorDescription = error.message;
       }
-      
+
       toast.error(errorMessage, {
         description: errorDescription,
       });
@@ -100,10 +100,10 @@ export default function LoginPage() {
       // Don't manually redirect - let the effect above handle it
     } catch (error: any) {
       console.error('Error al iniciar sesión con Google:', error);
-      
+
       let errorMessage = 'Error al iniciar sesión con Google';
       let errorDescription = '';
-      
+
       if (error.code === 'auth/popup-closed-by-user') {
         errorMessage = 'Proceso cancelado';
         errorDescription = 'Cerraste la ventana de autenticación';
@@ -119,7 +119,7 @@ export default function LoginPage() {
       } else if (error.message) {
         errorDescription = error.message;
       }
-      
+
       toast.error(errorMessage, {
         description: errorDescription,
       });
@@ -153,9 +153,7 @@ export default function LoginPage() {
                 {...register('email')}
                 disabled={isLoading}
               />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">

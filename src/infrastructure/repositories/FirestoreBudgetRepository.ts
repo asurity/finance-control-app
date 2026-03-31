@@ -38,9 +38,9 @@ export class FirestoreBudgetRepository implements IBudgetRepository {
   async getById(id: string): Promise<Budget | null> {
     const docRef = doc(db, this.collectionPath, id);
     const docSnap = await getDoc(docRef);
-    
+
     if (!docSnap.exists()) return null;
-    
+
     return BudgetMapper.toDomain({ id: docSnap.id, ...docSnap.data() });
   }
 
@@ -48,10 +48,8 @@ export class FirestoreBudgetRepository implements IBudgetRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(ref, where('orgId', '==', this.orgId), orderBy('startDate', 'desc'));
     const snapshot = await getDocs(q);
-    
-    return snapshot.docs.map(doc => 
-      BudgetMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+
+    return snapshot.docs.map((doc) => BudgetMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async update(id: string, data: Partial<Budget>): Promise<void> {
@@ -79,27 +77,23 @@ export class FirestoreBudgetRepository implements IBudgetRepository {
       where('categoryId', '==', categoryId),
       orderBy('startDate', 'desc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      BudgetMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => BudgetMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getByPeriod(period: BudgetPeriod): Promise<Budget[]> {
     const ref = collection(db, this.collectionPath);
     const q = query(ref, where('orgId', '==', this.orgId), where('period', '==', period));
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      BudgetMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => BudgetMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getActive(currentDate: Date): Promise<Budget[]> {
     const allBudgets = await this.getAll();
-    
-    return allBudgets.filter(budget => {
+
+    return allBudgets.filter((budget) => {
       const start = new Date(budget.startDate);
       const end = new Date(budget.endDate);
       return currentDate >= start && currentDate <= end;
@@ -157,10 +151,8 @@ export class FirestoreBudgetRepository implements IBudgetRepository {
       where('startDate', '<=', Timestamp.fromDate(endDate)),
       where('endDate', '>=', Timestamp.fromDate(startDate))
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      BudgetMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => BudgetMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 }

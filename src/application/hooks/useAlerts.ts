@@ -1,5 +1,5 @@
 /**
- * useAlerts Hook - Clean Architecture  
+ * useAlerts Hook - Clean Architecture
  * React Query hook for alert operations using Use Cases
  */
 
@@ -22,7 +22,7 @@ export const alertKeys = {
 export function useAlerts(orgId: string, userId: string) {
   const queryClient = useQueryClient();
   const container = DIContainer.getInstance();
-  
+
   // Set organization ID in DI container
   container.setOrgId(orgId);
 
@@ -126,7 +126,7 @@ export function useAlerts(orgId: string, userId: string) {
     useAllAlerts,
     useUnreadAlerts,
     useHighPriorityAlerts,
-    
+
     // Mutations
     createAlert,
     markAsRead,

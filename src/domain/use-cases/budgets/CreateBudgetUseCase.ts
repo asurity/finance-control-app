@@ -18,10 +18,7 @@ export interface CreateBudgetOutput {
  * Use Case: Create Budget
  * Creates a new budget for tracking expenses by category
  */
-export class CreateBudgetUseCase extends BaseUseCase<
-  CreateBudgetInput,
-  CreateBudgetOutput
-> {
+export class CreateBudgetUseCase extends BaseUseCase<CreateBudgetInput, CreateBudgetOutput> {
   constructor(private budgetRepo: IBudgetRepository) {
     super();
   }
@@ -41,18 +38,11 @@ export class CreateBudgetUseCase extends BaseUseCase<
       (budget) =>
         budget.categoryId === input.categoryId &&
         budget.period === input.period &&
-        this.datesOverlap(
-          input.startDate,
-          input.endDate,
-          budget.startDate,
-          budget.endDate
-        )
+        this.datesOverlap(input.startDate, input.endDate, budget.startDate, budget.endDate)
     );
 
     if (overlapping) {
-      throw new Error(
-        `A budget already exists for this category and period (${overlapping.name})`
-      );
+      throw new Error(`A budget already exists for this category and period (${overlapping.name})`);
     }
 
     // Create budget
@@ -83,12 +73,7 @@ export class CreateBudgetUseCase extends BaseUseCase<
     }
   }
 
-  private datesOverlap(
-    start1: Date,
-    end1: Date,
-    start2: Date,
-    end2: Date
-  ): boolean {
+  private datesOverlap(start1: Date, end1: Date, start2: Date, end2: Date): boolean {
     return start1 <= end2 && start2 <= end1;
   }
 }

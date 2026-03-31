@@ -50,7 +50,7 @@ export class DeleteCreditCardUseCase extends BaseUseCase<
     if (transactions.length > 0 && !input.force) {
       throw new Error(
         `Cannot delete credit card with ${transactions.length} existing transactions. ` +
-        'Use force=true to delete anyway, or delete transactions first.'
+          'Use force=true to delete anyway, or delete transactions first.'
       );
     }
 

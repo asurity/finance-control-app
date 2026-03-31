@@ -166,7 +166,10 @@ export class CategoryBudget {
    * Recalculates the allocated amount when budget period total changes
    */
   recalculateAllocatedAmount(newTotalBudget: number): CategoryBudget {
-    const newAllocatedAmount = CategoryBudget.calculateAllocatedAmount(newTotalBudget, this.percentage);
+    const newAllocatedAmount = CategoryBudget.calculateAllocatedAmount(
+      newTotalBudget,
+      this.percentage
+    );
 
     return new CategoryBudget(
       this.id,

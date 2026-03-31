@@ -3,7 +3,7 @@ import { RecurringTransaction, RecurrenceFrequency } from '@/types/firestore';
 
 /**
  * Recurring transaction repository interface
- * 
+ *
  * Extends base repository with recurring transaction-specific operations.
  */
 export interface IRecurringTransactionRepository extends IRepository<RecurringTransaction> {

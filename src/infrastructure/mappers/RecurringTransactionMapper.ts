@@ -4,7 +4,7 @@ import { RecurringTransaction as RecurringTransactionEntity } from '@/domain/ent
 
 /**
  * Recurring transaction mapper
- * 
+ *
  * Transforms between Firestore document format and domain entity format.
  * Handles Timestamp ↔ Date conversions.
  */
@@ -25,10 +25,20 @@ export class RecurringTransactionMapper {
       doc.categoryId,
       doc.userId,
       doc.startDate instanceof Timestamp ? doc.startDate.toDate() : new Date(doc.startDate),
-      doc.nextOccurrence instanceof Timestamp ? doc.nextOccurrence.toDate() : new Date(doc.nextOccurrence),
+      doc.nextOccurrence instanceof Timestamp
+        ? doc.nextOccurrence.toDate()
+        : new Date(doc.nextOccurrence),
       doc.isActive !== undefined ? doc.isActive : true,
-      doc.endDate instanceof Timestamp ? doc.endDate.toDate() : doc.endDate ? new Date(doc.endDate) : undefined,
-      doc.lastProcessedDate instanceof Timestamp ? doc.lastProcessedDate.toDate() : doc.lastProcessedDate ? new Date(doc.lastProcessedDate) : undefined,
+      doc.endDate instanceof Timestamp
+        ? doc.endDate.toDate()
+        : doc.endDate
+          ? new Date(doc.endDate)
+          : undefined,
+      doc.lastProcessedDate instanceof Timestamp
+        ? doc.lastProcessedDate.toDate()
+        : doc.lastProcessedDate
+          ? new Date(doc.lastProcessedDate)
+          : undefined,
       doc.tags || [],
       doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : undefined,
       doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : undefined
@@ -40,7 +50,9 @@ export class RecurringTransactionMapper {
    * @param recurringTransaction - RecurringTransaction domain entity without ID
    * @returns Firestore document data
    */
-  static toFirestore(recurringTransaction: Omit<RecurringTransaction, 'id' | 'createdAt' | 'updatedAt'>): DocumentData {
+  static toFirestore(
+    recurringTransaction: Omit<RecurringTransaction, 'id' | 'createdAt' | 'updatedAt'>
+  ): DocumentData {
     return {
       description: recurringTransaction.description,
       amount: recurringTransaction.amount,
@@ -49,21 +61,23 @@ export class RecurringTransactionMapper {
       accountId: recurringTransaction.accountId,
       categoryId: recurringTransaction.categoryId,
       userId: recurringTransaction.userId,
-      startDate: recurringTransaction.startDate instanceof Date
-        ? Timestamp.fromDate(recurringTransaction.startDate)
-        : Timestamp.fromDate(new Date(recurringTransaction.startDate)),
+      startDate:
+        recurringTransaction.startDate instanceof Date
+          ? Timestamp.fromDate(recurringTransaction.startDate)
+          : Timestamp.fromDate(new Date(recurringTransaction.startDate)),
       endDate: recurringTransaction.endDate
-        ? (recurringTransaction.endDate instanceof Date
+        ? recurringTransaction.endDate instanceof Date
           ? Timestamp.fromDate(recurringTransaction.endDate)
-          : Timestamp.fromDate(new Date(recurringTransaction.endDate)))
+          : Timestamp.fromDate(new Date(recurringTransaction.endDate))
         : null,
-      nextOccurrence: recurringTransaction.nextOccurrence instanceof Date
-        ? Timestamp.fromDate(recurringTransaction.nextOccurrence)
-        : Timestamp.fromDate(new Date(recurringTransaction.nextOccurrence)),
+      nextOccurrence:
+        recurringTransaction.nextOccurrence instanceof Date
+          ? Timestamp.fromDate(recurringTransaction.nextOccurrence)
+          : Timestamp.fromDate(new Date(recurringTransaction.nextOccurrence)),
       lastProcessedDate: recurringTransaction.lastProcessedDate
-        ? (recurringTransaction.lastProcessedDate instanceof Date
+        ? recurringTransaction.lastProcessedDate instanceof Date
           ? Timestamp.fromDate(recurringTransaction.lastProcessedDate)
-          : Timestamp.fromDate(new Date(recurringTransaction.lastProcessedDate)))
+          : Timestamp.fromDate(new Date(recurringTransaction.lastProcessedDate))
         : null,
       isActive: recurringTransaction.isActive !== undefined ? recurringTransaction.isActive : true,
       tags: recurringTransaction.tags || [],
@@ -82,40 +96,46 @@ export class RecurringTransactionMapper {
       updatedAt: Timestamp.now(),
     };
 
-    if (recurringTransaction.description !== undefined) data.description = recurringTransaction.description;
+    if (recurringTransaction.description !== undefined)
+      data.description = recurringTransaction.description;
     if (recurringTransaction.amount !== undefined) data.amount = recurringTransaction.amount;
     if (recurringTransaction.type !== undefined) data.type = recurringTransaction.type;
-    if (recurringTransaction.frequency !== undefined) data.frequency = recurringTransaction.frequency;
-    if (recurringTransaction.accountId !== undefined) data.accountId = recurringTransaction.accountId;
-    if (recurringTransaction.categoryId !== undefined) data.categoryId = recurringTransaction.categoryId;
+    if (recurringTransaction.frequency !== undefined)
+      data.frequency = recurringTransaction.frequency;
+    if (recurringTransaction.accountId !== undefined)
+      data.accountId = recurringTransaction.accountId;
+    if (recurringTransaction.categoryId !== undefined)
+      data.categoryId = recurringTransaction.categoryId;
     if (recurringTransaction.isActive !== undefined) data.isActive = recurringTransaction.isActive;
     if (recurringTransaction.tags !== undefined) data.tags = recurringTransaction.tags;
 
     if (recurringTransaction.startDate !== undefined) {
-      data.startDate = recurringTransaction.startDate instanceof Date
-        ? Timestamp.fromDate(recurringTransaction.startDate)
-        : Timestamp.fromDate(new Date(recurringTransaction.startDate));
+      data.startDate =
+        recurringTransaction.startDate instanceof Date
+          ? Timestamp.fromDate(recurringTransaction.startDate)
+          : Timestamp.fromDate(new Date(recurringTransaction.startDate));
     }
 
     if (recurringTransaction.endDate !== undefined) {
       data.endDate = recurringTransaction.endDate
-        ? (recurringTransaction.endDate instanceof Date
+        ? recurringTransaction.endDate instanceof Date
           ? Timestamp.fromDate(recurringTransaction.endDate)
-          : Timestamp.fromDate(new Date(recurringTransaction.endDate)))
+          : Timestamp.fromDate(new Date(recurringTransaction.endDate))
         : null;
     }
 
     if (recurringTransaction.nextOccurrence !== undefined) {
-      data.nextOccurrence = recurringTransaction.nextOccurrence instanceof Date
-        ? Timestamp.fromDate(recurringTransaction.nextOccurrence)
-        : Timestamp.fromDate(new Date(recurringTransaction.nextOccurrence));
+      data.nextOccurrence =
+        recurringTransaction.nextOccurrence instanceof Date
+          ? Timestamp.fromDate(recurringTransaction.nextOccurrence)
+          : Timestamp.fromDate(new Date(recurringTransaction.nextOccurrence));
     }
 
     if (recurringTransaction.lastProcessedDate !== undefined) {
       data.lastProcessedDate = recurringTransaction.lastProcessedDate
-        ? (recurringTransaction.lastProcessedDate instanceof Date
+        ? recurringTransaction.lastProcessedDate instanceof Date
           ? Timestamp.fromDate(recurringTransaction.lastProcessedDate)
-          : Timestamp.fromDate(new Date(recurringTransaction.lastProcessedDate)))
+          : Timestamp.fromDate(new Date(recurringTransaction.lastProcessedDate))
         : null;
     }
 
@@ -128,6 +148,6 @@ export class RecurringTransactionMapper {
    * @returns Array of RecurringTransaction domain entities
    */
   static toDomainArray(docs: Array<DocumentData & { id: string }>): RecurringTransactionEntity[] {
-    return docs.map(doc => RecurringTransactionMapper.toDomain(doc));
+    return docs.map((doc) => RecurringTransactionMapper.toDomain(doc));
   }
 }

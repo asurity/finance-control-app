@@ -49,10 +49,10 @@ export class GetExpensesByCategoryUseCase {
 
     // Group by category
     const categoryMap = new Map<string, { amount: number; count: number }>();
-    
+
     for (const expense of expenses) {
       if (!expense.categoryId) continue;
-      
+
       const existing = categoryMap.get(expense.categoryId) ?? { amount: 0, count: 0 };
       categoryMap.set(expense.categoryId, {
         amount: existing.amount + expense.amount,
@@ -91,7 +91,10 @@ export class GetExpensesByCategoryUseCase {
     };
   }
 
-  private calculateDateRange(period: 'month' | 'quarter' | 'year'): { startDate: Date; endDate: Date } {
+  private calculateDateRange(period: 'month' | 'quarter' | 'year'): {
+    startDate: Date;
+    endDate: Date;
+  } {
     const now = new Date();
     const endDate = new Date(now);
     const startDate = new Date(now);
