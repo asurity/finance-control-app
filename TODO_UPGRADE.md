@@ -1271,21 +1271,21 @@ git tag v0.9.2-onboarding
 
 ### 13.1 — Mejorar selector de fechas con Date Range Picker
 
-- [ ] **Crear** `src/presentation/components/shared/DateRangePicker.tsx`
+- [x] **Crear** `src/presentation/components/shared/DateRangePicker.tsx`
   - Usar `react-day-picker` (ya está en package.json) con selección de rango
   - Mostrar los dos meses en pantalla con drag select
   - Presets rápidos: Hoy, Esta semana, Este mes, Mes pasado, Trimestre, Año, Custom
   - Reutilizable en: Reportes, Transacciones, Dashboard
 
-- [ ] **Editar** `src/app/(dashboard)/reports/page.tsx`
+- [x] **Editar** `src/app/(dashboard)/reports/page.tsx`
   - Reemplazar los `<Input type="date">` por `DateRangePicker`
 
-- [ ] **Editar** `src/app/(dashboard)/transactions/page.tsx` (si no se hizo en Fase 03)
+- [x] **Editar** `src/app/(dashboard)/transactions/page.tsx` (si no se hizo en Fase 03)
   - Usar `DateRangePicker` para el rango de fechas
 
 ### 13.2 — Reporte de fin de período mejorado
 
-- [ ] **Editar** `src/presentation/components/features/reports/PeriodReport.tsx`
+- [x] **Editar** `src/presentation/components/features/reports/PeriodReport.tsx`
   - Agregar sección de "Insights del período":
     - Categoría donde más ahorraste vs presupuesto
     - Categoría donde más te excediste
@@ -1295,7 +1295,7 @@ git tag v0.9.2-onboarding
 
 ### 13.3 — Exportación CSV mejorada
 
-- [ ] **Editar** `src/app/(dashboard)/reports/page.tsx` — función `handleExportCSV`
+- [x] **Editar** `src/app/(dashboard)/reports/page.tsx` — función `handleExportCSV`
   - Agregar BOM UTF-8 para que Excel abra con acentos correctos:
     ```typescript
     const BOM = '\uFEFF';
@@ -1306,7 +1306,7 @@ git tag v0.9.2-onboarding
 
 ### 13.4 — Habilitar exportación en Transacciones
 
-- [ ] **Editar** `src/app/(dashboard)/transactions/page.tsx`
+- [x] **Editar** `src/app/(dashboard)/transactions/page.tsx`
   - Implementar botón "Exportar" para exportar el set filtrado actual como CSV
   - Misma lógica que en Reportes pero con los filtros activos
 

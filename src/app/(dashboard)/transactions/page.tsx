@@ -3,9 +3,10 @@
 import { useState, useMemo, useEffect } from 'react';
 import { endOfMonth, format, startOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Search } from 'lucide-react';
+import { Search, Download } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { TransactionList } from '@/presentation/components/features/transactions/TransactionList';
 import { TransactionFilters } from '@/presentation/components/features/transactions/TransactionFilters';
 import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
@@ -14,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTransactions } from '@/application/hooks/useTransactions';
 import { useAccounts } from '@/application/hooks/useAccounts';
 import { useCategories } from '@/application/hooks/useCategories';
+import { toast } from 'sonner';
 import type { TransactionFilterState } from '@/types/filters';
 
 export default function TransactionsPage() {
@@ -150,6 +152,39 @@ function TransactionsContent({
   const isLoading = transactionsLoading || accountsLoading || categoriesLoading;
   const periodLabel = `${format(filters.dateRange.startDate, 'dd MMM yyyy', { locale: es })} - ${format(filters.dateRange.endDate, 'dd MMM yyyy', { locale: es })}`;
 
+  const handleExportCSV = () => {
+    try {
+      const headers = ['Fecha', 'Tipo', 'Descripción', 'Categoría', 'Cuenta', 'Monto'];
+      const rows = filteredTransactions.map((t) => [
+        format(new Date(t.date), 'dd/MM/yyyy', { locale: es }),
+        t.type === 'INCOME' ? 'Ingreso' : 'Gasto',
+        `"${t.description.replace(/"/g, '""')}"`,
+        `"${categoriesMap[t.categoryId] || 'Sin categoría'}"`,
+        `"${accountsMap[t.accountId] || 'Sin cuenta'}"`,
+        t.amount.toString(),
+      ]);
+
+      rows.push([]);
+      rows.push(['', '', '', '', 'Total Ingresos', totals.income.toString()]);
+      rows.push(['', '', '', '', 'Total Gastos', totals.expenses.toString()]);
+      rows.push(['', '', '', '', 'Balance', totals.balance.toString()]);
+
+      const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `transacciones_${format(filters.dateRange.startDate, 'yyyy-MM-dd')}_${format(filters.dateRange.endDate, 'yyyy-MM-dd')}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success('Transacciones exportadas');
+    } catch (error) {
+      toast.error('Error al exportar');
+      console.error(error);
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header with Quick Search */}
@@ -163,16 +198,21 @@ function TransactionsContent({
           </p>
         </div>
 
-        {/* Quick Search */}
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Buscar por descripción..."
-            value={quickSearch}
-            onChange={(e) => onQuickSearchChange(e.target.value)}
-            className="pl-9"
-          />
+        {/* Quick Search + Export */}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Buscar por descripción..."
+              value={quickSearch}
+              onChange={(e) => onQuickSearchChange(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Button variant="outline" size="icon" onClick={handleExportCSV} title="Exportar CSV">
+            <Download className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
