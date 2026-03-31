@@ -1426,7 +1426,7 @@ git tag v0.9.4-smart-categories
 
 ### 15.1 — Revisión de seguridad de Firestore Rules
 
-- [ ] **Editar** `firestore.rules`
+- [x] **Editar** `firestore.rules`
   - Actualmente las collections principales (accounts, transactions, categories, etc.) usan `allow read, write: if isAuthenticated()` — esto es **inseguro** porque cualquier usuario autenticado puede leer/escribir datos de CUALQUIER organización
   - Agregar validación por organización:
     ```
@@ -1440,51 +1440,51 @@ git tag v0.9.4-smart-categories
 
 ### 15.2 — Activar links pendientes del Sidebar
 
-- [ ] **Editar** `src/components/layout/Sidebar.tsx`
+- [x] **Editar** `src/components/layout/Sidebar.tsx`
   - Verificar que TODOS los items implementados tengan `implemented: true`:
     - Dashboard, Transacciones, Cuentas, Presupuestos, Recurrentes, Metas de Ahorro, Reportes, Notificaciones, Configuración
   - Eliminar items que no se implementaron en este upgrade (Por Cobrar, Por Pagar) o marcarlos como v2.0
 
 ### 15.3 — Actualizar "Por Cobrar" y "Por Pagar" como roadmap
 
-- [ ] **Editar** `src/components/layout/Sidebar.tsx`
+- [x] **Editar** `src/components/layout/Sidebar.tsx`
   - Cambiar texto de items no implementados a incluir tooltip "Próximamente en v2.0"
   - O eliminarlos completamente del sidebar si no hay plan inmediato
 
 ### 15.4 — Actualizar versión de la app
 
-- [ ] **Editar** `package.json` — cambiar `"version"` a `"1.0.0"`
-- [ ] **Editar** `src/lib/constants/config.ts` — cambiar `APP_VERSION` a `'1.0.0'`
+- [x] **Editar** `package.json` — cambiar `"version"` a `"1.0.0"`
+- [x] **Editar** `src/lib/constants/config.ts` — cambiar `APP_VERSION` a `'1.0.0'`
 
 ### 15.5 — Limpieza de código
 
-- [ ] Correr `npm run lint` y corregir todos los errores/warnings
-- [ ] Correr `npm run build` y verificar que compila sin errores
-- [ ] Correr `npm test` y verificar que todos los tests pasan
-- [ ] Eliminar `console.log` de debug en código de producción (salvo error handlers)
-- [ ] Revisar que no queden TODO comments sin resolver en el código
+- [x] Correr `npm run lint` y corregir todos los errores/warnings
+- [x] Correr `npm run build` y verificar que compila sin errores
+- [x] Correr `npm test` y verificar que todos los tests pasan
+- [x] Eliminar `console.log` de debug en código de producción (salvo error handlers)
+- [x] Revisar que no queden TODO comments sin resolver en el código
 
 ### 15.6 — Revisión de performance
 
-- [ ] Verificar que las queries a Firestore usan índices apropiados
+- [x] Verificar que las queries a Firestore usan índices apropiados
   - Revisar `firestore.indexes.json` y agregar índices necesarios para las nuevas queries
-- [ ] Verificar que los hooks de React Query tienen `staleTime` apropiado:
+- [x] Verificar que los hooks de React Query tienen `staleTime` apropiado:
   - Dashboard stats: 5 min
   - Daily/weekly stats: 2 min
   - Transacciones: 3 min
   - Cuentas: 10 min
   - Categorías: 30 min (cambian poco)
-- [ ] Verificar que no hay re-renders innecesarios en el dashboard (muchos widgets = muchas queries)
+- [x] Verificar que no hay re-renders innecesarios en el dashboard (muchos widgets = muchas queries)
   - Usar React DevTools profiler si es necesario
 
 ### 15.7 — Documentación
 
-- [ ] **Editar** `README.md`
+- [x] **Editar** `README.md`
   - Actualizar con la lista de features de v1.0
   - Instrucciones de setup
   - Screenshots (si aplica)
 
-- [ ] **Editar** `DEPLOYMENT.md`
+- [x] **Editar** `DEPLOYMENT.md`
   - Verificar que los pasos de deploy siguen vigentes
 
 ### 15.8 — Release final
