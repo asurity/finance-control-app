@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -30,7 +30,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn, signInWithGoogle, user, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -42,28 +42,51 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, loading, router]);
+
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
       await signIn(data.email, data.password);
       toast.success('¡Bienvenido!');
-      router.push('/dashboard');
+      // Don't manually redirect - let the effect above handle it
     } catch (error: any) {
       console.error('Error al iniciar sesión:', error);
-      
-      // Mensajes de error en español
+
+      // Mensajes de error en español con mayor detalle
       let errorMessage = 'Error al iniciar sesión';
+      let errorDescription = '';
+
       if (error.code === 'auth/user-not-found') {
         errorMessage = 'Usuario no encontrado';
+        errorDescription = 'No existe una cuenta con este correo';
       } else if (error.code === 'auth/wrong-password') {
         errorMessage = 'Contraseña incorrecta';
+        errorDescription = 'Verifica tu contraseña e inténtalo de nuevo';
       } else if (error.code === 'auth/invalid-credential') {
         errorMessage = 'Credenciales inválidas';
+        errorDescription = 'El correo o contraseña son incorrectos';
       } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = 'Demasiados intentos. Intenta más tarde';
+        errorMessage = 'Demasiados intentos';
+        errorDescription = 'Espera unos minutos e inténtalo de nuevo';
+      } else if (error.code === 'auth/user-disabled') {
+        errorMessage = 'Cuenta deshabilitada';
+        errorDescription = 'Contacta al administrador del sistema';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Error de conexión';
+        errorDescription = 'Verifica tu conexión a internet';
+      } else if (error.message) {
+        errorDescription = error.message;
       }
-      
-      toast.error(errorMessage);
+
+      toast.error(errorMessage, {
+        description: errorDescription,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -74,10 +97,32 @@ export default function LoginPage() {
     try {
       await signInWithGoogle();
       toast.success('¡Bienvenido!');
-      router.push('/dashboard');
+      // Don't manually redirect - let the effect above handle it
     } catch (error: any) {
       console.error('Error al iniciar sesión con Google:', error);
-      toast.error('Error al iniciar sesión con Google');
+
+      let errorMessage = 'Error al iniciar sesión con Google';
+      let errorDescription = '';
+
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Proceso cancelado';
+        errorDescription = 'Cerraste la ventana de autenticación';
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = 'Ventana bloqueada';
+        errorDescription = 'Permite las ventanas emergentes para este sitio';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Error de conexión';
+        errorDescription = 'Verifica tu conexión a internet';
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = 'Cuenta existente';
+        errorDescription = 'Este correo ya está registrado con otro método';
+      } else if (error.message) {
+        errorDescription = error.message;
+      }
+
+      toast.error(errorMessage, {
+        description: errorDescription,
+      });
     } finally {
       setIsGoogleLoading(false);
     }
@@ -108,9 +153,7 @@ export default function LoginPage() {
                 {...register('email')}
                 disabled={isLoading}
               />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">

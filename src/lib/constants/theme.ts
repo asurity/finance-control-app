@@ -40,7 +40,7 @@ export const CATEGORY_ICONS = {
   mascotas: '🐕',
   belleza: '💄',
   otros: '📦',
-  
+
   // Ingresos
   salario: '💰',
   freelance: '💼',

@@ -1,14 +1,14 @@
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
+import { InitializeCategories } from '@/components/InitializeCategories';
+import { GlobalTransactionFAB } from '@/components/layout/GlobalTransactionFAB';
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute>
+      <InitializeCategories />
       <div className="flex h-screen overflow-hidden bg-background">
         {/* Sidebar */}
         <Sidebar />
@@ -18,9 +18,15 @@ export default function DashboardLayout({
           <Header />
 
           {/* Page Content */}
-          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+          <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 text-sm sm:text-base">
+            <EmailVerificationBanner />
+            {children}
+          </main>
         </div>
       </div>
+
+      {/* Global Floating Action Button */}
+      <GlobalTransactionFAB />
     </ProtectedRoute>
   );
 }

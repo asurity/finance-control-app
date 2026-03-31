@@ -25,7 +25,7 @@ let analytics: Analytics | null = null;
 if (typeof window !== 'undefined' && !getApps().length) {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
-  db = getFirestore(app);
+  db = getFirestore(app); // Usar database (default)
   storage = getStorage(app);
 
   // Analytics solo se inicializa en producción o si está habilitado
@@ -35,7 +35,7 @@ if (typeof window !== 'undefined' && !getApps().length) {
 } else if (typeof window !== 'undefined') {
   app = getApps()[0];
   auth = getAuth(app);
-  db = getFirestore(app);
+  db = getFirestore(app); // Usar database (default)
   storage = getStorage(app);
 
   if (process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true') {

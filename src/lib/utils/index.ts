@@ -6,6 +6,8 @@
 // Format utilities
 export {
   formatCurrency,
+  formatCurrencyAbsolute,
+  formatCurrencyWithSign,
   formatDate,
   formatDateShort,
   formatDateTime,
@@ -18,20 +20,3 @@ export {
   capitalize,
   sanitizeFilename,
 } from './format';
-
-// Validation utilities
-export {
-  validateRUT,
-  formatRUT,
-  cleanRUT,
-  validateEmail,
-  validatePhone,
-  formatPhone,
-  validateAmount,
-  validateDate,
-  validateDateRange,
-  validatePassword,
-  validatePostalCode,
-  validateRequired,
-  validatePositiveInteger,
-} from './validation';

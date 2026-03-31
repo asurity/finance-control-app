@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -37,7 +37,7 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const router = useRouter();
-  const { signUp, signInWithGoogle } = useAuth();
+  const { signUp, signInWithGoogle, user, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -49,26 +49,50 @@ export default function SignupPage() {
     resolver: zodResolver(signupSchema),
   });
 
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, loading, router]);
+
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true);
     try {
       await signUp(data.email, data.password, data.name);
-      toast.success('¡Cuenta creada exitosamente!');
-      router.push('/dashboard');
+      toast.success('¡Cuenta creada exitosamente!', {
+        description: 'Se ha enviado un correo de verificación a tu email.',
+      });
+      // Don't manually redirect - let the effect above handle it
     } catch (error: any) {
       console.error('Error al crear cuenta:', error);
 
-      // Mensajes de error en español
+      // Mensajes de error en español con mayor detalle
       let errorMessage = 'Error al crear la cuenta';
+      let errorDescription = '';
+
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'Este correo ya está registrado';
+        errorDescription = 'Intenta iniciar sesión o recuperar tu contraseña';
       } else if (error.code === 'auth/weak-password') {
         errorMessage = 'La contraseña es muy débil';
+        errorDescription = 'Usa al menos 6 caracteres con letras y números';
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = 'Correo electrónico inválido';
+        errorDescription = 'Verifica que el correo esté bien escrito';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Registro deshabilitado';
+        errorDescription = 'Contacta al administrador del sistema';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Error de conexión';
+        errorDescription = 'Verifica tu conexión a internet';
+      } else if (error.message) {
+        errorDescription = error.message;
       }
 
-      toast.error(errorMessage);
+      toast.error(errorMessage, {
+        description: errorDescription,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -79,10 +103,32 @@ export default function SignupPage() {
     try {
       await signInWithGoogle();
       toast.success('¡Cuenta creada exitosamente!');
-      router.push('/dashboard');
+      // Don't manually redirect - let the effect above handle it
     } catch (error: any) {
       console.error('Error al registrar con Google:', error);
-      toast.error('Error al registrar con Google');
+
+      let errorMessage = 'Error al registrar con Google';
+      let errorDescription = '';
+
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Proceso cancelado';
+        errorDescription = 'Cerraste la ventana de autenticación';
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = 'Ventana bloqueada';
+        errorDescription = 'Permite las ventanas emergentes para este sitio';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Error de conexión';
+        errorDescription = 'Verifica tu conexión a internet';
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        errorMessage = 'Cuenta existente';
+        errorDescription = 'Este correo ya está registrado con otro método';
+      } else if (error.message) {
+        errorDescription = error.message;
+      }
+
+      toast.error(errorMessage, {
+        description: errorDescription,
+      });
     } finally {
       setIsGoogleLoading(false);
     }
@@ -113,9 +159,7 @@ export default function SignupPage() {
                 {...register('name')}
                 disabled={isLoading}
               />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
-              )}
+              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Correo electrónico</Label>
@@ -126,9 +170,7 @@ export default function SignupPage() {
                 {...register('email')}
                 disabled={isLoading}
               />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>

@@ -27,16 +27,26 @@ export interface OrganizationMember {
   joinedAt: Date;
 }
 
-export type AccountType = 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD' | 'CASH' | 'INVESTMENT';
+export type AccountType =
+  | 'CHECKING'
+  | 'SAVINGS'
+  | 'CREDIT_CARD'
+  | 'CASH'
+  | 'INVESTMENT'
+  | 'LINE_OF_CREDIT';
 
 export interface Account {
   id: string;
+  orgId?: string;
   name: string;
   type: AccountType;
   balance: number;
   currency: string;
   isActive: boolean;
-  // Credit card specific fields (when type is CREDIT_CARD)
+  // Bank information
+  bankName?: string; // Nombre del banco (ej: Banco Estado, BCI, Santander)
+  cardNumber?: string; // Últimos 4 dígitos de la tarjeta (por seguridad)
+  // Credit card/Line of credit specific fields (when type is CREDIT_CARD or LINE_OF_CREDIT)
   creditCardId?: string; // Reference to CreditCard document
   creditLimit?: number;
   availableCredit?: number;
@@ -48,16 +58,20 @@ export type CategoryType = 'INCOME' | 'EXPENSE';
 
 export interface Category {
   id: string;
+  orgId?: string;
   name: string;
   type: CategoryType;
   icon: string;
   color: string;
+  isSystem?: boolean; // System categories cannot be deleted
+  parentId?: string; // ID of parent category (undefined = root category)
 }
 
 export type TransactionType = 'INCOME' | 'EXPENSE';
 
 export interface Transaction {
   id: string;
+  orgId?: string;
   description: string;
   amount: number;
   type: TransactionType;
@@ -83,12 +97,19 @@ export type BudgetPeriod = 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY';
 
 export interface Budget {
   id: string;
+  orgId?: string;
   name: string;
   amount: number;
+  spent: number; // Amount spent so far
   period: BudgetPeriod;
   categoryId: string;
+  userId: string;
   startDate: Date;
   endDate: Date;
+  alertThreshold: number; // Percentage (0-100) for alerts
+  isActive: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 // ========================================
@@ -97,6 +118,7 @@ export interface Budget {
 
 export interface CreditCard {
   id: string;
+  orgId?: string;
   name: string;
   accountId: string; // Associated account
   bank: string;
@@ -110,8 +132,8 @@ export interface CreditCard {
   minimumPaymentPercent: number; // Minimum payment as percentage of balance
   currency: string; // Default: 'CLP'
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface CreditCardStatement {
@@ -134,10 +156,17 @@ export interface CreditCardStatement {
 // RECURRING TRANSACTIONS
 // ========================================
 
-export type RecurrenceFrequency = 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY';
+export type RecurrenceFrequency =
+  | 'DAILY'
+  | 'WEEKLY'
+  | 'BIWEEKLY'
+  | 'MONTHLY'
+  | 'QUARTERLY'
+  | 'YEARLY';
 
 export interface RecurringTransaction {
   id: string;
+  orgId?: string;
   description: string;
   amount: number;
   type: TransactionType;
@@ -151,15 +180,15 @@ export interface RecurringTransaction {
   lastProcessedDate?: Date;
   isActive: boolean;
   tags?: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 // ========================================
 // ALERTS SYSTEM
 // ========================================
 
-export type AlertType = 
+export type AlertType =
   | 'BUDGET_THRESHOLD' // Budget limit approaching/exceeded
   | 'PAYMENT_DUE' // Payment due date approaching
   | 'LOW_BALANCE' // Account balance low
@@ -172,6 +201,7 @@ export type AlertPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
 export interface Alert {
   id: string;
+  orgId?: string;
   type: AlertType;
   priority: AlertPriority;
   title: string;
@@ -185,7 +215,7 @@ export interface Alert {
   // Threshold configuration (for budget/balance alerts)
   thresholdPercent?: number; // e.g., 80 means alert at 80% of budget
   // Date information
-  createdAt: Date;
+  createdAt?: Date;
   readAt?: Date;
   archivedAt?: Date;
 }
@@ -214,6 +244,7 @@ export type SavingsGoalStatus = 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
 
 export interface SavingsGoal {
   id: string;
+  orgId?: string;
   name: string;
   description?: string;
   targetAmount: number;
@@ -225,8 +256,8 @@ export interface SavingsGoal {
   color?: string;
   linkedAccountId?: string; // Optional: track from specific account
   userId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
   completedAt?: Date;
 }
 
