@@ -1086,7 +1086,7 @@ git tag v0.8.2-period-automation
 
 ### 10.1 — Crear página de metas de ahorro
 
-- [ ] **Crear** `src/app/(dashboard)/savings/page.tsx`
+- [x] **Crear** `src/app/(dashboard)/savings/page.tsx`
   - Lista de metas con:
     - Nombre | Monto objetivo | Monto actual | % progreso | Fecha límite | Estado
     - Progress bar visual por meta
@@ -1095,32 +1095,33 @@ git tag v0.8.2-period-automation
 
 ### 10.2 — Widget de metas en Dashboard
 
-- [ ] **Crear** `src/presentation/components/features/dashboard/widgets/SavingsGoalsWidget.tsx`
+- [x] **Crear** `src/presentation/components/features/dashboard/widgets/SavingsGoalsWidget.tsx`
   - Muestra las top 2-3 metas activas con progress bars compactas
   - Link "Ver todas" → `/savings`
 
 ### 10.3 — Agregar link en Sidebar
 
-- [ ] **Editar** `src/components/layout/Sidebar.tsx`
+- [x] **Editar** `src/components/layout/Sidebar.tsx`
   - Agregar: `{ href: '/savings', label: 'Metas de Ahorro', icon: Target, implemented: true }`
   - Ubicar después de "Reportes"
 
 ### 10.4 — Formulario de contribución
 
-- [ ] **Crear** `src/presentation/components/features/savings/ContributionForm.tsx`
+- [x] **Crear** `src/presentation/components/features/savings-goals/ContributionForm.tsx`
   - Campos: meta (select), monto, cuenta (select), fecha, descripción
   - Al contribuir: usa `ContributeToSavingsGoalUseCase` existente
 
 ### 10.5 — Commit de Fase 10
 
 ```bash
-git checkout -b feature/upgrade-phase-10-savings-goals develop
+✅ git checkout -b feature/upgrade-phase-10-savings-goals develop
 # ... hacer cambios ...
 git add -A
 git commit -m "feat(presentation): UI completa para metas de ahorro
 
 - Crear página /savings con lista de metas, progreso y CRUD
 - Crear SavingsGoalsWidget para dashboard
+- Crear SavingsGoalForm para crear/editar metas
 - Crear ContributionForm para aportes a metas
 - Agregar link en sidebar"
 
