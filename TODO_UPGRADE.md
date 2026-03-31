@@ -783,7 +783,7 @@ git tag v0.7.4-financial-projection
 
 ### 07.1 — Gráfico de barras: Presupuesto vs Real por categoría
 
-- [ ] **Crear** `src/presentation/components/features/dashboard/charts/BudgetVsActualChart.tsx`
+- [x] **Crear** `src/presentation/components/features/dashboard/charts/BudgetVsActualChart.tsx`
   - **Tipo**: Barras horizontales agrupadas (Recharts `BarChart` con `layout="vertical"`)
   - **Datos**: Para cada categoría con presupuesto asignado: barra azul (presupuesto) + barra verde/roja (real)
     - Verde si real < presupuesto
@@ -804,7 +804,7 @@ git tag v0.7.4-financial-projection
 
 ### 07.2 — Gráfico de barras apiladas: Gastos por día de la semana
 
-- [ ] **Crear** `src/presentation/components/features/dashboard/charts/WeeklyPatternChart.tsx`
+- [x] **Crear** `src/presentation/components/features/dashboard/charts/WeeklyPatternChart.tsx`
   - **Tipo**: Barras verticales (7 barras, una por día de la semana)
   - **Datos**: Promedio de gasto por día de la semana (Lun-Dom) en el período seleccionado
   - Resaltar el día actual
@@ -812,7 +812,7 @@ git tag v0.7.4-financial-projection
 
 ### 07.3 — Gauge: Presupuesto restante del período
 
-- [ ] **Crear** `src/presentation/components/features/dashboard/charts/BudgetGauge.tsx`
+- [x] **Crear** `src/presentation/components/features/dashboard/charts/BudgetGauge.tsx`
   - **Tipo**: Semicírculo gauge (implementar con SVG o librería `react-gauge-chart`)
   - **Datos**: Porcentaje de presupuesto usado del período activo
   - **Colores**: Gradiente verde → amarillo → rojo
@@ -821,28 +821,28 @@ git tag v0.7.4-financial-projection
 
 ### 07.4 — Sparklines en KPIs
 
-- [ ] **Crear** `src/presentation/components/shared/Sparkline.tsx`
+- [x] **Crear** `src/presentation/components/shared/Sparkline.tsx`
   - Mini line chart de 80x30px sin ejes ni leyendas
   - Props: `data: number[]`, `color: string`, `trend: 'up' | 'down' | 'stable'`
   - Usar Recharts `LineChart` minimalista o SVG puro para rendimiento
 
-- [ ] **Editar** `src/presentation/components/shared/Cards/KPICard.tsx`
+- [x] **Editar** `src/presentation/components/shared/Cards/KPICard.tsx`
   - Agregar prop opcional `sparklineData?: number[]`
   - Si tiene datos, renderizar `Sparkline` debajo del valor principal
 
 ### 07.5 — Hook para datos de gráficos nuevos
 
-- [ ] **Crear** `src/presentation/components/features/dashboard/hooks/useBudgetVsActual.ts`
+- [x] **Crear** `src/presentation/components/features/dashboard/hooks/useBudgetVsActual.ts`
   - Consulta períodos activos + category budgets + gastos reales
   - Devuelve datos formateados para `BudgetVsActualChart`
 
-- [ ] **Crear** `src/presentation/components/features/dashboard/hooks/useWeeklyPattern.ts`
+- [x] **Crear** `src/presentation/components/features/dashboard/hooks/useWeeklyPattern.ts`
   - Consulta transacciones del período y agrupa por día de la semana
   - Calcula promedio por día
 
 ### 07.6 — Integrar gráficos en Dashboard
 
-- [ ] **Editar** `src/app/(dashboard)/dashboard/page.tsx`
+- [x] **Editar** `src/app/(dashboard)/dashboard/page.tsx`
   - Reorganizar sección de gráficos:
     ```
     ┌─────────────────────┬─────────────────────┐
@@ -1566,7 +1566,7 @@ Creados:   BudgetVsActualChart.tsx
            WeeklyPatternChart.tsx
            BudgetGauge.tsx
            Sparkline.tsx
-           ExpensesTreemap.tsx
+           skeleton.tsx
            useBudgetVsActual.ts
            useWeeklyPattern.ts
 Editados:  KPICard.tsx, dashboard/page.tsx

@@ -6,6 +6,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Sparkline } from '@/presentation/components/shared/Sparkline';
 
 export interface KPICardProps {
   title: string;
@@ -17,6 +18,7 @@ export interface KPICardProps {
   loading?: boolean;
   className?: string;
   valueClassName?: string;
+  sparklineData?: number[]; // Datos para mini gráfico
 }
 
 export function KPICard({
@@ -29,6 +31,7 @@ export function KPICard({
   loading,
   className,
   valueClassName,
+  sparklineData,
 }: KPICardProps) {
   if (loading) {
     return (
@@ -48,7 +51,7 @@ export function KPICard({
 
   const getTrendIcon = () => {
     if (change === undefined) return null;
-    
+
     if (changeType === 'positive') {
       return <TrendingUp className="h-4 w-4" />;
     } else if (changeType === 'negative') {
@@ -70,25 +73,44 @@ export function KPICard({
         <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground leading-tight">
           {title}
         </CardTitle>
-        {icon && (
-          <div className="text-muted-foreground shrink-0">
-            {icon}
-          </div>
-        )}
+        {icon && <div className="text-muted-foreground shrink-0">{icon}</div>}
       </CardHeader>
       <CardContent className="px-3 pb-3 sm:px-6 sm:pb-6">
-        <div className={cn('text-base sm:text-xl lg:text-2xl font-bold', valueClassName)}>{value}</div>
-        
+        <div className="flex items-end justify-between gap-2">
+          <div className={cn('text-base sm:text-xl lg:text-2xl font-bold', valueClassName)}>
+            {value}
+          </div>
+          {sparklineData && sparklineData.length >= 2 && (
+            <Sparkline
+              data={sparklineData}
+              width={80}
+              height={30}
+              trend={
+                changeType === 'positive' ? 'up' : changeType === 'negative' ? 'down' : 'stable'
+              }
+              className="shrink-0"
+            />
+          )}
+        </div>
+
         {change !== undefined && (
-          <div className={cn('flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs mt-1', getTrendColor())}>
+          <div
+            className={cn(
+              'flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs mt-1',
+              getTrendColor()
+            )}
+          >
             {getTrendIcon()}
             <span className="hidden sm:inline">
-              {change > 0 ? '+' : ''}{change.toFixed(1)}%
+              {change > 0 ? '+' : ''}
+              {change.toFixed(1)}%
             </span>
-            <span className="hidden sm:inline text-muted-foreground">desde el período anterior</span>
+            <span className="hidden sm:inline text-muted-foreground">
+              desde el período anterior
+            </span>
           </div>
         )}
-        
+
         {description && (
           <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 line-clamp-2">
             {description}

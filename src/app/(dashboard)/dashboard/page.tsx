@@ -12,15 +12,47 @@ import { useExpensesByCategory } from '@/presentation/components/features/dashbo
 import { useRecentTransactions } from '@/presentation/components/features/dashboard/hooks/useRecentTransactions';
 import { useUnreadAlerts } from '@/presentation/components/features/dashboard/hooks/useUnreadAlerts';
 import { useDailyWeeklyStats } from '@/presentation/components/features/dashboard/hooks/useDailyWeeklyStats';
+import { useBudgetVsActual } from '@/presentation/components/features/dashboard/hooks/useBudgetVsActual';
+import { useWeeklyPattern } from '@/presentation/components/features/dashboard/hooks/useWeeklyPattern';
 import { KPICard, KPICardSkeleton } from '@/presentation/components/shared/Cards/KPICard';
-import { BalanceChart, BalanceChartSkeleton } from '@/presentation/components/features/dashboard/charts/BalanceChart';
-import { ExpensesByCategoryChart, ExpensesByCategoryChartSkeleton } from '@/presentation/components/features/dashboard/charts/ExpensesByCategoryChart';
-import { RecentTransactionsWidget, RecentTransactionsWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/RecentTransactionsWidget';
+import {
+  BalanceChart,
+  BalanceChartSkeleton,
+} from '@/presentation/components/features/dashboard/charts/BalanceChart';
+import {
+  ExpensesByCategoryChart,
+  ExpensesByCategoryChartSkeleton,
+} from '@/presentation/components/features/dashboard/charts/ExpensesByCategoryChart';
+import {
+  BudgetVsActualChart,
+  BudgetVsActualChartSkeleton,
+} from '@/presentation/components/features/dashboard/charts/BudgetVsActualChart';
+import {
+  WeeklyPatternChart,
+  WeeklyPatternChartSkeleton,
+} from '@/presentation/components/features/dashboard/charts/WeeklyPatternChart';
+import {
+  BudgetGauge,
+  BudgetGaugeSkeleton,
+} from '@/presentation/components/features/dashboard/charts/BudgetGauge';
+import {
+  RecentTransactionsWidget,
+  RecentTransactionsWidgetSkeleton,
+} from '@/presentation/components/features/dashboard/widgets/RecentTransactionsWidget';
 import { DebtSummaryWidget } from '@/presentation/components/features/dashboard/widgets/DebtSummaryWidget';
 import { FinancialProjectionWidget } from '@/presentation/components/features/dashboard/widgets/FinancialProjectionWidget';
-import { AlertsWidget, AlertsWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/AlertsWidget';
-import { DailyExpenseWidget, DailyExpenseWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/DailyExpenseWidget';
-import { WeeklyExpenseWidget, WeeklyExpenseWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/WeeklyExpenseWidget';
+import {
+  AlertsWidget,
+  AlertsWidgetSkeleton,
+} from '@/presentation/components/features/dashboard/widgets/AlertsWidget';
+import {
+  DailyExpenseWidget,
+  DailyExpenseWidgetSkeleton,
+} from '@/presentation/components/features/dashboard/widgets/DailyExpenseWidget';
+import {
+  WeeklyExpenseWidget,
+  WeeklyExpenseWidgetSkeleton,
+} from '@/presentation/components/features/dashboard/widgets/WeeklyExpenseWidget';
 import { formatCurrency, formatCurrencyAbsolute } from '@/lib/utils/format';
 import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
 import {
@@ -31,15 +63,26 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, DollarSign, TrendingUp, TrendingDown, Wallet, CreditCard, Bell, PieChart, AlertCircle } from 'lucide-react';
+import {
+  RefreshCw,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  CreditCard,
+  Bell,
+  PieChart,
+  AlertCircle,
+} from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
 
+type DashboardPeriod = 'week' | 'month' | 'quarter' | 'year';
+
 export default function DashboardPage() {
-  const [period, setPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
+  const [period, setPeriod] = useState<DashboardPeriod>('month');
   const { user } = useAuth();
   const { currentOrgId } = useOrganization();
   const { data: stats, isLoading, error, refetch, isFetching } = useDashboardStats(period);
@@ -48,6 +91,18 @@ export default function DashboardPage() {
   const { data: recentTransactions, isLoading: isLoadingTransactions } = useRecentTransactions(5);
   const { data: unreadAlerts, isLoading: isLoadingAlerts } = useUnreadAlerts(3);
   const { data: dailyWeeklyStats, isLoading: isLoadingDailyWeekly } = useDailyWeeklyStats();
+
+  // New hooks for Phase 07 charts
+  const budgetVsActual = useBudgetVsActual(currentOrgId || '');
+  const weeklyPattern = useWeeklyPattern(
+    currentOrgId || '',
+    stats?.dateRange.startDate || new Date(),
+    stats?.dateRange.endDate || new Date()
+  );
+  const balanceSparkline = balanceHistory?.dataPoints.map((point) => point.balance) ?? [];
+  const incomeSparkline = balanceHistory?.dataPoints.map((point) => point.income) ?? [];
+  const expensesSparkline = balanceHistory?.dataPoints.map((point) => point.expenses) ?? [];
+
   const queryClient = useQueryClient();
 
   const handleRefresh = async () => {
@@ -57,7 +112,7 @@ export default function DashboardPage() {
       toast.success('Dashboard actualizado');
     } catch (error) {
       toast.error('Error al actualizar dashboard', {
-        description: error instanceof Error ? error.message : 'Error desconocido'
+        description: error instanceof Error ? error.message : 'Error desconocido',
       });
     }
   };
@@ -82,14 +137,26 @@ export default function DashboardPage() {
           <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">Error al cargar el dashboard</h3>
           <div className="text-sm text-muted-foreground mb-4 space-y-2">
-            <p className="font-medium">{error instanceof Error ? error.message : 'Error desconocido'}</p>
+            <p className="font-medium">
+              {error instanceof Error ? error.message : 'Error desconocido'}
+            </p>
             <div className="text-xs bg-muted p-3 rounded-md text-left">
-              <p><strong>Usuario:</strong> {user?.email || 'No autenticado'}</p>
-              <p><strong>User ID:</strong> {user?.id || 'N/A'}</p>
-              <p><strong>Org ID:</strong> {currentOrgId || 'No establecida'}</p>
-              <p><strong>Período:</strong> {period}</p>
+              <p>
+                <strong>Usuario:</strong> {user?.email || 'No autenticado'}
+              </p>
+              <p>
+                <strong>User ID:</strong> {user?.id || 'N/A'}
+              </p>
+              <p>
+                <strong>Org ID:</strong> {currentOrgId || 'No establecida'}
+              </p>
+              <p>
+                <strong>Período:</strong> {period}
+              </p>
             </div>
-            <p className="text-xs italic">Revisa la consola del navegador (F12) para más detalles</p>
+            <p className="text-xs italic">
+              Revisa la consola del navegador (F12) para más detalles
+            </p>
           </div>
           <Button onClick={handleRefresh}>
             <RefreshCw className="mr-2 h-4 w-4" />
@@ -111,7 +178,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Select value={period} onValueChange={(value: any) => setPeriod(value)}>
+          <Select value={period} onValueChange={(value) => setPeriod(value as DashboardPeriod)}>
             <SelectTrigger className="w-[160px] sm:w-[180px]">
               <SelectValue placeholder="Seleccionar período" />
             </SelectTrigger>
@@ -152,17 +219,16 @@ export default function DashboardPage() {
             <div className="space-y-1">
               <h3 className="text-sm font-medium text-muted-foreground">Balance del Período</h3>
               <div className="flex items-baseline gap-3">
-                <MoneyDisplay 
-                  amount={(stats.totalIncome || 0) - (stats.totalExpenses || 0)} 
-                  type="balance" 
-                  size="xl" 
+                <MoneyDisplay
+                  amount={(stats.totalIncome || 0) - (stats.totalExpenses || 0)}
+                  type="balance"
+                  size="xl"
                 />
               </div>
               <p className="text-sm text-muted-foreground mt-2">
-                {(stats.totalIncome || 0) - (stats.totalExpenses || 0) >= 0 
+                {(stats.totalIncome || 0) - (stats.totalExpenses || 0) >= 0
                   ? '🎉 Estás ahorrando este período'
-                  : '⚠️ Estás gastando más de lo que ganas este período'
-                }
+                  : '⚠️ Estás gastando más de lo que ganas este período'}
               </p>
             </div>
             <div className="rounded-full bg-primary/10 p-3">
@@ -173,12 +239,16 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2">
               <TrendingUp className="h-3 w-3 text-green-600" />
               <span className="text-muted-foreground">Ingresos:</span>
-              <span className="font-medium text-green-600 dark:text-green-400">{formatCurrencyAbsolute(stats.totalIncome)}</span>
+              <span className="font-medium text-green-600 dark:text-green-400">
+                {formatCurrencyAbsolute(stats.totalIncome)}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <TrendingDown className="h-3 w-3 text-red-600" />
               <span className="text-muted-foreground">Gastos:</span>
-              <span className="font-medium text-red-600 dark:text-red-400">{formatCurrencyAbsolute(stats.totalExpenses)}</span>
+              <span className="font-medium text-red-600 dark:text-red-400">
+                {formatCurrencyAbsolute(stats.totalExpenses)}
+              </span>
             </div>
           </div>
         </div>
@@ -188,7 +258,7 @@ export default function DashboardPage() {
       <FinancialProjectionWidget />
 
       {/* KPIs Grid - Primary Row */}
-      <div className="grid gap-3 grid-cols-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {/* KPI 1: Balance Total */}
         {isLoading || !stats ? (
           <KPICardSkeleton />
@@ -196,10 +266,21 @@ export default function DashboardPage() {
           <KPICard
             title="Balance Total"
             value={formatCurrency(stats.currentBalance)}
-            valueClassName={stats.currentBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}
+            valueClassName={
+              stats.currentBalance >= 0
+                ? 'text-green-600 dark:text-green-400'
+                : 'text-red-600 dark:text-red-400'
+            }
             change={stats.monthlyChangePercent}
-            changeType={stats.monthlyChange > 0 ? 'positive' : stats.monthlyChange < 0 ? 'negative' : 'neutral'}
+            changeType={
+              stats.monthlyChange > 0
+                ? 'positive'
+                : stats.monthlyChange < 0
+                  ? 'negative'
+                  : 'neutral'
+            }
             icon={<DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+            sparklineData={balanceSparkline}
           />
         )}
 
@@ -213,6 +294,7 @@ export default function DashboardPage() {
             valueClassName="text-green-600 dark:text-green-400"
             icon={<TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />}
             description={`${stats.transactionCounts.income} transacciones`}
+            sparklineData={incomeSparkline}
           />
         )}
 
@@ -226,6 +308,7 @@ export default function DashboardPage() {
             valueClassName="text-red-600 dark:text-red-400"
             icon={<TrendingDown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600" />}
             description={`${stats.transactionCounts.expense} transacciones`}
+            sparklineData={expensesSparkline}
           />
         )}
 
@@ -237,15 +320,15 @@ export default function DashboardPage() {
             title="Tasa de Ahorro"
             value={`${stats.savingsRate.toFixed(1)}%`}
             changeType={
-              stats.savingsRate > 20 ? 'positive' : 
-              stats.savingsRate > 10 ? 'neutral' : 
-              'negative'
+              stats.savingsRate > 20 ? 'positive' : stats.savingsRate > 10 ? 'neutral' : 'negative'
             }
             icon={<Wallet className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
             description={
-              stats.savingsRate > 20 ? '¡Excelente tasa de ahorro!' :
-              stats.savingsRate > 10 ? 'Buena tasa de ahorro' :
-              'Considera aumentar tus ahorros'
+              stats.savingsRate > 20
+                ? '¡Excelente tasa de ahorro!'
+                : stats.savingsRate > 10
+                  ? 'Buena tasa de ahorro'
+                  : 'Considera aumentar tus ahorros'
             }
           />
         )}
@@ -263,9 +346,11 @@ export default function DashboardPage() {
             icon={<CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
             changeType={stats.pendingPayments > 0 ? 'neutral' : 'positive'}
             description={
-              stats.pendingPayments === 0 ? 'Sin pagos pendientes' :
-              stats.pendingPayments === 1 ? '1 pago próximo' :
-              `${stats.pendingPayments} pagos próximos`
+              stats.pendingPayments === 0
+                ? 'Sin pagos pendientes'
+                : stats.pendingPayments === 1
+                  ? '1 pago próximo'
+                  : `${stats.pendingPayments} pagos próximos`
             }
           />
         )}
@@ -280,9 +365,11 @@ export default function DashboardPage() {
             icon={<Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
             changeType={stats.activeAlerts > 5 ? 'negative' : 'neutral'}
             description={
-              stats.activeAlerts === 0 ? 'Todo bajo control' :
-              stats.activeAlerts === 1 ? '1 alerta sin leer' :
-              `${stats.activeAlerts} alertas sin leer`
+              stats.activeAlerts === 0
+                ? 'Todo bajo control'
+                : stats.activeAlerts === 1
+                  ? '1 alerta sin leer'
+                  : `${stats.activeAlerts} alertas sin leer`
             }
           />
         )}
@@ -295,15 +382,15 @@ export default function DashboardPage() {
             title="Uso de Presupuesto"
             value={`${stats.budgetUsage.toFixed(1)}%`}
             changeType={
-              stats.budgetUsage > 90 ? 'negative' :
-              stats.budgetUsage > 70 ? 'neutral' :
-              'positive'
+              stats.budgetUsage > 90 ? 'negative' : stats.budgetUsage > 70 ? 'neutral' : 'positive'
             }
             icon={<PieChart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
             description={
-              stats.budgetUsage > 90 ? '¡Cerca del límite!' :
-              stats.budgetUsage > 70 ? 'Monitorear gastos' :
-              'Dentro del presupuesto'
+              stats.budgetUsage > 90
+                ? '¡Cerca del límite!'
+                : stats.budgetUsage > 70
+                  ? 'Monitorear gastos'
+                  : 'Dentro del presupuesto'
             }
           />
         )}
@@ -314,16 +401,39 @@ export default function DashboardPage() {
         ) : (
           <KPICard
             title="Categoría Top"
-            value={stats.topExpenseCategory ? formatCurrencyAbsolute(stats.topExpenseCategory.amount) : 'N/A'}
+            value={
+              stats.topExpenseCategory
+                ? formatCurrencyAbsolute(stats.topExpenseCategory.amount)
+                : 'N/A'
+            }
             valueClassName="text-red-600 dark:text-red-400"
             icon={<TrendingDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
             description={
-              stats.topExpenseCategory 
+              stats.topExpenseCategory
                 ? `${stats.topExpenseCategory.percent.toFixed(1)}% de tus gastos`
                 : 'Sin datos suficientes'
             }
           />
         )}
+
+        {/* KPI 9: Gauge de Presupuesto */}
+        {budgetVsActual.isLoading ? (
+          <BudgetGaugeSkeleton />
+        ) : budgetVsActual.hasActivePeriod ? (
+          <BudgetGauge
+            totalBudget={budgetVsActual.data.reduce((sum, d) => sum + d.budgeted, 0)}
+            totalSpent={budgetVsActual.data.reduce((sum, d) => sum + d.spent, 0)}
+            periodName={budgetVsActual.activePeriod?.name}
+            daysRemaining={
+              budgetVsActual.activePeriod
+                ? Math.ceil(
+                    (budgetVsActual.activePeriod.endDate.getTime() - new Date().getTime()) /
+                      (1000 * 60 * 60 * 24)
+                  )
+                : undefined
+            }
+          />
+        ) : null}
       </div>
 
       {/* Charts Section */}
@@ -348,6 +458,24 @@ export default function DashboardPage() {
             data={expensesByCategory.categories}
             totalExpenses={expensesByCategory.totalExpenses}
           />
+        ) : null}
+
+        {/* Budget vs Actual Chart - NEW */}
+        {budgetVsActual.isLoading ? (
+          <BudgetVsActualChartSkeleton />
+        ) : budgetVsActual.hasActivePeriod && budgetVsActual.data.length > 0 ? (
+          <BudgetVsActualChart
+            data={budgetVsActual.data}
+            totalBudget={budgetVsActual.data.reduce((sum, d) => sum + d.budgeted, 0)}
+            totalSpent={budgetVsActual.data.reduce((sum, d) => sum + d.spent, 0)}
+          />
+        ) : null}
+
+        {/* Weekly Pattern Chart - NEW */}
+        {weeklyPattern.isLoading ? (
+          <WeeklyPatternChartSkeleton />
+        ) : weeklyPattern.data.length > 0 ? (
+          <WeeklyPatternChart data={weeklyPattern.data} peakDay={weeklyPattern.peakDay} />
         ) : null}
       </div>
 
