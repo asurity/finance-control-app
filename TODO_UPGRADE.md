@@ -666,16 +666,16 @@ git tag v0.7.4-financial-projection
 
 ---
 
-## FASE 06 — Simplificar Carga de Transacciones
+## FASE 06 — Simplificar Carga de Transacciones ✅
 
 > **Branch**: `feature/upgrade-phase-06-quick-entry`  
-> **Tag**: `v0.8.0-quick-entry`  
+> **Tag**: `v0.8.0-quick-entry` ✅  
 > **Objetivo**: Que cargar un gasto tome 3 taps y 5 segundos, no 30 segundos rellenando 7 campos.  
 > **Capas afectadas**: Presentation (componentes nuevos), Application (hook con defaults inteligentes)
 
 ### 06.1 — Crear hook useSmartDefaults
 
-- [ ] **Crear** `src/presentation/components/features/transactions/hooks/useSmartDefaults.ts`
+- [x] **Crear** `src/presentation/components/features/transactions/hooks/useSmartDefaults.ts`
   - Lógica:
     - **Cuenta predeterminada**: La cuenta con más transacciones en el último mes. Almacenar en `localStorage` la última cuenta usada como fallback.
     - **Categoría sugerida**: La categoría más frecuente del tipo seleccionado (INCOME/EXPENSE) en el último mes.
@@ -692,7 +692,7 @@ git tag v0.7.4-financial-projection
 
 ### 06.2 — Crear componente QuickExpenseForm
 
-- [ ] **Crear** `src/presentation/components/features/transactions/QuickExpenseForm.tsx`
+- [x] **Crear** `src/presentation/components/features/transactions/QuickExpenseForm.tsx`
   - Formulario minimalista para carga ultra-rápida:
     ```
     ┌─────────────────────────────────────────┐
@@ -717,7 +717,7 @@ git tag v0.7.4-financial-projection
 
 ### 06.3 — Crear componente QuickIncomeForm
 
-- [ ] **Crear** `src/presentation/components/features/transactions/QuickIncomeForm.tsx`
+- [x] **Crear** `src/presentation/components/features/transactions/QuickIncomeForm.tsx`
   - Mismo concepto que `QuickExpenseForm` pero:
     - Categorías de ingreso en vez de gasto
     - Color verde en el botón y el monto
@@ -725,17 +725,17 @@ git tag v0.7.4-financial-projection
 
 ### 06.4 — Actualizar FAB y Header modal
 
-- [ ] **Editar** `src/components/layout/GlobalTransactionFAB.tsx`
+- [x] **Editar** `src/components/layout/GlobalTransactionFAB.tsx`
   - Reemplazar `TransactionForm` por `QuickExpenseForm` en el diálogo de gasto
   - Reemplazar `TransactionForm` por `QuickIncomeForm` en el diálogo de ingreso
   - Agregar link "Formulario completo" al final de cada quick form que abra el `TransactionForm` original para casos que necesiten campos avanzados (cuotas, URL de recibo)
 
-- [ ] **Editar** `src/presentation/components/features/transactions/QuickTransactionModal.tsx`
+- [x] **Editar** `src/presentation/components/features/transactions/QuickTransactionModal.tsx`
   - Mismo cambio: usar quick forms como default, con link a formulario completo
 
 ### 06.5 — Mantener TransactionForm para uso avanzado
 
-- [ ] **NO eliminar** `src/presentation/components/features/transactions/TransactionForm.tsx`
+- [x] **NO eliminar** `src/presentation/components/features/transactions/TransactionForm.tsx`
   - Se mantiene como formulario completo para:
     - Edición de transacciones existentes
     - Transacciones con cuotas
@@ -745,20 +745,20 @@ git tag v0.7.4-financial-projection
 
 ### 06.6 — Persistir última cuenta usada
 
-- [ ] **Editar** `src/application/hooks/useTransactions.ts`
+- [x] **Implementado en QuickForms y TransactionForm**
   - En el `onSuccess` de `createTransaction`, guardar `accountId` en localStorage:
     ```typescript
     localStorage.setItem(`lastAccountId_${orgId}`, data.accountId);
     ```
   - El hook `useSmartDefaults` lee este valor como fallback
 
-### 06.7 — Commit de Fase 06
+### 06.7 — Commit de Fase 06 ✅
 
 ```bash
-git checkout -b feature/upgrade-phase-06-quick-entry develop
-# ... hacer cambios ...
-git add -A
-git commit -m "feat(presentation): carga rápida de transacciones con smart defaults
+✅ git checkout -b feature/upgrade-phase-06-quick-entry develop
+✅ # ... hacer cambios ...
+✅ git add -A
+✅ git commit -m "feat(presentation): carga rápida de transacciones con smart defaults
 
 - Crear useSmartDefaults hook con cuenta más usada, categorías frecuentes, fecha auto
 - Crear QuickExpenseForm con monto + categoría chips + defaults inteligentes
@@ -767,9 +767,9 @@ git commit -m "feat(presentation): carga rápida de transacciones con smart defa
 - Mantener TransactionForm como formulario avanzado accesible
 - Persistir última cuenta usada en localStorage"
 
-git checkout develop
-git merge --no-ff feature/upgrade-phase-06-quick-entry -m "Merge fase 06: carga rápida de transacciones"
-git tag v0.8.0-quick-entry
+✅ git checkout develop
+✅ git merge --no-ff feature/upgrade-phase-06-quick-entry -m "Merge fase 06: carga rápida de transacciones"
+✅ git tag v0.8.0-quick-entry
 ```
 
 ---
