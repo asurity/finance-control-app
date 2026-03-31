@@ -6,6 +6,8 @@
  */
 
 import { useState, useEffect } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
 import { useDashboardStats } from '@/presentation/components/features/dashboard/hooks/useDashboardStats';
 import { useBalanceHistory } from '@/presentation/components/features/dashboard/hooks/useBalanceHistory';
 import { useExpensesByCategory } from '@/presentation/components/features/dashboard/hooks/useExpensesByCategory';
@@ -82,6 +84,8 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
 import { PeriodStatusBanner } from '@/presentation/components/features/budgets/PeriodStatusBanner';
+import { OnboardingWizard } from '@/presentation/components/features/onboarding/OnboardingWizard';
+import { useAccounts } from '@/application/hooks/useAccounts';
 
 type DashboardPeriod = 'week' | 'month' | 'quarter' | 'year';
 
@@ -110,6 +114,30 @@ export default function DashboardPage() {
   // Recurring transactions hook for Phase 09
   const recurringHook = useRecurringTransactions(currentOrgId || '', user?.uid || '');
   const { mutate: processRecurring } = recurringHook.processRecurringTransaction;
+
+  // Onboarding detection
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const accountsHook = useAccounts(currentOrgId || '');
+  const { data: allAccounts, isLoading: isLoadingAccounts } = accountsHook.useAllAccounts();
+
+  useEffect(() => {
+    if (!user?.uid || isLoadingAccounts) return;
+    // If user has no accounts, check if onboarding was already completed
+    if (allAccounts && allAccounts.length === 0) {
+      const checkOnboarding = async () => {
+        try {
+          const settingsDoc = await getDoc(doc(db, `userSettings/${user.uid}`));
+          if (!settingsDoc.exists() || !settingsDoc.data()?.onboardingCompleted) {
+            setShowOnboarding(true);
+          }
+        } catch {
+          // If we can't read settings, show onboarding for new users
+          setShowOnboarding(true);
+        }
+      };
+      checkOnboarding();
+    }
+  }, [user?.uid, allAccounts, isLoadingAccounts]);
 
   // Automatic processing of recurring transactions on dashboard load
   useEffect(() => {
@@ -190,6 +218,15 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {/* Onboarding Wizard */}
+      {showOnboarding && currentOrgId && user?.uid && (
+        <OnboardingWizard
+          orgId={currentOrgId}
+          userId={user.uid}
+          onComplete={() => setShowOnboarding(false)}
+        />
+      )}
+
       <PeriodStatusBanner />
 
       {/* Header */}
