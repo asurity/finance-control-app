@@ -17,6 +17,7 @@ import { BalanceChart, BalanceChartSkeleton } from '@/presentation/components/fe
 import { ExpensesByCategoryChart, ExpensesByCategoryChartSkeleton } from '@/presentation/components/features/dashboard/charts/ExpensesByCategoryChart';
 import { RecentTransactionsWidget, RecentTransactionsWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/RecentTransactionsWidget';
 import { DebtSummaryWidget } from '@/presentation/components/features/dashboard/widgets/DebtSummaryWidget';
+import { FinancialProjectionWidget } from '@/presentation/components/features/dashboard/widgets/FinancialProjectionWidget';
 import { AlertsWidget, AlertsWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/AlertsWidget';
 import { DailyExpenseWidget, DailyExpenseWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/DailyExpenseWidget';
 import { WeeklyExpenseWidget, WeeklyExpenseWidgetSkeleton } from '@/presentation/components/features/dashboard/widgets/WeeklyExpenseWidget';
@@ -182,6 +183,9 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Financial Projection Widget */}
+      <FinancialProjectionWidget />
 
       {/* KPIs Grid - Primary Row */}
       <div className="grid gap-3 grid-cols-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">

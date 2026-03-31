@@ -39,6 +39,7 @@ import { GetDashboardStatisticsUseCase } from '@/domain/use-cases/dashboard/GetD
 import { GetBalanceHistoryUseCase } from '@/domain/use-cases/dashboard/GetBalanceHistoryUseCase';
 import { GetExpensesByCategoryUseCase } from '@/domain/use-cases/dashboard/GetExpensesByCategoryUseCase';
 import { GetDailyWeeklyStatsUseCase } from '@/domain/use-cases/dashboard/GetDailyWeeklyStatsUseCase';
+import { CalculateFinancialProjectionUseCase } from '@/domain/use-cases/dashboard/CalculateFinancialProjectionUseCase';
 
 // Account Use Cases
 import { CreateAccountUseCase } from '@/domain/use-cases/accounts/CreateAccountUseCase';
@@ -307,6 +308,13 @@ export class DIContainer {
 
   getGetDailyWeeklyStatsUseCase(): GetDailyWeeklyStatsUseCase {
     return new GetDailyWeeklyStatsUseCase(
+      this.getTransactionRepository(),
+      this.getBudgetPeriodRepository()
+    );
+  }
+
+  getCalculateFinancialProjectionUseCase(): CalculateFinancialProjectionUseCase {
+    return new CalculateFinancialProjectionUseCase(
       this.getTransactionRepository(),
       this.getBudgetPeriodRepository()
     );
