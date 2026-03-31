@@ -5,7 +5,7 @@
  * Main dashboard with real-time KPIs and metrics
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDashboardStats } from '@/presentation/components/features/dashboard/hooks/useDashboardStats';
 import { useBalanceHistory } from '@/presentation/components/features/dashboard/hooks/useBalanceHistory';
 import { useExpensesByCategory } from '@/presentation/components/features/dashboard/hooks/useExpensesByCategory';
@@ -14,6 +14,7 @@ import { useUnreadAlerts } from '@/presentation/components/features/dashboard/ho
 import { useDailyWeeklyStats } from '@/presentation/components/features/dashboard/hooks/useDailyWeeklyStats';
 import { useBudgetVsActual } from '@/presentation/components/features/dashboard/hooks/useBudgetVsActual';
 import { useWeeklyPattern } from '@/presentation/components/features/dashboard/hooks/useWeeklyPattern';
+import { useRecurringTransactions } from '@/application/hooks/useRecurringTransactions';
 import { KPICard, KPICardSkeleton } from '@/presentation/components/shared/Cards/KPICard';
 import {
   BalanceChart,
@@ -41,6 +42,7 @@ import {
 } from '@/presentation/components/features/dashboard/widgets/RecentTransactionsWidget';
 import { DebtSummaryWidget } from '@/presentation/components/features/dashboard/widgets/DebtSummaryWidget';
 import { FinancialProjectionWidget } from '@/presentation/components/features/dashboard/widgets/FinancialProjectionWidget';
+import { RecurringCommitmentsWidget } from '@/presentation/components/features/dashboard/widgets/RecurringCommitmentsWidget';
 import {
   AlertsWidget,
   AlertsWidgetSkeleton,
@@ -103,6 +105,23 @@ export default function DashboardPage() {
   const balanceSparkline = balanceHistory?.dataPoints.map((point) => point.balance) ?? [];
   const incomeSparkline = balanceHistory?.dataPoints.map((point) => point.income) ?? [];
   const expensesSparkline = balanceHistory?.dataPoints.map((point) => point.expenses) ?? [];
+
+  // Recurring transactions hook for Phase 09
+  const recurringHook = useRecurringTransactions(currentOrgId || '', user?.uid || '');
+  const { mutate: processRecurring } = recurringHook.processRecurringTransaction;
+
+  // Automatic processing of recurring transactions on dashboard load
+  useEffect(() => {
+    if (currentOrgId && user?.uid) {
+      // Process recurring transactions silently in the background
+      processRecurring(undefined, {
+        onError: (error) => {
+          console.error('Error processing recurring transactions:', error);
+          // Don't show toast on error, just log it
+        },
+      });
+    }
+  }, [currentOrgId, user?.uid]);
 
   const queryClient = useQueryClient();
 
@@ -493,6 +512,11 @@ export default function DashboardPage() {
 
         {/* Debt Summary Widget */}
         <DebtSummaryWidget />
+
+        {/* Recurring Commitments Widget */}
+        {user && currentOrgId && (
+          <RecurringCommitmentsWidget orgId={currentOrgId} userId={user.id} />
+        )}
 
         {/* Alerts Widget */}
         {isLoadingAlerts ? (
