@@ -34,6 +34,7 @@ import type { TransactionType, AccountType } from '@/types/firestore';
 import { useTransactions } from '@/application/hooks/useTransactions';
 import { useAccounts } from '@/application/hooks/useAccounts';
 import { useCategories } from '@/application/hooks/useCategories';
+import { useSmartDefaults } from './hooks/useSmartDefaults';
 import type { z } from 'zod';
 
 interface TransactionFormProps {
@@ -58,6 +59,13 @@ export function TransactionForm({ orgId, userId, onSuccess, defaultType = 'EXPEN
   const { data: accounts = [], isLoading: accountsLoading } = accountsHook.useActiveAccounts();
   const { data: allCategories = [], isLoading: categoriesLoading } = categoriesHook.useAllCategories();
 
+  // Get smart defaults
+  const smartDefaults = useSmartDefaults({
+    orgId,
+    userId,
+    transactionType: defaultType
+  });
+
   // Initialize form
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(CreateTransactionSchema) as any,
@@ -65,15 +73,25 @@ export function TransactionForm({ orgId, userId, onSuccess, defaultType = 'EXPEN
       type: defaultType,
       amount: 0,
       description: '',
-      date: new Date(),
-      accountId: '',
-      categoryId: '',
+      date: smartDefaults.defaultDate,
+      accountId: smartDefaults.defaultAccountId || '',
+      categoryId: smartDefaults.suggestedCategoryId || '',
       userId,
       tags: [],
       receiptUrl: '',
       installments: undefined,
     },
   });
+
+  // Update defaults when they load
+  useEffect(() => {
+    if (smartDefaults.defaultAccountId && !form.getValues('accountId')) {
+      form.setValue('accountId', smartDefaults.defaultAccountId);
+    }
+    if (smartDefaults.suggestedCategoryId && !form.getValues('categoryId')) {
+      form.setValue('categoryId', smartDefaults.suggestedCategoryId);
+    }
+  }, [smartDefaults, form]);
 
   // Watch form values for conditional fields
   const watchType = form.watch('type');
@@ -106,6 +124,12 @@ export function TransactionForm({ orgId, userId, onSuccess, defaultType = 'EXPEN
   const onSubmit = async (data: TransactionFormValues) => {
     try {
       await createTransaction.mutateAsync(data);
+      
+      // Save last used account to localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`lastAccountId_${orgId}`, data.accountId);
+      }
+      
       toast.success('Transacción registrada exitosamente');
       form.reset();
       onSuccess?.();
