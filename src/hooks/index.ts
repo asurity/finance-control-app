@@ -4,3 +4,4 @@
  */
 
 export { useOrganization } from './useOrganization';
+export { useMediaQuery } from './useMediaQuery';
