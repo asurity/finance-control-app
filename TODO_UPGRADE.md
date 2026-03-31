@@ -1141,7 +1141,7 @@ git tag v0.9.0-savings-goals
 
 ### 11.1 — Crear página de alertas/notificaciones
 
-- [ ] **Crear** `src/app/(dashboard)/notifications/page.tsx`
+- [x] **Crear** `src/app/(dashboard)/notifications/page.tsx`
   - Lista completa de alertas con:
     - Filtros: Todas | Sin leer | Por prioridad (LOW, MEDIUM, HIGH, URGENT)
     - Cada alerta: Icono de prioridad | Mensaje | Fecha | Botón Marcar como leída | Link a entidad relacionada
@@ -1149,14 +1149,14 @@ git tag v0.9.0-savings-goals
 
 ### 11.2 — Badge de notificaciones en Header
 
-- [ ] **Editar** `src/components/layout/Header.tsx`
+- [x] **Editar** `src/components/layout/Header.tsx`
   - Agregar icono de campana (Bell) con badge numérico (count de alertas no leídas)
   - Al hacer click: dropdown con las últimas 5 alertas + link "Ver todas" → `/notifications`
   - Usar `useUnreadAlerts` (ya existe) para el conteo
 
 ### 11.3 — Configuración de umbrales de alerta
 
-- [ ] **Crear** `src/app/(dashboard)/settings/page.tsx` (página básica de configuración)
+- [x] **Crear** `src/app/(dashboard)/settings/page.tsx` (página básica de configuración)
   - Sección "Alertas":
     - Umbral de presupuesto por categoría: % para alerta amarilla (default 80%), % para alerta roja (default 100%)
     - Alertas de saldo bajo: monto mínimo por cuenta que dispara alerta
@@ -1165,13 +1165,13 @@ git tag v0.9.0-savings-goals
 
 ### 11.4 — Activar los items pendientes del Sidebar
 
-- [ ] **Editar** `src/components/layout/Sidebar.tsx`
+- [x] **Editar** `src/components/layout/Sidebar.tsx`
   - Agregar: `{ href: '/notifications', label: 'Notificaciones', icon: Bell, implemented: true }`
   - Cambiar `/settings` a `implemented: true`
 
 ### 11.5 — Generar alertas automáticamente
 
-- [ ] **Editar** `src/domain/use-cases/alerts/CheckBudgetAlertsUseCase.ts`
+- [x] **Editar** `src/domain/use-cases/alerts/CheckBudgetAlertsUseCase.ts`
   - Verificar que genera alertas para:
     - Categoría supera 80% del presupuesto → alert MEDIUM
     - Categoría supera 100% del presupuesto → alert HIGH

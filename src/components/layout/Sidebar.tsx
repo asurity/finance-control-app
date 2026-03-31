@@ -17,6 +17,7 @@ import {
   Bug,
   RefreshCw,
   Target,
+  Bell,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -33,6 +34,7 @@ const menuItems = [
   { href: '/payables', label: 'Por Pagar', icon: Wallet, implemented: false, debug: false },
   { href: '/reports', label: 'Reportes', icon: FileText, implemented: true, debug: false },
   { href: '/savings', label: 'Metas de Ahorro', icon: Target, implemented: true, debug: false },
+  { href: '/notifications', label: 'Notificaciones', icon: Bell, implemented: true, debug: false },
   {
     href: '/debug-transactions',
     label: '🔍 Debug Transacciones',
@@ -54,7 +56,7 @@ const menuItems = [
     implemented: true,
     debug: true,
   },
-  { href: '/settings', label: 'Configuración', icon: Settings, implemented: false, debug: false },
+  { href: '/settings', label: 'Configuración', icon: Settings, implemented: true, debug: false },
 ];
 
 interface SidebarContentProps {
