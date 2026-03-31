@@ -3,9 +3,7 @@
 import { useState, useMemo } from 'react';
 import { endOfMonth, format, startOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Filter, Download } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { TransactionList } from '@/presentation/components/features/transactions/TransactionList';
 import { useOrganization } from '@/hooks/useOrganization';
 import { useAuth } from '@/contexts/AuthContext';
@@ -84,23 +82,11 @@ function TransactionsContent({ orgId, startDate, endDate }: TransactionsContentP
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">Transacciones</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Gestiona todos tus ingresos y gastos
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Filter className="mr-2 h-4 w-4" />
-            Filtrar
-          </Button>
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Exportar
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">Transacciones</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          Gestiona todos tus ingresos y gastos
+        </p>
       </div>
 
       <Card>

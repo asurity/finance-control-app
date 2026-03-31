@@ -24,19 +24,21 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { APP_CONFIG } from '@/lib/constants/config';
 
 const menuItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: Home, implemented: true },
-  { href: '/transactions', label: 'Transacciones', icon: Receipt, implemented: true },
-  { href: '/accounts', label: 'Cuentas', icon: CreditCard, implemented: true },
-  { href: '/budgets', label: 'Presupuestos', icon: PieChart, implemented: true },
-  { href: '/receivables', label: 'Por Cobrar', icon: TrendingUp, implemented: false },
-  { href: '/payables', label: 'Por Pagar', icon: Wallet, implemented: false },
-  { href: '/reports', label: 'Reportes', icon: FileText, implemented: true },
-  { href: '/debug-transactions', label: '🔍 Debug Transacciones', icon: Bug, implemented: true },
-  { href: '/analyze-alondrita', label: '🔬 Analizar Alondrita', icon: Bug, implemented: true },
-  { href: '/fix-budget-spent', label: '🔧 Corregir Presupuestos', icon: Bug, implemented: true },
-  { href: '/settings', label: 'Configuración', icon: Settings, implemented: false },
+  { href: '/dashboard', label: 'Dashboard', icon: Home, implemented: true, debug: false },
+  { href: '/transactions', label: 'Transacciones', icon: Receipt, implemented: true, debug: false },
+  { href: '/accounts', label: 'Cuentas', icon: CreditCard, implemented: true, debug: false },
+  { href: '/budgets', label: 'Presupuestos', icon: PieChart, implemented: true, debug: false },
+  { href: '/receivables', label: 'Por Cobrar', icon: TrendingUp, implemented: false, debug: false },
+  { href: '/payables', label: 'Por Pagar', icon: Wallet, implemented: false, debug: false },
+  { href: '/reports', label: 'Reportes', icon: FileText, implemented: true, debug: false },
+  { href: '/debug-transactions', label: '🔍 Debug Transacciones', icon: Bug, implemented: true, debug: true },
+  { href: '/analyze-alondrita', label: '🔬 Analizar Alondrita', icon: Bug, implemented: true, debug: true },
+  { href: '/fix-budget-spent', label: '🔧 Corregir Presupuestos', icon: Bug, implemented: true, debug: true },
+  { href: '/settings', label: 'Configuración', icon: Settings, implemented: false, debug: false },
 ];
 
 interface SidebarContentProps {
@@ -46,6 +48,10 @@ interface SidebarContentProps {
 function SidebarContent({ onLinkClick }: SidebarContentProps) {
   const pathname = usePathname();
   const router = useRouter();
+
+  // Filtrar items de debug en producción
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const visibleMenuItems = menuItems.filter(item => isDevelopment || !item.debug);
 
   const handleNavigation = (href: string) => {
     router.push(href);
@@ -62,7 +68,7 @@ function SidebarContent({ onLinkClick }: SidebarContentProps) {
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {menuItems.map((item) => {
+        {visibleMenuItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
 
@@ -96,10 +102,13 @@ function SidebarContent({ onLinkClick }: SidebarContentProps) {
         })}
       </nav>
 
-      <div className="p-4 border-t">
-        <div className="px-4 py-3 bg-muted rounded-lg">
-          <p className="text-xs text-muted-foreground">Versión Beta</p>
-          <p className="text-sm font-semibold">v0.6.0</p>
+      <div className="p-4 border-t space-y-2">
+        <div className="flex items-center justify-between px-2">
+          <div className="flex-1">
+            <p className="text-xs text-muted-foreground">Versión</p>
+            <p className="text-sm font-semibold">v{APP_CONFIG.version}</p>
+          </div>
+          <ThemeToggle />
         </div>
       </div>
     </>
