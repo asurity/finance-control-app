@@ -16,6 +16,7 @@ import {
   X,
   Bug,
   RefreshCw,
+  Target,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -31,6 +32,7 @@ const menuItems = [
   { href: '/receivables', label: 'Por Cobrar', icon: TrendingUp, implemented: false, debug: false },
   { href: '/payables', label: 'Por Pagar', icon: Wallet, implemented: false, debug: false },
   { href: '/reports', label: 'Reportes', icon: FileText, implemented: true, debug: false },
+  { href: '/savings', label: 'Metas de Ahorro', icon: Target, implemented: true, debug: false },
   {
     href: '/debug-transactions',
     label: '🔍 Debug Transacciones',

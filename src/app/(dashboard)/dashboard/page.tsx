@@ -43,6 +43,7 @@ import {
 import { DebtSummaryWidget } from '@/presentation/components/features/dashboard/widgets/DebtSummaryWidget';
 import { FinancialProjectionWidget } from '@/presentation/components/features/dashboard/widgets/FinancialProjectionWidget';
 import { RecurringCommitmentsWidget } from '@/presentation/components/features/dashboard/widgets/RecurringCommitmentsWidget';
+import { SavingsGoalsWidget } from '@/presentation/components/features/dashboard/widgets/SavingsGoalsWidget';
 import {
   AlertsWidget,
   AlertsWidgetSkeleton,
@@ -516,6 +517,11 @@ export default function DashboardPage() {
         {/* Recurring Commitments Widget */}
         {user && currentOrgId && (
           <RecurringCommitmentsWidget orgId={currentOrgId} userId={user.id} />
+        )}
+
+        {/* Savings Goals Widget */}
+        {user && currentOrgId && (
+          <SavingsGoalsWidget orgId={currentOrgId} userId={user.id} />
         )}
 
         {/* Alerts Widget */}
