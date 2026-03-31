@@ -2,16 +2,21 @@
 
 Sistema integral de control financiero para gestión de negocios y finanzas personales.
 
+**Versión**: 1.0.0
+
 ## 🎯 Características Principales
 
-- ✅ **Multi-propósito**: Gestión financiera para varios negocios + finanzas personales simultáneamente
+- ✅ **Multi-organización**: Gestión financiera para varios negocios + finanzas personales simultáneamente
 - 💳 **Control de Tarjetas de Crédito**: Gestión completa con límites, fechas de corte, intereses y cuotas
-- 📊 **Dashboard Inteligente**: KPIs en tiempo real y visualizaciones interactivas
+- 📊 **Dashboard Inteligente**: KPIs en tiempo real, gráficos de evolución de saldo, gastos por categoría, proyección financiera y resumen de deudas
 - 🔔 **Sistema de Alertas**: Notificaciones proactivas para presupuestos, pagos y gastos inusuales
-- 📈 **Presupuestos**: Control detallado por categorías con alertas automáticas
-- 🎯 **Metas de Ahorro**: Seguimiento de objetivos financieros con contribuciones
-- 🔄 **Transacciones Recurrentes**: Automatización de gastos e ingresos periódicos
-- 📑 **Reportes Avanzados**: Exportación a Excel y PDF con formato profesional
+- 📈 **Presupuestos por Período**: Control detallado por categorías con asignación porcentual y alertas automáticas
+- 🎯 **Metas de Ahorro**: Seguimiento de objetivos financieros con contribuciones y progreso visual
+- 🔄 **Transacciones Recurrentes**: Automatización de gastos e ingresos periódicos con procesamiento automático
+- 📑 **Reportes Avanzados**: Comparativa entre períodos, exportación a Excel y PDF con formato profesional
+- 🧠 **Sugerencia Inteligente de Categorías**: Machine learning local basado en historial de transacciones
+- 🗂️ **Sub-categorías**: Jerarquía padre/hijo con vista tree en presupuestos
+- 🚀 **Onboarding Guiado**: Wizard de configuración inicial para nuevos usuarios
 
 ## 🏗️ Arquitectura
 
@@ -133,20 +138,19 @@ npm run test:coverage    # Generar reporte de cobertura
 
 ## 📖 Documentación
 
-- [Arquitectura](./docs/arquitectura.md)
-- [Funcionalidades](./docs/funcionalidades.md)
-- [Guía de Agent Skills](./docs/guia-agent-skills.md)
-- [Ejemplos de Código](./docs/ejemplos-codigo.md)
-- [TODO Bases](../TODO_BASES.md)
-- [TODO Features](../TODO_FEATURES.md)
+- [Clean Architecture](./docs/clean-architecture.md)
+- [Mejoras de Autenticación](./docs/mejoras-autenticacion.md)
+- [Despliegue](./DEPLOYMENT.md)
+- [Plan de Upgrade](./TODO_UPGRADE.md)
 
 ## 🔐 Seguridad
 
-- Firestore Security Rules implementadas
+- Firestore Security Rules reforzadas con verificación de membresía organizacional (`isMemberOfOrg`)
+- Reglas granulares por operación (read/create/update/delete) en todas las colecciones
 - Autenticación mediante Firebase Auth
-- Validación de datos en cliente y servidor
+- Validación de datos con Zod en cliente
 - Variables de entorno para credenciales
-- Sanitización de inputs
+- Multi-tenant con aislamiento por `orgId`
 
 ## 🌍 Localización
 
@@ -194,24 +198,32 @@ Seguimos [Conventional Commits](https://www.conventionalcommits.org/):
 
 ## 📊 Estado del Proyecto
 
-### Bases Completadas (95%)
+### v1.0.0 — Release Completo
 
-- ✅ Proyecto Next.js configurado
-- ✅ Firebase/Firestore integrado
-- ✅ Sistema de diseño (Shadcn/ui)
-- ✅ Autenticación funcional
-- ✅ 9 servicios especializados
-- ✅ 9 React Query hooks
-- ✅ Utilidades (formato, validación)
-- ✅ Constantes centralizadas
+- ✅ Proyecto Next.js 14 con App Router
+- ✅ Firebase/Firestore integrado con reglas de seguridad reforzadas
+- ✅ Clean Architecture completa (Domain, Application, Infrastructure, Presentation)
+- ✅ Sistema de diseño (Shadcn/ui + TailwindCSS)
+- ✅ Autenticación funcional con Firebase Auth
+- ✅ Dashboard con KPIs, gráficos y proyección financiera
+- ✅ Módulo de transacciones con gasto rápido
+- ✅ Módulo de cuentas con resumen de patrimonio y deudas
+- ✅ Presupuestos por período con asignación porcentual por categoría
+- ✅ Sub-categorías con vista tree en presupuestos
+- ✅ Sugerencia inteligente de categoría por historial
+- ✅ Tarjetas de crédito con seguimiento de cuotas
+- ✅ Metas de ahorro con contribuciones y progreso visual
+- ✅ Transacciones recurrentes con procesamiento automático
+- ✅ Sistema de alertas y notificaciones proactivas
+- ✅ Reportes comparativos entre períodos con exportación Excel/PDF
+- ✅ Onboarding guiado para nuevos usuarios
+- ✅ Inyección de dependencias con DIContainer
+- ✅ React Query con staleTime optimizado por tipo de dato
 
-### En Desarrollo
+### Próximamente (v2.0)
 
-- 🔄 Migración a Clean Architecture
-- 🔄 Dashboard principal
-- 🔄 Módulo de transacciones
-
-Ver [TODO_FEATURES.md](../TODO_FEATURES.md) para el plan detallado.
+- 🔜 Cuentas por cobrar
+- 🔜 Cuentas por pagar
 
 ## 📝 Licencia
 
@@ -225,9 +237,3 @@ Propiedad de Asurity - Todos los derechos reservados
 ---
 
 **Desarrollado con ❤️ por Asurity**
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

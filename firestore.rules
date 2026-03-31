@@ -67,52 +67,72 @@ service cloud.firestore {
     
     // Accounts collection - accessible by organization members
     match /accounts/{accountId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
+      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
+      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
     }
     
     // Transactions collection - accessible by organization members
     match /transactions/{transactionId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
+      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
+      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
     }
     
     // Categories collection - accessible by organization members
     match /categories/{categoryId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
+      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
+      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
     }
     
     // Budgets collection - accessible by organization members
     match /budgets/{budgetId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
+      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
+      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
     }
     
     // Credit Cards collection - accessible by organization members
     match /creditCards/{cardId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
+      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
+      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
     }
     
     // Recurring Transactions collection - accessible by organization members
     match /recurringTransactions/{recurringId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
+      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
+      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
     }
     
     // Savings Goals collection - accessible by organization members
     match /savingsGoals/{goalId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
+      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
+      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
     }
     
     // Alerts collection - accessible by organization members
     match /alerts/{alertId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
+      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
+      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
     }
     
     // Budget Periods collection - accessible by organization members
     match /budgetPeriods/{periodId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
+      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
+      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
     }
     
     // Category Budgets collection - accessible by organization members
     match /categoryBudgets/{categoryBudgetId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
+      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
+      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
     }
   }
 }

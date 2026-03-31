@@ -93,10 +93,11 @@ function SidebarContent({ onLinkClick }: SidebarContentProps) {
               <div
                 key={item.href}
                 className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground/50 cursor-not-allowed"
+                title="Próximamente en v2.0"
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
                 <span className="font-medium">{item.label}</span>
-                <span className="text-xs ml-auto">(pendiente)</span>
+                <span className="text-xs ml-auto">v2.0</span>
               </div>
             );
           }

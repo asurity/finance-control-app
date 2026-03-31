@@ -3,7 +3,7 @@
  * Provides daily and weekly expense statistics with React Query
  */
 
-import { useQuery } from '@tantml:parameter>react-query';
+import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { DIContainer } from '@/infrastructure/di/DIContainer';
 import { useOrganization } from '@/hooks/useOrganization';
