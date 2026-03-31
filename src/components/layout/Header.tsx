@@ -101,27 +101,30 @@ export function Header({ title = 'Dashboard' }: HeaderProps) {
 
   return (
     <header className="border-b bg-card sticky top-0 z-10 shadow-sm">
-      <div className="flex items-center justify-between px-6 py-3">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 sm:py-3">
         {/* Page Title */}
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+          <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-foreground pl-12 lg:pl-0">{title}</h2>
         </div>
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
+          {/* Botón Nueva Transacción - Solo desktop */}
           {user && currentOrgId ? (
-            <QuickTransactionModal orgId={currentOrgId} userId={user.id} />
+            <div className="hidden lg:block">
+              <QuickTransactionModal orgId={currentOrgId} userId={user.id} />
+            </div>
           ) : null}
 
           {/* Organization Selector */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <Building2 className="w-4 h-4" />
+              <Button variant="outline" className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3">
+                <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span className="hidden md:inline">
                   {organizationsLoading ? 'Cargando...' : currentOrganization?.name || 'Sin organización'}
                 </span>
-                <ChevronDown className="w-4 h-4" />
+                <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -148,7 +151,7 @@ export function Header({ title = 'Dashboard' }: HeaderProps) {
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+              <Button variant="ghost" className="relative h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 rounded-full">
                 <Avatar>
                   <AvatarImage src="" alt={user?.name || 'Usuario'} />
                   <AvatarFallback className="bg-primary text-primary-foreground">

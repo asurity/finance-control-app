@@ -14,11 +14,11 @@ async function verifyCollections() {
   try {
     console.log('Inicializando Firebase...');
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app, 'finanzas'); // Especificar database ID
+    const db = getFirestore(app); // Usar database (default)
     
     console.log('\n✓ Conexión a Firestore exitosa');
     console.log('Proyecto:', firebaseConfig.projectId);
-    console.log('Database: finanzas');
+    console.log('Database: (default)');
     console.log('\nVerificando colecciones...\n');
     
     const collections = ['users', 'organizations', 'organizationMembers'];

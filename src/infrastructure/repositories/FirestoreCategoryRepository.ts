@@ -21,14 +21,16 @@ import { DEFAULT_CATEGORIES } from '@/lib/constants/defaultCategories';
  */
 export class FirestoreCategoryRepository implements ICategoryRepository {
   private collectionPath: string;
+  private orgId: string;
 
   constructor(orgId: string) {
-    this.collectionPath = `organizations/${orgId}/categories`;
+    this.orgId = orgId;
+    this.collectionPath = 'categories';
   }
 
   async create(data: Omit<Category, 'id'>): Promise<string> {
     const ref = collection(db, this.collectionPath);
-    const firestoreData = CategoryMapper.toFirestore(data);
+    const firestoreData = { ...CategoryMapper.toFirestore(data), orgId: this.orgId };
     const docRef = await addDoc(ref, firestoreData);
     return docRef.id;
   }
@@ -43,13 +45,22 @@ export class FirestoreCategoryRepository implements ICategoryRepository {
   }
 
   async getAll(filters?: Record<string, any>): Promise<Category[]> {
-    const ref = collection(db, this.collectionPath);
-    const q = query(ref, orderBy('name', 'asc'));
-    const snapshot = await getDocs(q);
-    
-    return snapshot.docs.map(doc => 
-      CategoryMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    try {
+      const ref = collection(db, this.collectionPath);
+      // Query without orderBy to avoid composite index requirement
+      const q = query(ref, where('orgId', '==', this.orgId));
+      const snapshot = await getDocs(q);
+      
+      const categories = snapshot.docs.map(doc => 
+        CategoryMapper.toDomain({ id: doc.id, ...doc.data() })
+      );
+      
+      // Sort by name in memory
+      return categories.sort((a, b) => a.name.localeCompare(b.name));
+    } catch (error) {
+      console.error('[CategoryRepo] ERROR querying categories:', error);
+      throw error;
+    }
   }
 
   async update(id: string, data: Partial<Category>): Promise<void> {
@@ -70,17 +81,26 @@ export class FirestoreCategoryRepository implements ICategoryRepository {
   }
 
   async getByType(type: CategoryType): Promise<Category[]> {
-    const ref = collection(db, this.collectionPath);
-    const q = query(
-      ref,
-      where('type', '==', type),
-      orderBy('name', 'asc')
-    );
-    
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      CategoryMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    try {
+      const ref = collection(db, this.collectionPath);
+      // Query without orderBy to avoid composite index requirement
+      const q = query(
+        ref,
+        where('orgId', '==', this.orgId),
+        where('type', '==', type)
+      );
+      
+      const snapshot = await getDocs(q);
+      const categories = snapshot.docs.map(doc => 
+        CategoryMapper.toDomain({ id: doc.id, ...doc.data() })
+      );
+      
+      // Sort by name in memory
+      return categories.sort((a, b) => a.name.localeCompare(b.name));
+    } catch (error) {
+      console.error('[CategoryRepo] ERROR querying categories by type:', error);
+      throw error;
+    }
   }
 
   async getDefaultCategories(): Promise<Category[]> {

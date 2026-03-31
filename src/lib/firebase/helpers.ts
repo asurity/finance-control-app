@@ -76,6 +76,9 @@ export function getOrganizationPath(orgId: string): string {
   return `organizations/${orgId}`;
 }
 
-export function getOrganizationCollection(orgId: string, collection: string): string {
-  return `organizations/${orgId}/${collection}`;
+/**
+ * @deprecated Collections are now top-level. Use the collection name directly.
+ */
+export function getOrganizationCollection(orgId: string, collectionName: string): string {
+  return collectionName;
 }

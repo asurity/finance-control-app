@@ -97,7 +97,7 @@ export class BudgetMapper {
    * @param docs - Array of Firestore documents
    * @returns Array of Budget domain entities
    */
-  static toDomainArray(docs: Array<DocumentData & { id: string }>): Budget[] {
+  static toDomainArray(docs: Array<DocumentData & { id: string }>): BudgetEntity[] {
     return docs.map(doc => BudgetMapper.toDomain(doc));
   }
 }

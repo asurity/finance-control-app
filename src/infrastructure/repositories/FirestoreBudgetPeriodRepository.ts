@@ -23,14 +23,16 @@ import { BudgetPeriodMapper } from '@/infrastructure/mappers/BudgetPeriodMapper'
  */
 export class FirestoreBudgetPeriodRepository implements IBudgetPeriodRepository {
   private collectionPath: string;
+  private orgId: string;
 
   constructor(orgId: string) {
-    this.collectionPath = `organizations/${orgId}/budgetPeriods`;
+    this.orgId = orgId;
+    this.collectionPath = 'budgetPeriods';
   }
 
   async create(data: BudgetPeriod): Promise<string> {
     const ref = collection(db, this.collectionPath);
-    const firestoreData = BudgetPeriodMapper.toFirestore(data);
+    const firestoreData = { ...BudgetPeriodMapper.toFirestore(data), orgId: this.orgId };
     const docRef = await addDoc(ref, firestoreData);
     return docRef.id;
   }
@@ -46,7 +48,7 @@ export class FirestoreBudgetPeriodRepository implements IBudgetPeriodRepository 
 
   async getAll(filters?: Record<string, any>): Promise<BudgetPeriod[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(ref, orderBy('startDate', 'desc'));
+    const q = query(ref, where('orgId', '==', this.orgId), orderBy('startDate', 'desc'));
     const snapshot = await getDocs(q);
 
     return snapshot.docs.map((doc) =>
@@ -73,7 +75,7 @@ export class FirestoreBudgetPeriodRepository implements IBudgetPeriodRepository 
 
   async getByUserId(userId: string): Promise<BudgetPeriod[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(ref, where('userId', '==', userId), orderBy('startDate', 'desc'));
+    const q = query(ref, where('orgId', '==', this.orgId), where('userId', '==', userId), orderBy('startDate', 'desc'));
 
     const snapshot = await getDocs(q);
     return snapshot.docs.map((doc) =>
@@ -85,6 +87,7 @@ export class FirestoreBudgetPeriodRepository implements IBudgetPeriodRepository 
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('organizationId', '==', organizationId),
       orderBy('startDate', 'desc')
     );
@@ -100,6 +103,7 @@ export class FirestoreBudgetPeriodRepository implements IBudgetPeriodRepository 
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('userId', '==', userId),
       where('startDate', '<=', now),
       where('endDate', '>=', now),
@@ -129,6 +133,7 @@ export class FirestoreBudgetPeriodRepository implements IBudgetPeriodRepository 
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('userId', '==', userId),
       where('startDate', '<=', timestamp),
       where('endDate', '>=', timestamp)
@@ -158,6 +163,7 @@ export class FirestoreBudgetPeriodRepository implements IBudgetPeriodRepository 
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('userId', '==', userId),
       where('startDate', '>=', Timestamp.fromDate(startDate)),
       where('startDate', '<=', Timestamp.fromDate(endDate)),

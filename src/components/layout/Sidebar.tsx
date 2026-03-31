@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
   Home,
@@ -14,6 +14,7 @@ import {
   Wallet,
   Menu,
   X,
+  Bug,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,25 +26,17 @@ import {
 } from '@/components/ui/sheet';
 
 const menuItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/transactions', label: 'Transacciones', icon: Receipt },
-  { href: '/accounts', label: 'Cuentas', icon: CreditCard },
-  { href: '/budgets', label: 'Presupuestos', icon: PieChart },
-  { href: '/receivables', label: 'Por Cobrar', icon: TrendingUp },
-  { href: '/payables', label: 'Por Pagar', icon: Wallet },
-  { href: '/reports', label: 'Reportes', icon: FileText },
-  { href: '/settings', label: 'Configuración', icon: Settings },
-];
-
-const menuItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/transactions', label: 'Transacciones', icon: Receipt },
-  { href: '/accounts', label: 'Cuentas', icon: CreditCard },
-  { href: '/budgets', label: 'Presupuestos', icon: PieChart },
-  { href: '/receivables', label: 'Por Cobrar', icon: TrendingUp },
-  { href: '/payables', label: 'Por Pagar', icon: Wallet },
-  { href: '/reports', label: 'Reportes', icon: FileText },
-  { href: '/settings', label: 'Configuración', icon: Settings },
+  { href: '/dashboard', label: 'Dashboard', icon: Home, implemented: true },
+  { href: '/transactions', label: 'Transacciones', icon: Receipt, implemented: true },
+  { href: '/accounts', label: 'Cuentas', icon: CreditCard, implemented: true },
+  { href: '/budgets', label: 'Presupuestos', icon: PieChart, implemented: true },
+  { href: '/receivables', label: 'Por Cobrar', icon: TrendingUp, implemented: false },
+  { href: '/payables', label: 'Por Pagar', icon: Wallet, implemented: false },
+  { href: '/reports', label: 'Reportes', icon: FileText, implemented: true },
+  { href: '/debug-transactions', label: '🔍 Debug Transacciones', icon: Bug, implemented: true },
+  { href: '/analyze-alondrita', label: '🔬 Analizar Alondrita', icon: Bug, implemented: true },
+  { href: '/fix-budget-spent', label: '🔧 Corregir Presupuestos', icon: Bug, implemented: true },
+  { href: '/settings', label: 'Configuración', icon: Settings, implemented: false },
 ];
 
 interface SidebarContentProps {
@@ -52,6 +45,12 @@ interface SidebarContentProps {
 
 function SidebarContent({ onLinkClick }: SidebarContentProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleNavigation = (href: string) => {
+    router.push(href);
+    onLinkClick?.();
+  };
 
   return (
     <>
@@ -67,12 +66,24 @@ function SidebarContent({ onLinkClick }: SidebarContentProps) {
           const isActive = pathname === item.href;
           const Icon = item.icon;
 
+          if (!item.implemented) {
+            return (
+              <div
+                key={item.href}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground/50 cursor-not-allowed"
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                <span className="font-medium">{item.label}</span>
+                <span className="text-xs ml-auto">(pendiente)</span>
+              </div>
+            );
+          }
+
           return (
-            <Link
+            <button
               key={item.href}
-              href={item.href}
-              onClick={onLinkClick}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+              onClick={() => handleNavigation(item.href)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                 isActive
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'hover:bg-muted text-foreground'
@@ -80,7 +91,7 @@ function SidebarContent({ onLinkClick }: SidebarContentProps) {
             >
               <Icon className="w-5 h-5 flex-shrink-0" />
               <span className="font-medium">{item.label}</span>
-            </Link>
+            </button>
           );
         })}
       </nav>
@@ -106,7 +117,7 @@ export function Sidebar() {
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden fixed top-4 left-4 z-50"
+            className="lg:hidden fixed top-3 left-3 z-[100] bg-background/80 backdrop-blur-sm hover:bg-background"
           >
             <Menu className="h-5 w-5" />
           </Button>

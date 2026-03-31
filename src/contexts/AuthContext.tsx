@@ -75,6 +75,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             createdAt: userData.createdAt?.toDate() || new Date(),
             updatedAt: userData.updatedAt?.toDate() || new Date(),
           } as User);
+        } else {
+          // Auth user exists but Firestore docs are missing - recreate them
+          console.warn('User exists in Auth but not in Firestore. Recreating documents...');
+          try {
+            const batch = writeBatch(db);
+            const now = Timestamp.now();
+            const name = firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Usuario';
+
+            const userRef = doc(db, 'users', firebaseUser.uid);
+            batch.set(userRef, {
+              email: firebaseUser.email!,
+              name,
+              createdAt: now,
+              updatedAt: now,
+            });
+
+            const orgId = `${firebaseUser.uid}-personal`;
+            const orgRef = doc(db, 'organizations', orgId);
+            batch.set(orgRef, {
+              name: `${name} - Personal`,
+              type: 'PERSONAL',
+              ownerId: firebaseUser.uid,
+              createdAt: now,
+            });
+
+            const memberRef = doc(db, 'organizationMembers', `${orgId}_${firebaseUser.uid}`);
+            batch.set(memberRef, {
+              organizationId: orgId,
+              userId: firebaseUser.uid,
+              role: 'OWNER',
+              joinedAt: now,
+            });
+
+            await batch.commit();
+
+            setUser({
+              id: firebaseUser.uid,
+              email: firebaseUser.email!,
+              name,
+              createdAt: now.toDate(),
+              updatedAt: now.toDate(),
+            } as User);
+          } catch (recreateError) {
+            console.error('Error recreating user documents:', recreateError);
+          }
         }
       } else {
         setUser(null);

@@ -21,14 +21,16 @@ import { BudgetMapper } from '@/infrastructure/mappers/BudgetMapper';
  */
 export class FirestoreBudgetRepository implements IBudgetRepository {
   private collectionPath: string;
+  private orgId: string;
 
   constructor(orgId: string) {
-    this.collectionPath = `organizations/${orgId}/budgets`;
+    this.orgId = orgId;
+    this.collectionPath = 'budgets';
   }
 
   async create(data: Omit<Budget, 'id'>): Promise<string> {
     const ref = collection(db, this.collectionPath);
-    const firestoreData = BudgetMapper.toFirestore(data);
+    const firestoreData = { ...BudgetMapper.toFirestore(data), orgId: this.orgId };
     const docRef = await addDoc(ref, firestoreData);
     return docRef.id;
   }
@@ -44,7 +46,7 @@ export class FirestoreBudgetRepository implements IBudgetRepository {
 
   async getAll(filters?: Record<string, any>): Promise<Budget[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(ref, orderBy('startDate', 'desc'));
+    const q = query(ref, where('orgId', '==', this.orgId), orderBy('startDate', 'desc'));
     const snapshot = await getDocs(q);
     
     return snapshot.docs.map(doc => 
@@ -73,6 +75,7 @@ export class FirestoreBudgetRepository implements IBudgetRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('categoryId', '==', categoryId),
       orderBy('startDate', 'desc')
     );
@@ -85,7 +88,7 @@ export class FirestoreBudgetRepository implements IBudgetRepository {
 
   async getByPeriod(period: BudgetPeriod): Promise<Budget[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(ref, where('period', '==', period));
+    const q = query(ref, where('orgId', '==', this.orgId), where('period', '==', period));
     
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => 

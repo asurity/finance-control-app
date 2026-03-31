@@ -268,8 +268,8 @@ function ReportsContent({
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Reportes</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">Reportes</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Análisis detallado en {organizationName}
             </p>
           </div>
@@ -370,7 +370,7 @@ function ReportsContent({
           <CardContent>
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-green-600" />
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{formatCurrencyAbsolute(reportData.income)}</p>
+              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 dark:text-green-400">{formatCurrencyAbsolute(reportData.income)}</p>
             </div>
           </CardContent>
         </Card>
@@ -382,7 +382,7 @@ function ReportsContent({
           <CardContent>
             <div className="flex items-center gap-2">
               <TrendingDown className="h-4 w-4 text-red-600" />
-              <p className="text-2xl font-bold text-red-600 dark:text-red-400">{formatCurrencyAbsolute(reportData.expenses)}</p>
+              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-red-600 dark:text-red-400">{formatCurrencyAbsolute(reportData.expenses)}</p>
             </div>
           </CardContent>
         </Card>
@@ -392,7 +392,7 @@ function ReportsContent({
             <CardTitle className="text-sm font-medium text-muted-foreground">Balance Neto</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className={`text-2xl font-bold ${reportData.netBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+            <p className={`text-lg sm:text-xl lg:text-2xl font-bold ${reportData.netBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {formatCurrencyWithSign(reportData.netBalance)}
             </p>
           </CardContent>
@@ -403,7 +403,7 @@ function ReportsContent({
             <CardTitle className="text-sm font-medium text-muted-foreground">Tasa de Ahorro</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{reportData.savingsRate.toFixed(1)}%</p>
+            <p className="text-lg sm:text-xl lg:text-2xl font-bold">{reportData.savingsRate.toFixed(1)}%</p>
             <p className="text-xs text-muted-foreground mt-1">
               {reportData.savingsRate >= 20 ? 'Excelente' : reportData.savingsRate >= 10 ? 'Bueno' : 'Mejorable'}
             </p>

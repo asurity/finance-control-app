@@ -35,6 +35,7 @@ export class CategoryMapper {
       type: category.type,
       icon: category.icon || '📁',
       color: category.color || '#666666',
+      isSystem: category.isSystem || false,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };

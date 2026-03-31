@@ -4,7 +4,7 @@
 
 - **Project ID**: `cuentas-financieras-0625`
 - **Región**: `us-central1`
-- **Base de datos**: Firestore (database: "finanzas")
+- **Base de datos**: Firestore (database: "(default)")
 
 ## 🌐 Dominios
 
@@ -84,7 +84,7 @@ El archivo `next.config.ts` ya está configurado con:
 
 El archivo `firebase.json` ya está configurado con:
 - **Hosting**: Apunta a la carpeta `out` (build de Next.js)
-- **Firestore**: Database "finanzas" en us-central1
+- **Firestore**: Database "(default)" en us-central1
 - **Functions**: Linting y build automatizado
 - **Storage**: Reglas de seguridad
 - **Auth**: Providers configurados

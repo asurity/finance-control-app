@@ -24,12 +24,12 @@ export class FirestoreCreditCardRepository implements ICreditCardRepository {
 
   constructor(orgId: string) {
     this.orgId = orgId;
-    this.collectionPath = `organizations/${orgId}/creditCards`;
+    this.collectionPath = 'creditCards';
   }
 
   async create(data: Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const ref = collection(db, this.collectionPath);
-    const firestoreData = CreditCardMapper.toFirestore(data);
+    const firestoreData = { ...CreditCardMapper.toFirestore(data), orgId: this.orgId };
     const docRef = await addDoc(ref, firestoreData);
     return docRef.id;
   }
@@ -45,7 +45,7 @@ export class FirestoreCreditCardRepository implements ICreditCardRepository {
 
   async getAll(filters?: Record<string, any>): Promise<CreditCard[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(ref, orderBy('name', 'asc'));
+    const q = query(ref, where('orgId', '==', this.orgId), orderBy('name', 'asc'));
     const snapshot = await getDocs(q);
     
     return snapshot.docs.map(doc => 
@@ -74,6 +74,7 @@ export class FirestoreCreditCardRepository implements ICreditCardRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('isActive', '==', true),
       orderBy('name', 'asc')
     );
@@ -86,7 +87,7 @@ export class FirestoreCreditCardRepository implements ICreditCardRepository {
 
   async getByAccount(accountId: string): Promise<CreditCard[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(ref, where('accountId', '==', accountId));
+    const q = query(ref, where('orgId', '==', this.orgId), where('accountId', '==', accountId));
     
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => 

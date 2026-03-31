@@ -25,12 +25,12 @@ export class FirestoreSavingsGoalRepository implements ISavingsGoalRepository {
 
   constructor(orgId: string) {
     this.orgId = orgId;
-    this.collectionPath = `organizations/${orgId}/savingsGoals`;
+    this.collectionPath = 'savingsGoals';
   }
 
   async create(data: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const ref = collection(db, this.collectionPath);
-    const firestoreData = SavingsGoalMapper.toFirestore(data);
+    const firestoreData = { ...SavingsGoalMapper.toFirestore(data), orgId: this.orgId };
     const docRef = await addDoc(ref, firestoreData);
     return docRef.id;
   }
@@ -46,7 +46,7 @@ export class FirestoreSavingsGoalRepository implements ISavingsGoalRepository {
 
   async getAll(filters?: Record<string, any>): Promise<SavingsGoal[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(ref, orderBy('createdAt', 'desc'));
+    const q = query(ref, where('orgId', '==', this.orgId), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     
     return snapshot.docs.map(doc => 
@@ -75,6 +75,7 @@ export class FirestoreSavingsGoalRepository implements ISavingsGoalRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('status', '==', 'ACTIVE'),
       orderBy('targetDate', 'asc')
     );
@@ -89,6 +90,7 @@ export class FirestoreSavingsGoalRepository implements ISavingsGoalRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('status', '==', status),
       orderBy('createdAt', 'desc')
     );
@@ -103,6 +105,7 @@ export class FirestoreSavingsGoalRepository implements ISavingsGoalRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('userId', '==', userId),
       orderBy('createdAt', 'desc')
     );

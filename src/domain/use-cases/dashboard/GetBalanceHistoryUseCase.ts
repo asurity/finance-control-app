@@ -41,8 +41,8 @@ export class GetBalanceHistoryUseCase {
     const config = this.getConfigForPeriod(period, points);
     const intervals = this.generateIntervals(config);
     
-    // Get all transactions in the period
-    const allTransactions = await this.transactionRepository.getAll({ userId });
+    // Get all transactions from the organization
+    const allTransactions = await this.transactionRepository.getAll();
     const startDate = new Date(intervals[0].start);
     const endDate = new Date(intervals[intervals.length - 1].end);
     
@@ -51,8 +51,8 @@ export class GetBalanceHistoryUseCase {
       return txDate >= startDate && txDate <= endDate;
     });
 
-    // Get current account balances
-    const accounts = await this.accountRepository.getAll({ userId });
+    // Get current account balances from the organization
+    const accounts = await this.accountRepository.getAll();
     const currentBalance = accounts.reduce((sum: number, acc) => sum + acc.balance, 0);
 
     // Calculate balance at each interval

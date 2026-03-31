@@ -4,7 +4,7 @@
  */
 
 import { useState, useMemo } from 'react';
-import { Percent, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Percent, AlertCircle, CheckCircle2, Edit2, Trash2 } from 'lucide-react';
 import { Category } from '@/types/firestore';
 import { CategoryBudget } from '@/domain/entities/CategoryBudget';
 import { formatCurrency } from '@/lib/utils/format';
@@ -28,6 +28,8 @@ interface CategoryAllocationTableProps {
   categories: Category[];
   categoryBudgets: CategoryBudget[];
   onSave: (allocations: { categoryId: string; percentage: number }[]) => Promise<void>;
+  onEditCategory?: (category: Category) => void;
+  onDeleteCategory?: (category: Category) => void;
   isLoading?: boolean;
 }
 
@@ -37,6 +39,8 @@ export function CategoryAllocationTable({
   categories,
   categoryBudgets,
   onSave,
+  onEditCategory,
+  onDeleteCategory,
   isLoading = false,
 }: CategoryAllocationTableProps) {
   // Initialize percentages from existing category budgets
@@ -144,6 +148,7 @@ export function CategoryAllocationTable({
               <TableHead className="text-right">Gastado</TableHead>
               <TableHead className="text-right">Restante</TableHead>
               <TableHead className="text-center">Estado</TableHead>
+              <TableHead className="text-center w-24">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -182,18 +187,47 @@ export function CategoryAllocationTable({
                     {formatCurrency(info.spentAmount)}
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className={info.remainingAmount < 0 ? 'text-red-600 font-semibold' : ''}>
-                      {formatCurrency(Math.abs(info.remainingAmount))}
-                    </span>
+                    <div className="flex items-center justify-end">
+                      <span className={info.remainingAmount < 0 ? 'text-red-600 font-semibold' : ''}>
+                        {formatCurrency(Math.abs(info.remainingAmount))}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell className="text-center">
-                    <div className="space-y-1">
+                    <div className="flex flex-col items-center gap-1">
                       {getStatusBadge(info)}
                       {info.allocatedAmount > 0 && (
                         <Progress 
                           value={Math.min(info.usagePercentage, 100)} 
-                          className="h-1"
+                          className="h-1 w-24"
                         />
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      {onEditCategory && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEditCategory(category)}
+                          disabled={isLoading}
+                          title="Editar categoría"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {onDeleteCategory && !category.isSystem && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onDeleteCategory(category)}
+                          disabled={isLoading}
+                          title="Eliminar categoría"
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       )}
                     </div>
                   </TableCell>

@@ -31,6 +31,7 @@ export type AccountType = 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD' | 'CASH' | 'INV
 
 export interface Account {
   id: string;
+  orgId?: string;
   name: string;
   type: AccountType;
   balance: number;
@@ -51,6 +52,7 @@ export type CategoryType = 'INCOME' | 'EXPENSE';
 
 export interface Category {
   id: string;
+  orgId?: string;
   name: string;
   type: CategoryType;
   icon: string;
@@ -62,6 +64,7 @@ export type TransactionType = 'INCOME' | 'EXPENSE';
 
 export interface Transaction {
   id: string;
+  orgId?: string;
   description: string;
   amount: number;
   type: TransactionType;
@@ -87,6 +90,7 @@ export type BudgetPeriod = 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY';
 
 export interface Budget {
   id: string;
+  orgId?: string;
   name: string;
   amount: number;
   spent: number; // Amount spent so far
@@ -97,8 +101,8 @@ export interface Budget {
   endDate: Date;
   alertThreshold: number; // Percentage (0-100) for alerts
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 // ========================================
@@ -107,6 +111,7 @@ export interface Budget {
 
 export interface CreditCard {
   id: string;
+  orgId?: string;
   name: string;
   accountId: string; // Associated account
   bank: string;
@@ -120,8 +125,8 @@ export interface CreditCard {
   minimumPaymentPercent: number; // Minimum payment as percentage of balance
   currency: string; // Default: 'CLP'
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface CreditCardStatement {
@@ -148,6 +153,7 @@ export type RecurrenceFrequency = 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 
 
 export interface RecurringTransaction {
   id: string;
+  orgId?: string;
   description: string;
   amount: number;
   type: TransactionType;
@@ -161,8 +167,8 @@ export interface RecurringTransaction {
   lastProcessedDate?: Date;
   isActive: boolean;
   tags?: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 // ========================================
@@ -182,6 +188,7 @@ export type AlertPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
 export interface Alert {
   id: string;
+  orgId?: string;
   type: AlertType;
   priority: AlertPriority;
   title: string;
@@ -195,7 +202,7 @@ export interface Alert {
   // Threshold configuration (for budget/balance alerts)
   thresholdPercent?: number; // e.g., 80 means alert at 80% of budget
   // Date information
-  createdAt: Date;
+  createdAt?: Date;
   readAt?: Date;
   archivedAt?: Date;
 }
@@ -224,6 +231,7 @@ export type SavingsGoalStatus = 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
 
 export interface SavingsGoal {
   id: string;
+  orgId?: string;
   name: string;
   description?: string;
   targetAmount: number;
@@ -235,8 +243,8 @@ export interface SavingsGoal {
   color?: string;
   linkedAccountId?: string; // Optional: track from specific account
   userId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
   completedAt?: Date;
 }
 

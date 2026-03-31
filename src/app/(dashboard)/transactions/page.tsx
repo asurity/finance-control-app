@@ -86,8 +86,8 @@ function TransactionsContent({ orgId, startDate, endDate }: TransactionsContentP
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Transacciones</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">Transacciones</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Gestiona todos tus ingresos y gastos
           </p>
         </div>

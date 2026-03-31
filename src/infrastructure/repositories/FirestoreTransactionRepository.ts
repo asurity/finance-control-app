@@ -23,14 +23,16 @@ import { TransactionMapper } from '@/infrastructure/mappers/TransactionMapper';
  */
 export class FirestoreTransactionRepository implements ITransactionRepository {
   private collectionPath: string;
+  private orgId: string;
 
   constructor(orgId: string) {
-    this.collectionPath = `organizations/${orgId}/transactions`;
+    this.orgId = orgId;
+    this.collectionPath = 'transactions';
   }
 
   async create(data: Omit<Transaction, 'id'>): Promise<string> {
     const ref = collection(db, this.collectionPath);
-    const firestoreData = TransactionMapper.toFirestore(data);
+    const firestoreData = { ...TransactionMapper.toFirestore(data), orgId: this.orgId };
     const docRef = await addDoc(ref, firestoreData);
     return docRef.id;
   }
@@ -46,7 +48,7 @@ export class FirestoreTransactionRepository implements ITransactionRepository {
 
   async getAll(filters?: Record<string, any>): Promise<Transaction[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(ref, orderBy('date', 'desc'));
+    const q = query(ref, where('orgId', '==', this.orgId), orderBy('date', 'desc'));
     const snapshot = await getDocs(q);
     
     return snapshot.docs.map(doc => 
@@ -75,6 +77,7 @@ export class FirestoreTransactionRepository implements ITransactionRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('date', '>=', Timestamp.fromDate(startDate)),
       where('date', '<=', Timestamp.fromDate(endDate)),
       orderBy('date', 'desc')
@@ -90,6 +93,7 @@ export class FirestoreTransactionRepository implements ITransactionRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('categoryId', '==', categoryId),
       orderBy('date', 'desc')
     );
@@ -104,6 +108,7 @@ export class FirestoreTransactionRepository implements ITransactionRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('accountId', '==', accountId),
       orderBy('date', 'desc')
     );
@@ -118,6 +123,7 @@ export class FirestoreTransactionRepository implements ITransactionRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('type', '==', type),
       orderBy('date', 'desc')
     );
@@ -159,6 +165,7 @@ export class FirestoreTransactionRepository implements ITransactionRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('installmentGroupId', '==', installmentGroupId),
       orderBy('installmentNumber', 'asc')
     );

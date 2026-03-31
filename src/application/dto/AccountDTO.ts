@@ -31,12 +31,18 @@ export interface CreateAccountDTO {
 export interface UpdateAccountDTO {
   id: string;
   name?: string;
+  type?: AccountType;
   balance?: number;
+  currency?: string;
   color?: string;
   icon?: string;
   isActive?: boolean;
   bankName?: string;
   cardNumber?: string;
+  creditLimit?: number;
+  cutoffDay?: number;
+  paymentDueDay?: number;
+  availableCredit?: number;
 }
 
 /**

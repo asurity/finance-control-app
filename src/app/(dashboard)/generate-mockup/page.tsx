@@ -28,7 +28,6 @@ export default function GenerateMockupPage() {
     addLog('🚀 Iniciando generación de datos mockup...');
     
     const orgId = `${user.id}-personal`;
-    const orgPath = `organizations/${orgId}`;
 
     try {
       // 1. Crear categorías
@@ -50,7 +49,7 @@ export default function GenerateMockupPage() {
 
       const categoryIds: Record<string, string> = {};
       for (const cat of categories) {
-        const ref = await addDoc(collection(db, `${orgPath}/categories`), cat);
+        const ref = await addDoc(collection(db, 'categories'), { ...cat, orgId });
         categoryIds[cat.name] = ref.id;
         addLog(`  ✅ ${cat.name}`);
       }
@@ -66,7 +65,7 @@ export default function GenerateMockupPage() {
 
       const accountIds: string[] = [];
       for (const acc of accounts) {
-        const ref = await addDoc(collection(db, `${orgPath}/accounts`), acc);
+        const ref = await addDoc(collection(db, 'accounts'), { ...acc, orgId });
         accountIds.push(ref.id);
         addLog(`  ✅ ${acc.name}: ${acc.balance.toLocaleString('es-CL')}`);
       }
@@ -146,7 +145,7 @@ export default function GenerateMockupPage() {
       // Insertar en Firestore
       let count = 0;
       for (const transaction of transactions) {
-        await addDoc(collection(db, `${orgPath}/transactions`), transaction);
+        await addDoc(collection(db, 'transactions'), { ...transaction, orgId });
         count++;
         if (count % 20 === 0) {
           addLog(`  ⏳ ${count} transacciones creadas...`);
@@ -167,8 +166,9 @@ export default function GenerateMockupPage() {
       ];
 
       for (const budget of budgets) {
-        await addDoc(collection(db, `${orgPath}/budgets`), {
+        await addDoc(collection(db, 'budgets'), {
           ...budget,
+          orgId,
           startDate: Timestamp.fromDate(startOfMonth),
           endDate: Timestamp.fromDate(endOfMonth),
         });

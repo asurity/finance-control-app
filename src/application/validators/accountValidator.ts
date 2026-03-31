@@ -48,6 +48,7 @@ export const UpdateAccountSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(2).max(50).optional(),
   type: z.enum(['CHECKING', 'SAVINGS', 'CREDIT_CARD', 'CASH', 'INVESTMENT', 'LINE_OF_CREDIT']).optional(),
+  balance: z.number().finite('El balance debe ser un número válido').optional(),
   currency: z.string().length(3).optional(),
   description: z.string().max(200).optional(),
   bankName: z.string().min(2).max(100).optional(),

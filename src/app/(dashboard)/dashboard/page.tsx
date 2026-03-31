@@ -164,7 +164,7 @@ export default function DashboardPage() {
       )}
 
       {/* KPIs Grid - Primary Row */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* KPI 1: Balance Total */}
         {isLoading || !stats ? (
           <KPICardSkeleton />
@@ -175,7 +175,7 @@ export default function DashboardPage() {
             valueClassName={stats.currentBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}
             change={stats.monthlyChangePercent}
             changeType={stats.monthlyChange > 0 ? 'positive' : stats.monthlyChange < 0 ? 'negative' : 'neutral'}
-            icon={<DollarSign className="h-4 w-4" />}
+            icon={<DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
           />
         )}
 
@@ -187,7 +187,7 @@ export default function DashboardPage() {
             title={`Ingresos ${period === 'month' ? 'del Mes' : period === 'quarter' ? 'del Trimestre' : 'del Año'}`}
             value={formatCurrency(stats.totalIncome)}
             valueClassName="text-green-600 dark:text-green-400"
-            icon={<TrendingUp className="h-4 w-4 text-green-600" />}
+            icon={<TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />}
             description={`${stats.transactionCounts.income} transacciones`}
           />
         )}
@@ -200,7 +200,7 @@ export default function DashboardPage() {
             title={`Gastos ${period === 'month' ? 'del Mes' : period === 'quarter' ? 'del Trimestre' : 'del Año'}`}
             value={formatCurrencyAbsolute(stats.totalExpenses)}
             valueClassName="text-red-600 dark:text-red-400"
-            icon={<TrendingDown className="h-4 w-4 text-red-600" />}
+            icon={<TrendingDown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600" />}
             description={`${stats.transactionCounts.expense} transacciones`}
           />
         )}
@@ -217,7 +217,7 @@ export default function DashboardPage() {
               stats.savingsRate > 10 ? 'neutral' : 
               'negative'
             }
-            icon={<Wallet className="h-4 w-4" />}
+            icon={<Wallet className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
             description={
               stats.savingsRate > 20 ? '¡Excelente tasa de ahorro!' :
               stats.savingsRate > 10 ? 'Buena tasa de ahorro' :
@@ -228,7 +228,7 @@ export default function DashboardPage() {
       </div>
 
       {/* KPIs Grid - Secondary Row */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* KPI 5: Pagos Pendientes */}
         {isLoading || !stats ? (
           <KPICardSkeleton />
@@ -236,7 +236,7 @@ export default function DashboardPage() {
           <KPICard
             title="Pagos Pendientes"
             value={stats.pendingPayments}
-            icon={<CreditCard className="h-4 w-4" />}
+            icon={<CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
             changeType={stats.pendingPayments > 0 ? 'neutral' : 'positive'}
             description={
               stats.pendingPayments === 0 ? 'Sin pagos pendientes' :
@@ -253,7 +253,7 @@ export default function DashboardPage() {
           <KPICard
             title="Alertas Activas"
             value={stats.activeAlerts}
-            icon={<Bell className="h-4 w-4" />}
+            icon={<Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
             changeType={stats.activeAlerts > 5 ? 'negative' : 'neutral'}
             description={
               stats.activeAlerts === 0 ? 'Todo bajo control' :
@@ -275,7 +275,7 @@ export default function DashboardPage() {
               stats.budgetUsage > 70 ? 'neutral' :
               'positive'
             }
-            icon={<PieChart className="h-4 w-4" />}
+            icon={<PieChart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
             description={
               stats.budgetUsage > 90 ? '¡Cerca del límite!' :
               stats.budgetUsage > 70 ? 'Monitorear gastos' :
@@ -292,7 +292,7 @@ export default function DashboardPage() {
             title="Categoría Top"
             value={stats.topExpenseCategory ? formatCurrencyAbsolute(stats.topExpenseCategory.amount) : 'N/A'}
             valueClassName="text-red-600 dark:text-red-400"
-            icon={<TrendingDown className="h-4 w-4" />}
+            icon={<TrendingDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
             description={
               stats.topExpenseCategory 
                 ? `${stats.topExpenseCategory.percent.toFixed(1)}% de tus gastos`

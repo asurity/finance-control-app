@@ -11,6 +11,7 @@
     "lint:fix": "eslint --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "seed:users": "tsx scripts/seed-users.ts",
+    "add-user": "tsx scripts/add-user-to-org.ts",
     "deploy": "npm run build && firebase deploy --only hosting",
     "deploy:full": "npm run build && firebase deploy"
   },
@@ -51,6 +52,7 @@
     "eslint-config-next": "16.1.6",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
+    "firebase-admin": "^13.7.0",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
     "prettier": "^3.8.1",

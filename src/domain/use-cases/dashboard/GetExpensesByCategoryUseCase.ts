@@ -39,11 +39,11 @@ export class GetExpensesByCategoryUseCase {
     // Calculate date range
     const { startDate, endDate } = this.calculateDateRange(period);
 
-    // Get all expense transactions in the period
-    const allTransactions = await this.transactionRepository.getAll({ userId });
-    const expenses = allTransactions.filter(
-      (tx) => tx.type === 'EXPENSE' && tx.date >= startDate && tx.date <= endDate
-    );
+    // Get transactions by date range from the organization (not filtered by user)
+    // This ensures multi-user organizations see consolidated data
+    // Using getByDateRange instead of getAll + filter for better performance and accuracy
+    const allTransactions = await this.transactionRepository.getByDateRange(startDate, endDate);
+    const expenses = allTransactions.filter((tx) => tx.type === 'EXPENSE');
 
     const totalExpenses = expenses.reduce((sum: number, tx) => sum + tx.amount, 0);
 
@@ -60,8 +60,8 @@ export class GetExpensesByCategoryUseCase {
       });
     }
 
-    // Get category details and build result
-    const allCategories = await this.categoryRepository.getAll({ userId });
+    // Get category details from the organization
+    const allCategories = await this.categoryRepository.getAll();
     const categories: CategoryExpense[] = [];
 
     for (const [categoryId, data] of categoryMap.entries()) {

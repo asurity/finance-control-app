@@ -107,7 +107,7 @@ export function AlertsWidget({ alerts }: AlertsWidgetProps) {
                       {alert.message}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {formatRelativeDate(alert.createdAt)}
+                      {alert.createdAt ? formatRelativeDate(alert.createdAt) : ''}
                     </p>
                   </div>
                 </div>

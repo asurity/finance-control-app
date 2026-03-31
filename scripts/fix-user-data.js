@@ -18,9 +18,9 @@ async function fixUserData() {
   try {
     console.log('🔧 Inicializando Firebase...');
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app, 'finanzas');
+    const db = getFirestore(app); // Usar database (default)
     
-    console.log('\n✅ Conectado a Firestore (database: finanzas)');
+    console.log('\n✅ Conectado a Firestore (database: (default))');
     console.log('👤 Usuario a corregir:', userId);
     console.log('📧 Email:', userEmail);
     

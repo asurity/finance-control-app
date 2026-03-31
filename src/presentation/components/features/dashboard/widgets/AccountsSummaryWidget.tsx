@@ -77,8 +77,23 @@ export function AccountsSummaryWidget({ accounts, totalBalance }: AccountsSummar
             const Icon = accountIcons[account.type];
             const isCreditAccount = account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT';
             const creditLimit = account.creditLimit || 0;
-            const usedCredit = isCreditAccount ? Math.abs(account.balance) : 0;
-            const availableCredit = isCreditAccount && creditLimit > 0 ? creditLimit - usedCredit : 0;
+            
+            // Calculate used credit and available credit based on account type
+            let usedCredit = 0;
+            let availableCredit = 0;
+            
+            if (isCreditAccount && creditLimit > 0) {
+              if (account.type === 'LINE_OF_CREDIT') {
+                // LINE_OF_CREDIT: balance is available (positive), used = limit - balance
+                availableCredit = account.balance;
+                usedCredit = creditLimit - account.balance;
+              } else {
+                // CREDIT_CARD: balance is debt (negative), used = |balance|
+                usedCredit = Math.abs(account.balance);
+                availableCredit = creditLimit - usedCredit;
+              }
+            }
+            
             const creditUtilization = isCreditAccount && creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
             
             return (

@@ -28,7 +28,7 @@ export function useUnreadAlerts(limit: number = 3) {
       // Filter unread and sort by date descending
       const unreadAlerts = allAlerts
         .filter(alert => !alert.isRead)
-        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+        .sort((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0))
         .slice(0, limit);
 
       return unreadAlerts;

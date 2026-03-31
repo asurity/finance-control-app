@@ -22,14 +22,16 @@ import { AlertMapper } from '@/infrastructure/mappers/AlertMapper';
  */
 export class FirestoreAlertRepository implements IAlertRepository {
   private collectionPath: string;
+  private orgId: string;
 
   constructor(orgId: string) {
-    this.collectionPath = `organizations/${orgId}/alerts`;
+    this.orgId = orgId;
+    this.collectionPath = 'alerts';
   }
 
   async create(data: Omit<Alert, 'id' | 'createdAt'>): Promise<string> {
     const ref = collection(db, this.collectionPath);
-    const firestoreData = AlertMapper.toFirestore(data);
+    const firestoreData = { ...AlertMapper.toFirestore(data), orgId: this.orgId };
     const docRef = await addDoc(ref, firestoreData);
     return docRef.id;
   }
@@ -45,7 +47,7 @@ export class FirestoreAlertRepository implements IAlertRepository {
 
   async getAll(filters?: Record<string, any>): Promise<Alert[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(ref, orderBy('createdAt', 'desc'));
+    const q = query(ref, where('orgId', '==', this.orgId), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     
     return snapshot.docs.map(doc => 
@@ -74,6 +76,7 @@ export class FirestoreAlertRepository implements IAlertRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('isRead', '==', false),
       where('isArchived', '==', false),
       orderBy('createdAt', 'desc')
@@ -89,6 +92,7 @@ export class FirestoreAlertRepository implements IAlertRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('type', '==', type),
       orderBy('createdAt', 'desc')
     );
@@ -103,6 +107,7 @@ export class FirestoreAlertRepository implements IAlertRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('priority', '==', priority),
       orderBy('createdAt', 'desc')
     );
@@ -117,6 +122,7 @@ export class FirestoreAlertRepository implements IAlertRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('userId', '==', userId),
       orderBy('createdAt', 'desc')
     );
@@ -159,6 +165,7 @@ export class FirestoreAlertRepository implements IAlertRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('isArchived', '==', true),
       orderBy('archivedAt', 'desc')
     );

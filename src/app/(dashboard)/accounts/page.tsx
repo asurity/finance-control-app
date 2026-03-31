@@ -1,18 +1,19 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Landmark, PlusCircle, Wallet } from 'lucide-react';
+import { Landmark, PlusCircle, Wallet, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
 import { useAccounts } from '@/application/hooks/useAccounts';
-import { CreateAccountSchema } from '@/application/validators/accountValidator';
+import { CreateAccountSchema, UpdateAccountSchema } from '@/application/validators/accountValidator';
 import type { z } from 'zod';
 import type { AccountType } from '@/types/firestore';
+import type { Account } from '@/types/firestore';
 import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,8 +43,32 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type AccountFormValues = z.infer<typeof CreateAccountSchema>;
+type UpdateAccountFormValues = z.infer<typeof UpdateAccountSchema>;
 
 const defaultAccountFormValues = (userId: string): AccountFormValues => ({
   name: '',
@@ -102,12 +127,23 @@ function AccountsContent({
   const accountsHook = useAccounts(orgId);
   const { data: accounts = [], isLoading } = accountsHook.useAllAccounts();
 
+  // State for edit and delete dialogs
+  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [deletingAccount, setDeletingAccount] = useState<Account | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(CreateAccountSchema) as any,
     defaultValues: defaultAccountFormValues(userId),
   });
 
+  const editForm = useForm<UpdateAccountFormValues>({
+    resolver: zodResolver(UpdateAccountSchema) as any,
+  });
+
   const selectedType = form.watch('type');
+  const editSelectedType = editForm.watch('type');
   const totalBalance = useMemo(
     () => accounts.filter((account) => account.isActive).reduce((sum, account) => sum + account.balance, 0),
     [accounts]
@@ -146,11 +182,89 @@ function AccountsContent({
     }
   };
 
+  const handleEditAccount = (account: Account) => {
+    setEditingAccount(account);
+    
+    // Convertir los valores del account al formato que espera el formulario
+    const isCreditAccount = account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT';
+    
+    editForm.reset({
+      id: account.id,
+      name: account.name,
+      type: account.type,
+      balance: account.balance,
+      currency: account.currency,
+      isActive: account.isActive,
+      bankName: account.bankName || '',
+      cardNumber: account.cardNumber || '',
+      creditLimit: isCreditAccount ? account.creditLimit : undefined,
+      creditCardCutoffDay: isCreditAccount ? account.cutoffDay : undefined,
+      creditCardPaymentDays: isCreditAccount && account.cutoffDay && account.paymentDueDay 
+        ? account.paymentDueDay - account.cutoffDay 
+        : undefined,
+    } as any);
+    
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateAccount = async (values: UpdateAccountFormValues) => {
+    try {
+      const isCreditAccount = values.type === 'CREDIT_CARD' || values.type === 'LINE_OF_CREDIT';
+      const paymentDueDay = isCreditAccount && values.creditCardCutoffDay && values.creditCardPaymentDays
+        ? Math.min(values.creditCardCutoffDay + values.creditCardPaymentDays, 31)
+        : undefined;
+
+      await accountsHook.updateAccount.mutateAsync({
+        id: values.id,
+        name: values.name,
+        type: values.type,
+        balance: values.balance,
+        currency: values.currency,
+        isActive: values.isActive,
+        bankName: values.bankName || undefined,
+        cardNumber: values.cardNumber || undefined,
+        creditLimit: isCreditAccount ? values.creditLimit : undefined,
+        cutoffDay: isCreditAccount ? values.creditCardCutoffDay : undefined,
+        paymentDueDay,
+        availableCredit: isCreditAccount && values.creditLimit && values.balance !== undefined
+          ? (values.type === 'LINE_OF_CREDIT' 
+              ? values.balance 
+              : values.creditLimit - Math.abs(values.balance))
+          : undefined,
+      });
+
+      toast.success('Cuenta actualizada exitosamente');
+      setIsEditDialogOpen(false);
+      setEditingAccount(null);
+    } catch (error: any) {
+      console.error('Error al actualizar cuenta:', error);
+      toast.error('No se pudo actualizar la cuenta', {
+        description: error.message || 'Inténtalo nuevamente.',
+      });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletingAccount) return;
+
+    try {
+      await accountsHook.deleteAccount.mutateAsync(deletingAccount.id);
+      toast.success('Cuenta eliminada exitosamente');
+      setIsDeleteDialogOpen(false);
+      setDeletingAccount(null);
+    } catch (error: any) {
+      console.error('Error al eliminar cuenta:', error);
+      toast.error('No se pudo eliminar la cuenta', {
+        description: error.message || 'Puede que tenga transacciones asociadas.',
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Cuentas</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">Cuentas</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Registra desde dónde gastas y en qué cuenta recibes dinero en {organizationName}.
         </p>
       </div>
@@ -391,15 +505,31 @@ function AccountsContent({
                       <TableHead>Estado</TableHead>
                       <TableHead className="text-right">Saldo</TableHead>
                       <TableHead className="text-right">Límite</TableHead>
-                      <TableHead className="text-right">Crédito Disponible</TableHead>
+                      <TableHead className="text-right">Disponible</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {accounts.map((account) => {
                       const isCreditAccount = account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT';
                       const creditLimit = account.creditLimit || 0;
-                      const usedCredit = isCreditAccount ? Math.abs(account.balance) : 0;
-                      const availableCredit = isCreditAccount && creditLimit > 0 ? creditLimit - usedCredit : 0;
+                      
+                      // Calculate used credit and available credit based on account type
+                      let usedCredit = 0;
+                      let availableCredit = 0;
+                      
+                      if (isCreditAccount && creditLimit > 0) {
+                        if (account.type === 'LINE_OF_CREDIT') {
+                          // LINE_OF_CREDIT: balance is available (positive), used = limit - balance
+                          availableCredit = account.balance;
+                          usedCredit = creditLimit - account.balance;
+                        } else {
+                          // CREDIT_CARD: balance is debt (negative), used = |balance|
+                          usedCredit = Math.abs(account.balance);
+                          availableCredit = creditLimit - usedCredit;
+                        }
+                      }
+                      
                       const creditUtilization = isCreditAccount && creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
                       
                       return (
@@ -448,7 +578,35 @@ function AccountsContent({
                                   {creditUtilization.toFixed(0)}% usado
                                 </p>
                               </div>
-                            ) : '-'}
+                            ) : (
+                              <MoneyDisplay amount={account.balance} type="balance" size="sm" />
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreVertical className="h-4 w-4" />
+                                  <span className="sr-only">Abrir menú</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleEditAccount(account)}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => {
+                                    setDeletingAccount(account);
+                                    setIsDeleteDialogOpen(true);
+                                  }}
+                                  className="text-red-600 dark:text-red-400"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Eliminar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       );
@@ -460,6 +618,257 @@ function AccountsContent({
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Account Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar cuenta</DialogTitle>
+            <DialogDescription>
+              Modifica los datos de tu cuenta. Ten cuidado al cambiar el saldo manualmente.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(handleUpdateAccount)} className="space-y-4">
+              <FormField
+                control={editForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ej: Banco Principal" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona un tipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {accountTypeOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="bankName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Banco (opcional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ej: Banco Estado, BCI, Santander" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="cardNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Últimos 4 dígitos (opcional)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="1234" 
+                        maxLength={4}
+                        pattern="\d{4}"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  control={editForm.control}
+                  name="balance"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Saldo</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          {...field}
+                          onChange={(event) => field.onChange(Number(event.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Cuidado al modificar manualmente
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Moneda</FormLabel>
+                      <FormControl>
+                        <Input placeholder="CLP" maxLength={3} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {editSelectedType === 'CREDIT_CARD' || editSelectedType === 'LINE_OF_CREDIT' ? (
+                <>
+                  <FormField
+                    control={editForm.control}
+                    name="creditLimit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Límite de crédito</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={field.value ?? ''}
+                            onChange={(event) => field.onChange(Number(event.target.value) || undefined)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={editForm.control}
+                      name="creditCardCutoffDay"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Día de corte</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="1"
+                              max="31"
+                              value={field.value ?? ''}
+                              onChange={(event) => field.onChange(Number(event.target.value) || undefined)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={editForm.control}
+                      name="creditCardPaymentDays"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Días hasta pago</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="1"
+                              max="60"
+                              value={field.value ?? ''}
+                              onChange={(event) => field.onChange(Number(event.target.value) || undefined)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </>
+              ) : null}
+
+              <FormField
+                control={editForm.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-2">
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="h-4 w-4"
+                      />
+                    </FormControl>
+                    <FormLabel className="!mt-0">Cuenta activa</FormLabel>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex gap-2 justify-end">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsEditDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={accountsHook.updateAccount.isPending}>
+                  {accountsHook.updateAccount.isPending ? 'Actualizando...' : 'Actualizar cuenta'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Account Confirmation */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente la cuenta{' '}
+              <span className="font-semibold">{deletingAccount?.name}</span> y todos sus datos asociados.
+              {deletingAccount && Math.abs(deletingAccount.balance) > 0 && (
+                <span className="block mt-2 text-orange-600 dark:text-orange-400">
+                  ⚠️ Esta cuenta tiene un saldo de <MoneyDisplay amount={deletingAccount.balance} type="balance" size="sm" className="inline" />
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeletingAccount(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+            >
+              {accountsHook.deleteAccount.isPending ? 'Eliminando...' : 'Eliminar cuenta'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

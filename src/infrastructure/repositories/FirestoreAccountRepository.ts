@@ -23,14 +23,16 @@ import { AccountMapper } from '@/infrastructure/mappers/AccountMapper';
  */
 export class FirestoreAccountRepository implements IAccountRepository {
   private collectionPath: string;
+  private orgId: string;
 
   constructor(orgId: string) {
-    this.collectionPath = `organizations/${orgId}/accounts`;
+    this.orgId = orgId;
+    this.collectionPath = 'accounts';
   }
 
   async create(data: Omit<Account, 'id'>): Promise<string> {
     const ref = collection(db, this.collectionPath);
-    const firestoreData = AccountMapper.toFirestore(data);
+    const firestoreData = { ...AccountMapper.toFirestore(data), orgId: this.orgId };
     const docRef = await addDoc(ref, firestoreData);
     return docRef.id;
   }
@@ -46,12 +48,15 @@ export class FirestoreAccountRepository implements IAccountRepository {
 
   async getAll(filters?: Record<string, any>): Promise<Account[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(ref, orderBy('name', 'asc'));
+    const q = query(ref, where('orgId', '==', this.orgId));
     const snapshot = await getDocs(q);
     
-    return snapshot.docs.map(doc => 
+    const accounts = snapshot.docs.map(doc => 
       AccountMapper.toDomain({ id: doc.id, ...doc.data() })
     );
+    
+    // Sort in memory to avoid composite index requirement
+    return accounts.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async update(id: string, data: Partial<Account>): Promise<void> {
@@ -75,20 +80,24 @@ export class FirestoreAccountRepository implements IAccountRepository {
  const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
-      where('isActive', '==', true),
-      orderBy('name', 'asc')
+      where('orgId', '==', this.orgId),
+      where('isActive', '==', true)
     );
     
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
+    const accounts = snapshot.docs.map(doc => 
       AccountMapper.toDomain({ id: doc.id, ...doc.data() })
     );
+    
+    // Sort in memory to avoid composite index requirement
+    return accounts.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async getByType(type: AccountType): Promise<Account[]> {
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('type', '==', type),
       where('isActive', '==', true)
     );
@@ -107,9 +116,15 @@ export class FirestoreAccountRepository implements IAccountRepository {
       balance: newBalance,
     };
 
-    // For credit cards, also update available credit
-    if (account.type === 'CREDIT_CARD' && account.creditLimit) {
-      updates.availableCredit = account.creditLimit - newBalance;
+    // Update available credit for credit accounts
+    if (account.creditLimit) {
+      if (account.type === 'LINE_OF_CREDIT') {
+        // LINE_OF_CREDIT: balance is available credit
+        updates.availableCredit = newBalance;
+      } else if (account.type === 'CREDIT_CARD') {
+        // CREDIT_CARD: available = limit - |balance|
+        updates.availableCredit = account.creditLimit - Math.abs(newBalance);
+      }
     }
 
     await this.update(accountId, updates);

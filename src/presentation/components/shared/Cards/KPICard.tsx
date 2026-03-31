@@ -66,31 +66,31 @@ export function KPICard({
 
   return (
     <Card className={className}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5 sm:pb-2 px-3 py-2.5 sm:px-6 sm:py-4">
+        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground leading-tight">
           {title}
         </CardTitle>
         {icon && (
-          <div className="text-muted-foreground">
+          <div className="text-muted-foreground shrink-0">
             {icon}
           </div>
         )}
       </CardHeader>
-      <CardContent>
-        <div className={cn('text-2xl font-bold', valueClassName)}>{value}</div>
+      <CardContent className="px-3 pb-3 sm:px-6 sm:pb-6">
+        <div className={cn('text-base sm:text-xl lg:text-2xl font-bold', valueClassName)}>{value}</div>
         
         {change !== undefined && (
-          <div className={cn('flex items-center gap-1 text-xs mt-1', getTrendColor())}>
+          <div className={cn('flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs mt-1', getTrendColor())}>
             {getTrendIcon()}
-            <span>
+            <span className="hidden sm:inline">
               {change > 0 ? '+' : ''}{change.toFixed(1)}%
             </span>
-            <span className="text-muted-foreground">desde el período anterior</span>
+            <span className="hidden sm:inline text-muted-foreground">desde el período anterior</span>
           </div>
         )}
         
         {description && (
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 line-clamp-2">
             {description}
           </p>
         )}

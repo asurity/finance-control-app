@@ -23,12 +23,12 @@ export class SavingsGoalMapper {
       doc.currency || 'CLP',
       doc.status,
       doc.userId,
+      doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : doc.createdAt ? new Date(doc.createdAt) : new Date(),
       doc.description,
       doc.targetDate instanceof Timestamp ? doc.targetDate.toDate() : doc.targetDate ? new Date(doc.targetDate) : undefined,
       doc.icon,
       doc.color,
       doc.linkedAccountId,
-      doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : undefined,
       doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : undefined,
       doc.completedAt instanceof Timestamp ? doc.completedAt.toDate() : doc.completedAt ? new Date(doc.completedAt) : undefined
     );
@@ -110,7 +110,7 @@ export class SavingsGoalMapper {
    * @param docs - Array of Firestore documents
    * @returns Array of SavingsGoal domain entities
    */
-  static toDomainArray(docs: Array<DocumentData & { id: string }>): SavingsGoal[] {
+  static toDomainArray(docs: Array<DocumentData & { id: string }>): SavingsGoalEntity[] {
     return docs.map(doc => SavingsGoalMapper.toDomain(doc));
   }
 }

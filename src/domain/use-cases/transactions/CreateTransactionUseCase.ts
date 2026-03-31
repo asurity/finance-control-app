@@ -103,9 +103,9 @@ export class CreateTransactionUseCase extends BaseUseCase<
     if (input.type === 'EXPENSE') {
       // For credit cards and lines of credit, validate available credit
       if (account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT') {
-        if (!account.hasAvailableCredit(input.amount)) {
-          const availableCredit = account.getAvailableCredit() || 0;
-          throw new Error(`Insufficient credit. Available: ${availableCredit.toFixed(2)}, Required: ${input.amount.toFixed(2)}`);
+        const availableCredit = account.availableCredit ?? (account.creditLimit != null ? account.creditLimit - account.balance : undefined);
+        if (availableCredit === undefined || availableCredit < input.amount) {
+          throw new Error(`Insufficient credit. Available: ${(availableCredit ?? 0).toFixed(2)}, Required: ${input.amount.toFixed(2)}`);
         }
       } else {
         // For other account types, validate balance

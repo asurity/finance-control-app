@@ -87,10 +87,9 @@ function BudgetsContent({
   const { data: categories = [] } = categoriesHook.useAllCategories();
 
   // Filter only expense categories
-  const expenseCategories = useMemo(
-    () => categories.filter((cat) => cat.type === 'EXPENSE'),
-    [categories]
-  );
+  const expenseCategories = useMemo(() => {
+    return categories.filter((cat) => cat.type === 'EXPENSE');
+  }, [categories]);
 
   // State
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null);
@@ -108,6 +107,14 @@ function BudgetsContent({
   const [isCreateCategoryDialogOpen, setIsCreateCategoryDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryColor, setNewCategoryColor] = useState('#3b82f6');
+
+  // Edit/Delete category state
+  const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
+  const [isDeleteCategoryDialogOpen, setIsDeleteCategoryDialogOpen] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [editCategoryName, setEditCategoryName] = useState('');
+  const [editCategoryColor, setEditCategoryColor] = useState('#3b82f6');
 
   // Get selected period and its category budgets
   const selectedPeriod = useMemo(
@@ -224,7 +231,7 @@ function BudgetsContent({
     }
 
     try {
-      await categoriesHook.createCategory.mutateAsync({
+      const categoryId = await categoriesHook.createCategory.mutateAsync({
         name: newCategoryName.trim(),
         type: 'EXPENSE',
         color: newCategoryColor,
@@ -236,8 +243,62 @@ function BudgetsContent({
       setNewCategoryColor('#3b82f6');
       setIsCreateCategoryDialogOpen(false);
     } catch (error: any) {
-      console.error('Error al crear categoría:', error);
+      console.error('❌ Error al crear categoría:', error);
       toast.error('No se pudo crear la categoría', {
+        description: error.message,
+      });
+    }
+  };
+
+  const handleEditCategory = (category: Category) => {
+    setCategoryToEdit(category);
+    setEditCategoryName(category.name);
+    setEditCategoryColor(category.color);
+    setIsEditCategoryDialogOpen(true);
+  };
+
+  const handleUpdateCategory = async () => {
+    if (!categoryToEdit || !editCategoryName.trim()) {
+      toast.error('Ingresa un nombre para la categoría');
+      return;
+    }
+
+    try {
+      await categoriesHook.updateCategory.mutateAsync({
+        id: categoryToEdit.id,
+        data: {
+          name: editCategoryName.trim(),
+          color: editCategoryColor,
+        },
+      });
+
+      setIsEditCategoryDialogOpen(false);
+      setCategoryToEdit(null);
+      setEditCategoryName('');
+      setEditCategoryColor('#3b82f6');
+    } catch (error: any) {
+      console.error('Error al actualizar categoría:', error);
+      toast.error('No se pudo actualizar la categoría', {
+        description: error.message,
+      });
+    }
+  };
+
+  const handleDeleteCategory = (category: Category) => {
+    setCategoryToDelete(category);
+    setIsDeleteCategoryDialogOpen(true);
+  };
+
+  const handleConfirmDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+
+    try {
+      await categoriesHook.deleteCategory.mutateAsync(categoryToDelete.id);
+      setIsDeleteCategoryDialogOpen(false);
+      setCategoryToDelete(null);
+    } catch (error: any) {
+      console.error('Error al eliminar categoría:', error);
+      toast.error('No se pudo eliminar la categoría', {
         description: error.message,
       });
     }
@@ -247,8 +308,8 @@ function BudgetsContent({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Presupuestos</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">Presupuestos</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Gestiona períodos de presupuesto y asigna porcentajes a cada categoría en {organizationName}.
         </p>
       </div>
@@ -414,6 +475,8 @@ function BudgetsContent({
                       categories={expenseCategories}
                       categoryBudgets={categoryBudgets}
                       onSave={handleSaveCategoryAllocations}
+                      onEditCategory={handleEditCategory}
+                      onDeleteCategory={handleDeleteCategory}
                       isLoading={categoryBudgetsHook.setCategoryBudget.isPending}
                     />
                   )}
@@ -485,7 +548,10 @@ function BudgetsContent({
                 <Input
                   type="date"
                   value={format(newPeriodStartDate, 'yyyy-MM-dd')}
-                  onChange={(e) => setNewPeriodStartDate(new Date(e.target.value))}
+                  onChange={(e) => {
+                    const date = new Date(e.target.value + 'T00:00:00');
+                    if (!isNaN(date.getTime())) setNewPeriodStartDate(date);
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -493,7 +559,10 @@ function BudgetsContent({
                 <Input
                   type="date"
                   value={format(newPeriodEndDate, 'yyyy-MM-dd')}
-                  onChange={(e) => setNewPeriodEndDate(new Date(e.target.value))}
+                  onChange={(e) => {
+                    const date = new Date(e.target.value + 'T00:00:00');
+                    if (!isNaN(date.getTime())) setNewPeriodEndDate(date);
+                  }}
                 />
               </div>
             </div>
@@ -599,6 +668,87 @@ function BudgetsContent({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Category Dialog */}
+      <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar categoría</DialogTitle>
+            <DialogDescription>
+              Modifica el nombre y color de la categoría
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-category-name">Nombre de la categoría</Label>
+              <Input
+                id="edit-category-name"
+                placeholder="Ej: Mascotas, Suscripciones, etc."
+                value={editCategoryName}
+                onChange={(e) => setEditCategoryName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleUpdateCategory();
+                  }
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-category-color">Color</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="edit-category-color"
+                  type="color"
+                  value={editCategoryColor}
+                  onChange={(e) => setEditCategoryColor(e.target.value)}
+                  className="w-20 h-10 cursor-pointer"
+                />
+                <span className="text-sm text-muted-foreground">{editCategoryColor}</span>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsEditCategoryDialogOpen(false);
+                setCategoryToEdit(null);
+                setEditCategoryName('');
+                setEditCategoryColor('#3b82f6');
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleUpdateCategory}
+              disabled={categoriesHook.updateCategory.isPending}
+            >
+              {categoriesHook.updateCategory.isPending ? 'Guardando...' : 'Guardar cambios'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Category Dialog */}
+      <AlertDialog open={isDeleteCategoryDialogOpen} onOpenChange={setIsDeleteCategoryDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar categoría?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. ¿Estás seguro de eliminar la categoría "{categoryToDelete?.name}"?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDeleteCategory}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

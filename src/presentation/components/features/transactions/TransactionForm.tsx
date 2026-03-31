@@ -5,11 +5,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import {
   Form,
   FormControl,
@@ -28,11 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
 import { CreateTransactionSchema } from '@/application/validators/transactionValidator';
@@ -46,12 +40,13 @@ interface TransactionFormProps {
   orgId: string;
   userId: string;
   onSuccess?: () => void;
+  defaultType?: 'EXPENSE' | 'INCOME';
 }
 
 // Infer form values type from schema
 type TransactionFormValues = z.infer<typeof CreateTransactionSchema>;
 
-export function TransactionForm({ orgId, userId, onSuccess }: TransactionFormProps) {
+export function TransactionForm({ orgId, userId, onSuccess, defaultType = 'EXPENSE' }: TransactionFormProps) {
   const [selectedAccountType, setSelectedAccountType] = useState<AccountType | null>(null);
 
   // Initialize hooks
@@ -67,7 +62,7 @@ export function TransactionForm({ orgId, userId, onSuccess }: TransactionFormPro
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(CreateTransactionSchema) as any,
     defaultValues: {
-      type: 'EXPENSE' as const,
+      type: defaultType,
       amount: 0,
       description: '',
       date: new Date(),
@@ -197,39 +192,24 @@ export function TransactionForm({ orgId, userId, onSuccess }: TransactionFormPro
           control={form.control}
           name="date"
           render={({ field }) => (
-            <FormItem className="flex flex-col">
+            <FormItem>
               <FormLabel>Fecha</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        'w-full pl-3 text-left font-normal',
-                        !field.value && 'text-muted-foreground'
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, 'PPP', { locale: es })
-                      ) : (
-                        <span>Selecciona una fecha</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date: Date) =>
-                      date > new Date() || date < new Date('1900-01-01')
+              <FormControl>
+                <Input
+                  type="date"
+                  value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => {
+                    const date = new Date(e.target.value + 'T00:00:00');
+                    if (!isNaN(date.getTime())) {
+                      field.onChange(date);
                     }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+                  }}
+                  max={format(new Date(), 'yyyy-MM-dd')}
+                />
+              </FormControl>
+              <FormDescription>
+                Fecha en que se realizó la transacción
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

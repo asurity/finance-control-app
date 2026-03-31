@@ -66,7 +66,13 @@ export class Account {
       }
     }
 
-    // Balance validation for non-credit accounts
+    // Balance validation:
+    // - CREDIT_CARD: balance is negative (debt)
+    // - LINE_OF_CREDIT: balance is positive (available credit)
+    // - Other accounts: balance cannot be negative
+    if (this.type === 'LINE_OF_CREDIT' && this.balance < 0) {
+      throw new Error('Line of credit balance cannot be negative');
+    }
     if (this.type !== 'CREDIT_CARD' && this.type !== 'LINE_OF_CREDIT' && this.balance < 0) {
       throw new Error('Account balance cannot be negative for non-credit accounts');
     }
@@ -170,12 +176,17 @@ export class Account {
       return undefined;
     }
     
-    // If availableCredit is set, use it. Otherwise calculate from creditLimit - balance
+    // If availableCredit is set, use it. Otherwise calculate
     if (this.availableCredit !== undefined) {
       return this.availableCredit;
     }
     
     if (this.creditLimit !== undefined) {
+      // LINE_OF_CREDIT: balance is available credit (positive)
+      if (this.type === 'LINE_OF_CREDIT') {
+        return Math.max(0, this.balance);
+      }
+      // CREDIT_CARD: balance is debt (negative), available = limit - debt
       return Math.max(0, this.creditLimit - Math.abs(this.balance));
     }
     
@@ -205,7 +216,14 @@ export class Account {
       return undefined;
     }
 
-    const used = Math.abs(this.balance);
+    let used: number;
+    if (this.type === 'LINE_OF_CREDIT') {
+      // LINE_OF_CREDIT: used = limit - available
+      used = this.creditLimit - this.balance;
+    } else {
+      // CREDIT_CARD: used = absolute value of negative balance
+      used = Math.abs(this.balance);
+    }
     return (used / this.creditLimit) * 100;
   }
 

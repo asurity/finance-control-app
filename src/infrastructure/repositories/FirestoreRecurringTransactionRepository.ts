@@ -25,12 +25,12 @@ export class FirestoreRecurringTransactionRepository implements IRecurringTransa
 
   constructor(orgId: string) {
     this.orgId = orgId;
-    this.collectionPath = `organizations/${orgId}/recurringTransactions`;
+    this.collectionPath = 'recurringTransactions';
   }
 
   async create(data: Omit<RecurringTransaction, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const ref = collection(db, this.collectionPath);
-    const firestoreData = RecurringTransactionMapper.toFirestore(data);
+    const firestoreData = { ...RecurringTransactionMapper.toFirestore(data), orgId: this.orgId };
     const docRef = await addDoc(ref, firestoreData);
     return docRef.id;
   }
@@ -46,7 +46,7 @@ export class FirestoreRecurringTransactionRepository implements IRecurringTransa
 
   async getAll(filters?: Record<string, any>): Promise<RecurringTransaction[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(ref, orderBy('nextOccurrence', 'asc'));
+    const q = query(ref, where('orgId', '==', this.orgId), orderBy('nextOccurrence', 'asc'));
     const snapshot = await getDocs(q);
     
     return snapshot.docs.map(doc => 
@@ -75,6 +75,7 @@ export class FirestoreRecurringTransactionRepository implements IRecurringTransa
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('isActive', '==', true),
       orderBy('nextOccurrence', 'asc')
     );
@@ -89,6 +90,7 @@ export class FirestoreRecurringTransactionRepository implements IRecurringTransa
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('frequency', '==', frequency),
       where('isActive', '==', true)
     );
@@ -103,6 +105,7 @@ export class FirestoreRecurringTransactionRepository implements IRecurringTransa
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('accountId', '==', accountId),
       orderBy('nextOccurrence', 'asc')
     );
@@ -117,6 +120,7 @@ export class FirestoreRecurringTransactionRepository implements IRecurringTransa
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('categoryId', '==', categoryId),
       orderBy('nextOccurrence', 'asc')
     );
@@ -131,6 +135,7 @@ export class FirestoreRecurringTransactionRepository implements IRecurringTransa
     const ref = collection(db, this.collectionPath);
     const q = query(
       ref,
+      where('orgId', '==', this.orgId),
       where('isActive', '==', true),
       where('nextOccurrence', '<=', Timestamp.fromDate(currentDate))
     );

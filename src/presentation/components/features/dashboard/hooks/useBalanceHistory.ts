@@ -18,6 +18,7 @@ export function useBalanceHistory(period: 'month' | 'quarter' | 'year') {
     queryKey: ['balance-history', currentOrgId, period, user?.id],
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
+      if (!currentOrgId) throw new Error('Organization not selected');
       
       const container = DIContainer.getInstance();
       container.setOrgId(currentOrgId);

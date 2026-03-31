@@ -17,7 +17,7 @@ export function useExpensesByCategory(period: 'month' | 'quarter' | 'year') {
   return useQuery({
     queryKey: ['expenses-by-category', currentOrgId, period, user?.id],
     queryFn: async () => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user || !currentOrgId) throw new Error('User not authenticated');
       
       const container = DIContainer.getInstance();
       container.setOrgId(currentOrgId);

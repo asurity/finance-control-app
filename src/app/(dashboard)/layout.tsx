@@ -3,6 +3,7 @@ import { Header } from '@/components/layout/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
 import { InitializeCategories } from '@/components/InitializeCategories';
+import { GlobalTransactionFAB } from '@/components/layout/GlobalTransactionFAB';
 
 export default function DashboardLayout({
   children,
@@ -21,12 +22,15 @@ export default function DashboardLayout({
           <Header />
 
           {/* Page Content */}
-          <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+          <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 text-sm sm:text-base">
             <EmailVerificationBanner />
             {children}
           </main>
         </div>
       </div>
+
+      {/* Global Floating Action Button */}
+      <GlobalTransactionFAB />
     </ProtectedRoute>
   );
 }

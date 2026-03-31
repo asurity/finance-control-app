@@ -83,13 +83,10 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
       previousEndDate
     );
 
-    // Filter by user if needed (for multi-user orgs)
-    const userCurrentTransactions = currentTransactions.filter(
-      t => t.userId === input.userId
-    );
-    const userPreviousTransactions = previousTransactions.filter(
-      t => t.userId === input.userId
-    );
+    // Use all transactions from the organization (not filtered by user)
+    // This is important for multi-user organizations (e.g., family accounts)
+    const userCurrentTransactions = currentTransactions;
+    const userPreviousTransactions = previousTransactions;
 
     // Calculate income and expenses
     const totalIncome = userCurrentTransactions
@@ -144,7 +141,8 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
 
     // Get active alerts
     const unreadAlerts = await this.alertRepo.getUnread();
-    const userAlerts = unreadAlerts.filter(a => a.userId === input.userId);
+    // Show all organization alerts, not just user-specific ones
+    const userAlerts = unreadAlerts;
 
     // Calculate pending payments (transactions with future dates or recurring)
     const now = new Date();
