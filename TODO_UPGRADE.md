@@ -1209,7 +1209,7 @@ git tag v0.9.1-notifications
 
 ### 12.1 — Crear flujo de onboarding
 
-- [ ] **Crear** `src/presentation/components/features/onboarding/OnboardingWizard.tsx`
+- [x] **Crear** `src/presentation/components/features/onboarding/OnboardingWizard.tsx`
   - Wizard en 4 pasos:
     1. **Bienvenida**: "¡Bienvenido a Control Financiero! Vamos a configurar tu cuenta en 2 minutos."
     2. **Crear primera cuenta**: Formulario simplificado de cuenta (nombre, tipo, saldo inicial). Solo los campos mínimos.
@@ -1221,7 +1221,7 @@ git tag v0.9.1-notifications
 
 ### 12.2 — Detectar usuario nuevo y mostrar wizard
 
-- [ ] **Editar** `src/app/(dashboard)/dashboard/page.tsx`
+- [x] **Editar** `src/app/(dashboard)/dashboard/page.tsx`
   - Al cargar:
     - Verificar si el usuario tiene cuentas creadas
     - Si no tiene ninguna cuenta → mostrar `OnboardingWizard` como overlay/modal
@@ -1230,7 +1230,7 @@ git tag v0.9.1-notifications
 
 ### 12.3 — Empty states mejorados
 
-- [ ] **Crear** `src/presentation/components/shared/EmptyState.tsx`
+- [x] **Crear** `src/presentation/components/shared/EmptyState.tsx`
   - Componente reutilizable para cuando no hay datos:
     ```typescript
     interface EmptyStateProps {
