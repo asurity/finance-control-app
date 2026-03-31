@@ -12,7 +12,8 @@ export class Category {
     public readonly type: CategoryType,
     public readonly icon: string,
     public readonly color: string,
-    public readonly isSystem?: boolean // System categories cannot be deleted
+    public readonly isSystem?: boolean, // System categories cannot be deleted
+    public readonly parentId?: string // ID of parent category (undefined = root)
   ) {
     this.validate();
   }
@@ -80,6 +81,13 @@ export class Category {
    */
   isSystemCategory(): boolean {
     return this.isSystem === true;
+  }
+
+  /**
+   * Checks if this is a subcategory
+   */
+  isSubcategory(): boolean {
+    return !!this.parentId;
   }
 
   /**

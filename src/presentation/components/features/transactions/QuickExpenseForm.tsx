@@ -34,6 +34,7 @@ import { useTransactions } from '@/application/hooks/useTransactions';
 import { useAccounts } from '@/application/hooks/useAccounts';
 import { useCategories } from '@/application/hooks/useCategories';
 import { useSmartDefaults } from './hooks/useSmartDefaults';
+import { useCategorySuggestion } from './hooks/useCategorySuggestion';
 import type { z } from 'zod';
 
 interface QuickExpenseFormProps {
@@ -113,8 +114,8 @@ export function QuickExpenseForm({
     return () => clearTimeout(timeout);
   }, []);
 
-  // Filtrar categorías de gastos
-  const expenseCategories = allCategories.filter((cat) => cat.type === 'EXPENSE');
+  // Filtrar categorías de gastos (excluir sub-categorías del listado principal)
+  const expenseCategories = allCategories.filter((cat) => cat.type === 'EXPENSE' && !cat.parentId);
 
   // Categorías no frecuentes (para el selector completo)
   const otherCategories = expenseCategories.filter(
@@ -161,6 +162,28 @@ export function QuickExpenseForm({
   const watchCategoryId = form.watch('categoryId');
   const watchAmount = form.watch('amount');
   const watchDate = form.watch('date');
+  const watchDescription = form.watch('description');
+
+  // Category suggestion based on description
+  const categorySuggestion = useCategorySuggestion({
+    orgId,
+    userId,
+    transactionType: 'EXPENSE',
+    description: watchDescription || '',
+    categories: allCategories,
+    enabled: showDescription && !!watchDescription && watchDescription.length >= 2,
+  });
+
+  // Auto-select category on high confidence suggestion
+  useEffect(() => {
+    if (
+      categorySuggestion.confidence === 'high' &&
+      categorySuggestion.categoryId &&
+      !watchCategoryId
+    ) {
+      form.setValue('categoryId', categorySuggestion.categoryId);
+    }
+  }, [categorySuggestion.categoryId, categorySuggestion.confidence, watchCategoryId, form]);
 
   const isLoading =
     createTransaction.isPending || accountsLoading || categoriesLoading || smartDefaults.isLoading;
@@ -409,6 +432,18 @@ export function QuickExpenseForm({
                       {...field}
                     />
                   </FormControl>
+                  {categorySuggestion.confidence === 'medium' && categorySuggestion.categoryName && (
+                    <p
+                      className="text-xs text-primary cursor-pointer hover:underline mt-1"
+                      onClick={() => {
+                        if (categorySuggestion.categoryId) {
+                          form.setValue('categoryId', categorySuggestion.categoryId);
+                        }
+                      }}
+                    >
+                      ¿Es esto {categorySuggestion.categoryName}?
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

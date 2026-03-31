@@ -26,6 +26,7 @@ import {
   CheckBudgetAlertsUseCase,
   ContributeToSavingsGoalUseCase,
   SeedDefaultCategoriesUseCase,
+  SuggestCategoryUseCase,
 } from '@/domain/use-cases';
 
 import { UpdateTransactionUseCase } from '@/domain/use-cases/transactions/UpdateTransactionUseCase';
@@ -421,6 +422,10 @@ export class DIContainer {
 
   getGetCategoriesByTypeUseCase(): GetCategoriesByTypeUseCase {
     return new GetCategoriesByTypeUseCase(this.getCategoryRepository());
+  }
+
+  getSuggestCategoryUseCase(): SuggestCategoryUseCase {
+    return new SuggestCategoryUseCase(this.getTransactionRepository());
   }
 
   // ========================================

@@ -35,6 +35,7 @@ import { useTransactions } from '@/application/hooks/useTransactions';
 import { useAccounts } from '@/application/hooks/useAccounts';
 import { useCategories } from '@/application/hooks/useCategories';
 import { useSmartDefaults } from './hooks/useSmartDefaults';
+import { useCategorySuggestion } from './hooks/useCategorySuggestion';
 import type { z } from 'zod';
 
 interface TransactionFormProps {
@@ -102,9 +103,33 @@ export function TransactionForm({
   // Watch form values for conditional fields
   const watchType = form.watch('type');
   const watchAccountId = form.watch('accountId');
+  const watchDescription = form.watch('description');
 
-  // Filter categories by transaction type
-  const filteredCategories = allCategories.filter((category) => category.type === watchType);
+  // Filter categories by transaction type (exclude subcategories from main list)
+  const filteredCategories = allCategories.filter(
+    (category) => category.type === watchType && !category.parentId
+  );
+
+  // Category suggestion based on description
+  const categorySuggestion = useCategorySuggestion({
+    orgId,
+    userId,
+    transactionType: watchType as 'EXPENSE' | 'INCOME',
+    description: watchDescription || '',
+    categories: allCategories,
+    enabled: !!watchDescription && watchDescription.length >= 2,
+  });
+
+  // Auto-select category on high confidence suggestion
+  useEffect(() => {
+    if (
+      categorySuggestion.confidence === 'high' &&
+      categorySuggestion.categoryId &&
+      !form.getValues('categoryId')
+    ) {
+      form.setValue('categoryId', categorySuggestion.categoryId);
+    }
+  }, [categorySuggestion.categoryId, categorySuggestion.confidence, form]);
 
   // Update selected account type when account changes
   useEffect(() => {
@@ -291,6 +316,18 @@ export function TransactionForm({
               </Select>
               <FormDescription>
                 Categorías de {watchType === 'INCOME' ? 'ingresos' : 'egresos'}
+                {categorySuggestion.confidence === 'medium' && categorySuggestion.categoryName && (
+                  <span
+                    className="ml-1 text-primary cursor-pointer hover:underline"
+                    onClick={() => {
+                      if (categorySuggestion.categoryId) {
+                        field.onChange(categorySuggestion.categoryId);
+                      }
+                    }}
+                  >
+                    — ¿Es esto {categorySuggestion.categoryName}?
+                  </span>
+                )}
               </FormDescription>
               <FormMessage />
             </FormItem>

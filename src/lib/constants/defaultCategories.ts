@@ -110,6 +110,34 @@ export const DEFAULT_INCOME_CATEGORIES: Omit<Category, 'id'>[] = [
     color: '#27AE60',
     isSystem: true,
   },
+  {
+    name: 'Reembolsos',
+    type: 'INCOME',
+    icon: '🔄',
+    color: '#16A085',
+    isSystem: true,
+  },
+  {
+    name: 'Regalos',
+    type: 'INCOME',
+    icon: '🎁',
+    color: '#E74C3C',
+    isSystem: true,
+  },
+  {
+    name: 'Bonos',
+    type: 'INCOME',
+    icon: '🏆',
+    color: '#F39C12',
+    isSystem: true,
+  },
+  {
+    name: 'Venta de Artículos',
+    type: 'INCOME',
+    icon: '📱',
+    color: '#D35400',
+    isSystem: true,
+  },
 ];
 
 /**

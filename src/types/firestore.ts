@@ -64,6 +64,7 @@ export interface Category {
   icon: string;
   color: string;
   isSystem?: boolean; // System categories cannot be deleted
+  parentId?: string; // ID of parent category (undefined = root category)
 }
 
 export type TransactionType = 'INCOME' | 'EXPENSE';

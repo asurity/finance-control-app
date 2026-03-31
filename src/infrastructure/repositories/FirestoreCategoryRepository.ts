@@ -140,4 +140,23 @@ export class FirestoreCategoryRepository implements ICategoryRepository {
       averageAmount: 0,
     };
   }
+
+  async getSubcategories(parentId: string): Promise<Category[]> {
+    try {
+      const ref = collection(db, this.collectionPath);
+      const q = query(
+        ref,
+        where('orgId', '==', this.orgId),
+        where('parentId', '==', parentId)
+      );
+      const snapshot = await getDocs(q);
+      const categories = snapshot.docs.map((d) =>
+        CategoryMapper.toDomain({ id: d.id, ...d.data() })
+      );
+      return categories.sort((a, b) => a.name.localeCompare(b.name));
+    } catch (error) {
+      console.error('[CategoryRepo] ERROR querying subcategories:', error);
+      throw error;
+    }
+  }
 }

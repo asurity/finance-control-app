@@ -20,7 +20,8 @@ export class CategoryMapper {
       doc.type,
       doc.icon || '📁',
       doc.color || '#666666',
-      doc.isSystem || false
+      doc.isSystem || false,
+      doc.parentId || undefined
     );
   }
 
@@ -30,7 +31,7 @@ export class CategoryMapper {
    * @returns Firestore document data
    */
   static toFirestore(category: Omit<Category, 'id'>): DocumentData {
-    return {
+    const data: DocumentData = {
       name: category.name,
       type: category.type,
       icon: category.icon || '📁',
@@ -39,6 +40,8 @@ export class CategoryMapper {
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
+    if (category.parentId) data.parentId = category.parentId;
+    return data;
   }
 
   /**
@@ -55,6 +58,7 @@ export class CategoryMapper {
     if (category.type !== undefined) data.type = category.type;
     if (category.icon !== undefined) data.icon = category.icon;
     if (category.color !== undefined) data.color = category.color;
+    if (category.parentId !== undefined) data.parentId = category.parentId;
 
     return data;
   }
