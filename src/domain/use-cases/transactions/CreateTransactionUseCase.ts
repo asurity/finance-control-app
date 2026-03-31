@@ -4,6 +4,8 @@ import { IAccountRepository } from '@/domain/repositories/IAccountRepository';
 import { IBudgetRepository } from '@/domain/repositories/IBudgetRepository';
 import { IBudgetPeriodRepository } from '@/domain/repositories/IBudgetPeriodRepository';
 import { ICategoryBudgetRepository } from '@/domain/repositories/ICategoryBudgetRepository';
+import { IAlertRepository } from '@/domain/repositories/IAlertRepository';
+import { CheckBudgetAlertsUseCase } from '../alerts/CheckBudgetAlertsUseCase';
 import { Transaction, TransactionType } from '@/types/firestore';
 
 /**
@@ -49,7 +51,8 @@ export class CreateTransactionUseCase extends BaseUseCase<
     private accountRepo: IAccountRepository,
     private budgetRepo?: IBudgetRepository,
     private budgetPeriodRepo?: IBudgetPeriodRepository,
-    private categoryBudgetRepo?: ICategoryBudgetRepository
+    private categoryBudgetRepo?: ICategoryBudgetRepository,
+    private checkBudgetAlertsUseCase?: CheckBudgetAlertsUseCase
   ) {
     super();
   }
@@ -142,6 +145,15 @@ export class CreateTransactionUseCase extends BaseUseCase<
     if (input.type === 'EXPENSE') {
       await this.updateBudgetSpent(input.categoryId, input.amount, input.date);
       await this.updateCategoryBudget(input.userId, input.categoryId, input.amount, input.date);
+
+      // Check budget alerts as a side-effect (don't fail transaction if alerts fail)
+      if (this.checkBudgetAlertsUseCase) {
+        try {
+          await this.checkBudgetAlertsUseCase.execute({ userId: input.userId });
+        } catch (error) {
+          console.error('Error checking budget alerts:', error);
+        }
+      }
     }
 
     return { transactionId };

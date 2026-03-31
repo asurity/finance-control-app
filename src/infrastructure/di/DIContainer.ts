@@ -225,7 +225,8 @@ export class DIContainer {
       this.getAccountRepository(),
       this.getBudgetRepository(),
       this.getBudgetPeriodRepository(),
-      this.getCategoryBudgetRepository()
+      this.getCategoryBudgetRepository(),
+      this.getCheckBudgetAlertsUseCase()
     );
   }
 

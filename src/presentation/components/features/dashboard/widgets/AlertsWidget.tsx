@@ -110,7 +110,7 @@ export function AlertsWidget({ alerts }: AlertsWidgetProps) {
           })}
         </div>
         <Link
-          href="/alerts"
+          href="/notifications"
           className="flex items-center justify-center gap-2 mt-4 text-sm text-primary hover:underline"
         >
           Ver todas las alertas

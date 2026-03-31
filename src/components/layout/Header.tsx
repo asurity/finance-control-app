@@ -12,9 +12,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Building2, Check, ChevronDown, LogOut, Plus, Settings, User } from 'lucide-react';
+import { Building2, Check, ChevronDown, LogOut, Plus, Settings, User, Bell, AlertCircle, AlertTriangle, Info } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
+import { useUnreadAlerts } from '@/presentation/components/features/dashboard/hooks/useUnreadAlerts';
+import { formatRelativeDate } from '@/lib/utils/format';
 import { QuickTransactionModal } from '@/presentation/components/features/transactions/QuickTransactionModal';
 import {
   Dialog,
@@ -53,6 +55,8 @@ export function Header({ title = 'Dashboard' }: HeaderProps) {
   const [organizationName, setOrganizationName] = useState('');
   const [organizationType, setOrganizationType] = useState<'PERSONAL' | 'BUSINESS'>('PERSONAL');
   const [isCreatingOrganization, setIsCreatingOrganization] = useState(false);
+  const { data: unreadAlerts = [] } = useUnreadAlerts(5);
+  const unreadCount = unreadAlerts.length;
 
   const handleLogout = async () => {
     try {
@@ -109,6 +113,70 @@ export function Header({ title = 'Dashboard' }: HeaderProps) {
               <QuickTransactionModal orgId={currentOrgId} userId={user.id} />
             </div>
           ) : null}
+
+          {/* Notification Bell */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative h-8 w-8 sm:h-9 sm:w-9">
+                <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <DropdownMenuLabel className="flex items-center justify-between">
+                <span>Notificaciones</span>
+                {unreadCount > 0 && (
+                  <span className="text-xs text-muted-foreground font-normal">
+                    {unreadCount} sin leer
+                  </span>
+                )}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {unreadAlerts.length === 0 ? (
+                <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                  Sin notificaciones pendientes
+                </div>
+              ) : (
+                unreadAlerts.map((alert) => {
+                  const IconComponent =
+                    alert.priority === 'URGENT' ? AlertCircle :
+                    alert.priority === 'HIGH' ? AlertTriangle : Info;
+                  const iconColor =
+                    alert.priority === 'URGENT' ? 'text-red-600' :
+                    alert.priority === 'HIGH' ? 'text-orange-600' :
+                    alert.priority === 'MEDIUM' ? 'text-yellow-600' : 'text-blue-600';
+
+                  return (
+                    <DropdownMenuItem
+                      key={alert.id}
+                      className="flex items-start gap-3 p-3 cursor-pointer"
+                      onClick={() => router.push('/notifications')}
+                    >
+                      <IconComponent className={`h-4 w-4 mt-0.5 flex-shrink-0 ${iconColor}`} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{alert.title}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">{alert.message}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {alert.createdAt ? formatRelativeDate(alert.createdAt) : ''}
+                        </p>
+                      </div>
+                    </DropdownMenuItem>
+                  );
+                })
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="justify-center text-primary cursor-pointer"
+                onClick={() => router.push('/notifications')}
+              >
+                Ver todas las notificaciones
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Organization Selector */}
           <DropdownMenu>
