@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   Bug,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -24,6 +25,7 @@ import { APP_CONFIG } from '@/lib/constants/config';
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home, implemented: true, debug: false },
   { href: '/transactions', label: 'Transacciones', icon: Receipt, implemented: true, debug: false },
+  { href: '/recurring', label: 'Recurrentes', icon: RefreshCw, implemented: true, debug: false },
   { href: '/accounts', label: 'Cuentas', icon: CreditCard, implemented: true, debug: false },
   { href: '/budgets', label: 'Presupuestos', icon: PieChart, implemented: true, debug: false },
   { href: '/receivables', label: 'Por Cobrar', icon: TrendingUp, implemented: false, debug: false },
