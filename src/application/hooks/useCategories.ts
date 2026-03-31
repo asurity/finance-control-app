@@ -22,7 +22,7 @@ export const categoryKeys = {
 export function useCategories(orgId: string) {
   const queryClient = useQueryClient();
   const container = DIContainer.getInstance();
-  
+
   // Set organization ID in DI container
   container.setOrgId(orgId);
 
@@ -119,7 +119,7 @@ export function useCategories(orgId: string) {
     // Queries
     useAllCategories,
     useCategoriesByType,
-    
+
     // Mutations
     createCategory,
     updateCategory,

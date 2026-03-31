@@ -3,7 +3,7 @@ import { CategoryBudget } from '../entities/CategoryBudget';
 
 /**
  * Category Budget repository interface
- * 
+ *
  * Extends base repository with category budget-specific operations.
  */
 export interface ICategoryBudgetRepository extends IRepository<CategoryBudget> {

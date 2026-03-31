@@ -23,7 +23,7 @@ export const recurringTransactionKeys = {
 export function useRecurringTransactions(orgId: string, userId: string) {
   const queryClient = useQueryClient();
   const container = DIContainer.getInstance();
-  
+
   // Set organization ID in DI container
   container.setOrgId(orgId);
 
@@ -105,7 +105,7 @@ export function useRecurringTransactions(orgId: string, userId: string) {
    * Mutation: Process recurring transaction (create actual transaction)
    */
   const processRecurringTransaction = useMutation({
-    mutationFn: (recurringId: string) => 
+    mutationFn: (recurringId: string) =>
       processRecurringUseCase.execute({ currentDate: new Date() }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: recurringTransactionKeys.all(orgId, userId) });
@@ -148,7 +148,7 @@ export function useRecurringTransactions(orgId: string, userId: string) {
     useAllRecurringTransactions,
     useActiveRecurringTransactions,
     useDueRecurringTransactions,
-    
+
     // Mutations
     createRecurringTransaction,
     updateRecurringTransaction,

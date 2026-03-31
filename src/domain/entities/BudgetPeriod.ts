@@ -76,7 +76,7 @@ export class BudgetPeriod {
     const now = new Date();
     if (now > this.endDate) return 0;
     if (now < this.startDate) return this.getDurationInDays();
-    
+
     const diffTime = Math.abs(this.endDate.getTime() - now.getTime());
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
@@ -105,7 +105,7 @@ export class BudgetPeriod {
 
     const totalDuration = this.endDate.getTime() - this.startDate.getTime();
     const elapsed = now.getTime() - this.startDate.getTime();
-    
+
     return Math.round((elapsed / totalDuration) * 100);
   }
 

@@ -23,21 +23,21 @@ interface ExpensesByCategoryChartProps {
 
 // Default color palette for categories without colors
 const DEFAULT_COLORS = [
-  'hsl(0, 84%, 60%)',     // Red
-  'hsl(24, 95%, 53%)',    // Orange
-  'hsl(45, 93%, 47%)',    // Yellow
-  'hsl(142, 76%, 36%)',   // Green
-  'hsl(210, 92%, 45%)',   // Blue
-  'hsl(271, 76%, 53%)',   // Purple
-  'hsl(335, 78%, 42%)',   // Pink
-  'hsl(180, 77%, 34%)',   // Teal
+  'hsl(0, 84%, 60%)', // Red
+  'hsl(24, 95%, 53%)', // Orange
+  'hsl(45, 93%, 47%)', // Yellow
+  'hsl(142, 76%, 36%)', // Green
+  'hsl(210, 92%, 45%)', // Blue
+  'hsl(271, 76%, 53%)', // Purple
+  'hsl(335, 78%, 42%)', // Pink
+  'hsl(180, 77%, 34%)', // Teal
 ];
 
 export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCategoryChartProps) {
   // Take top 8 categories and group the rest as "Otros"
   const topCategories = data.slice(0, 7);
   const otherCategories = data.slice(7);
-  
+
   let chartData = topCategories.map((cat, index) => ({
     name: cat.categoryName,
     value: cat.amount,
@@ -50,7 +50,7 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
     const otherAmount = otherCategories.reduce((sum, cat) => sum + cat.amount, 0);
     const otherPercentage = (otherAmount / totalExpenses) * 100;
     const otherCount = otherCategories.reduce((sum, cat) => sum + cat.transactionCount, 0);
-    
+
     chartData.push({
       name: 'Otros',
       value: otherAmount,
@@ -68,7 +68,9 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
           <p className="text-sm font-semibold">{data.name}</p>
           <p className="text-sm">
             <span className="text-muted-foreground">Monto: </span>
-            <span className="font-medium text-red-600 dark:text-red-400">{formatCurrencyAbsolute(data.value)}</span>
+            <span className="font-medium text-red-600 dark:text-red-400">
+              {formatCurrencyAbsolute(data.value)}
+            </span>
           </p>
           <p className="text-sm">
             <span className="text-muted-foreground">Porcentaje: </span>
@@ -86,18 +88,18 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
 
   const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
     if (percent < 0.05) return null; // Don't show label for very small slices
-    
+
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
     return (
-      <text 
-        x={x} 
-        y={y} 
-        fill="white" 
-        textAnchor={x > cx ? 'start' : 'end'} 
+      <text
+        x={x}
+        y={y}
+        fill="white"
+        textAnchor={x > cx ? 'start' : 'end'}
         dominantBaseline="central"
         className="text-xs font-semibold"
       >
@@ -148,8 +150,8 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
               ))}
             </Pie>
             <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              verticalAlign="bottom" 
+            <Legend
+              verticalAlign="bottom"
               height={36}
               formatter={(value, entry: any) => {
                 const data = entry.payload;
@@ -166,13 +168,15 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
             {topCategories.slice(0, 3).map((cat, index) => (
               <div key={cat.categoryId} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
+                  <div
+                    className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: cat.color || DEFAULT_COLORS[index] }}
                   />
                   <span>{cat.categoryName}</span>
                 </div>
-                <span className="font-medium text-red-600 dark:text-red-400">{formatCurrencyAbsolute(cat.amount)}</span>
+                <span className="font-medium text-red-600 dark:text-red-400">
+                  {formatCurrencyAbsolute(cat.amount)}
+                </span>
               </div>
             ))}
           </div>

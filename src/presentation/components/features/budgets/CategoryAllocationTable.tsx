@@ -31,6 +31,7 @@ interface CategoryAllocationTableProps {
   onEditCategory?: (category: Category) => void;
   onDeleteCategory?: (category: Category) => void;
   isLoading?: boolean;
+  suggestions?: { categoryId: string; suggestedPercentage: number; historicalAmount: number }[];
 }
 
 export function CategoryAllocationTable({
@@ -42,6 +43,7 @@ export function CategoryAllocationTable({
   onEditCategory,
   onDeleteCategory,
   isLoading = false,
+  suggestions = [],
 }: CategoryAllocationTableProps) {
   // Initialize percentages from existing category budgets
   const [percentages, setPercentages] = useState<Record<string, number>>(() => {
@@ -105,7 +107,11 @@ export function CategoryAllocationTable({
       return <Badge variant="destructive">Excedido</Badge>;
     }
     if (info.isApproachingLimit) {
-      return <Badge variant="default" className="bg-yellow-500">Cerca del límite</Badge>;
+      return (
+        <Badge variant="default" className="bg-yellow-500">
+          Cerca del límite
+        </Badge>
+      );
     }
     if (info.spentAmount > 0) {
       return <Badge variant="secondary">En progreso</Badge>;
@@ -123,16 +129,14 @@ export function CategoryAllocationTable({
             {totalPercentage.toFixed(1)}% / 100%
           </span>
         </div>
-        <Progress 
-          value={Math.min(totalPercentage, 100)} 
+        <Progress
+          value={Math.min(totalPercentage, 100)}
           className={!isValid ? 'bg-red-100' : undefined}
         />
         {!isValid && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              El total de porcentajes no puede superar 100%
-            </AlertDescription>
+            <AlertDescription>El total de porcentajes no puede superar 100%</AlertDescription>
           </Alert>
         )}
       </div>
@@ -154,6 +158,8 @@ export function CategoryAllocationTable({
           <TableBody>
             {categories.map((category) => {
               const info = getCategoryBudgetInfo(category.id);
+              const suggestion = suggestions.find((s) => s.categoryId === category.id);
+
               return (
                 <TableRow key={category.id}>
                   <TableCell>
@@ -166,18 +172,34 @@ export function CategoryAllocationTable({
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.1"
-                        value={info.percentage || ''}
-                        onChange={(e) => handlePercentageChange(category.id, e.target.value)}
-                        className="w-20 text-right"
-                        disabled={isLoading}
-                      />
-                      <Percent className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center justify-end gap-1">
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          value={info.percentage || ''}
+                          onChange={(e) => handlePercentageChange(category.id, e.target.value)}
+                          className="w-20 text-right"
+                          disabled={isLoading}
+                        />
+                        <Percent className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      {suggestion && info.percentage !== suggestion.suggestedPercentage && (
+                        <div
+                          className="text-[10px] text-muted-foreground cursor-pointer hover:text-primary transition-colors hover:underline text-right"
+                          onClick={() =>
+                            handlePercentageChange(
+                              category.id,
+                              suggestion.suggestedPercentage.toString()
+                            )
+                          }
+                          title={`El mes pasado gastaste ${formatCurrency(suggestion.historicalAmount)}`}
+                        >
+                          Sugerido: {suggestion.suggestedPercentage}%
+                        </div>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="text-right font-medium">
@@ -188,7 +210,9 @@ export function CategoryAllocationTable({
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end">
-                      <span className={info.remainingAmount < 0 ? 'text-red-600 font-semibold' : ''}>
+                      <span
+                        className={info.remainingAmount < 0 ? 'text-red-600 font-semibold' : ''}
+                      >
                         {formatCurrency(Math.abs(info.remainingAmount))}
                       </span>
                     </div>
@@ -197,8 +221,8 @@ export function CategoryAllocationTable({
                     <div className="flex flex-col items-center gap-1">
                       {getStatusBadge(info)}
                       {info.allocatedAmount > 0 && (
-                        <Progress 
-                          value={Math.min(info.usagePercentage, 100)} 
+                        <Progress
+                          value={Math.min(info.usagePercentage, 100)}
                           className="h-1 w-24"
                         />
                       )}
@@ -240,11 +264,7 @@ export function CategoryAllocationTable({
 
       {/* Botón de guardar */}
       <div className="flex justify-end">
-        <Button
-          onClick={handleSave}
-          disabled={!isValid || isLoading}
-          size="lg"
-        >
+        <Button onClick={handleSave} disabled={!isValid || isLoading} size="lg">
           {isLoading ? 'Guardando...' : 'Guardar Asignaciones'}
         </Button>
       </div>

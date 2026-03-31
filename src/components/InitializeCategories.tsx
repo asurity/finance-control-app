@@ -7,10 +7,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * InitializeCategories Component
- * 
+ *
  * Automatically seeds default categories on first load
  * if no categories exist for the current organization.
- * 
+ *
  * This is an invisible component that runs in the background.
  */
 export function InitializeCategories() {
@@ -45,7 +45,9 @@ function InitializeCategoriesInner({ orgId, userId }: { orgId: string; userId: s
       seedCategories.mutate(userId);
       setInitialized(true);
     } else {
-      console.log(`[InitializeCategories] Found ${categories.length} categories, skipping initialization`);
+      console.log(
+        `[InitializeCategories] Found ${categories.length} categories, skipping initialization`
+      );
       setInitialized(true);
     }
   }, [categories, initialized, isLoading, seedCategories, userId]);

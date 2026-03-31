@@ -892,7 +892,7 @@ git tag v0.8.1-charts-upgrade
 
 ### 08.1 — Use Case: CloneBudgetPeriod
 
-- [ ] **Crear** `src/domain/use-cases/budget-periods/CloneBudgetPeriodUseCase.ts`
+- [x] **Crear** `src/domain/use-cases/budget-periods/CloneBudgetPeriodUseCase.ts`
   - Input: `{ sourcePeriodId: string; newStartDate: Date; newEndDate: Date; newTotalAmount?: number; userId: string }`
   - Lógica:
     1. Obtener el período fuente con sus CategoryBudgets
@@ -901,11 +901,11 @@ git tag v0.8.1-charts-upgrade
     4. Resetear `spentAmount` a 0 en cada CategoryBudget clonado
   - Output: `{ budgetPeriodId: string; categoryBudgetCount: number }`
 
-- [ ] **Registrar** en DIContainer
+- [x] **Registrar** en DIContainer
 
 ### 08.2 — Use Case: CheckPeriodExpiration
 
-- [ ] **Crear** `src/domain/use-cases/budget-periods/CheckPeriodExpirationUseCase.ts`
+- [x] **Crear** `src/domain/use-cases/budget-periods/CheckPeriodExpirationUseCase.ts`
   - Input: `{ userId: string }`
   - Output:
     ```typescript
@@ -924,11 +924,11 @@ git tag v0.8.1-charts-upgrade
     - Si hay activo: verificar si faltan < 3 días
     - Generar sugerencia según el caso
 
-- [ ] **Registrar** en DIContainer
+- [x] **Registrar** en DIContainer
 
 ### 08.3 — Banner de estado de período en Dashboard
 
-- [ ] **Crear** `src/presentation/components/features/budgets/PeriodStatusBanner.tsx`
+- [x] **Crear** `src/presentation/components/features/budgets/PeriodStatusBanner.tsx`
   - Se muestra en la parte superior del dashboard cuando:
     - **No hay período activo** (rojo): "No tienes un período de presupuesto activo. Tus gastos no se están controlando."
       - Botón: "Crear período" | "Copiar último período"
@@ -936,12 +936,12 @@ git tag v0.8.1-charts-upgrade
       - Botón: "Crear siguiente período" (pre-llenado con fechas consecutivas)
     - **Período activo** (no se muestra — todo bien)
 
-- [ ] **Editar** `src/app/(dashboard)/dashboard/page.tsx`
+- [x] **Editar** `src/app/(dashboard)/dashboard/page.tsx`
   - Integrar `PeriodStatusBanner` como primer elemento, antes de todo
 
 ### 08.4 — Botón "Copiar período anterior" en página de Presupuestos
 
-- [ ] **Editar** `src/app/(dashboard)/budgets/page.tsx`
+- [x] **Editar** `src/app/(dashboard)/budgets/page.tsx`
   - En la sección de períodos, junto a "Nuevo Período", agregar botón:
     - "Copiar último" (solo visible si hay al menos un período anterior)
     - Al hacer click: abre diálogo pre-llenado con:
@@ -952,7 +952,7 @@ git tag v0.8.1-charts-upgrade
 
 ### 08.5 — Sugerencia de montos por categoría basada en historial
 
-- [ ] **Crear** `src/domain/use-cases/budget-periods/SuggestCategoryBudgetsUseCase.ts`
+- [x] **Crear** `src/domain/use-cases/budget-periods/SuggestCategoryBudgetsUseCase.ts`
   - Input: `{ userId: string; startDate: Date; endDate: Date }`
   - Lógica:
     - Obtener transacciones EXPENSE del período anterior equivalente (mismo número de días)
@@ -960,12 +960,12 @@ git tag v0.8.1-charts-upgrade
     - Devolver sugerencia: "El mes pasado gastaste $X en [categoría], ¿quieres presupuestar $Y?"
   - Output: `Array<{ categoryId: string; categoryName: string; suggestedPercentage: number; historicalAmount: number }>`
 
-- [ ] **Integrar** en el diálogo de creación de período nuevo y en la tabla de asignación
+- [x] **Integrar** en el diálogo de creación de período nuevo y en la tabla de asignación
   - Mostrar como hint al lado de cada input de porcentaje: "Sugerido: X% (gastaste $Y el mes pasado)"
 
 ### 08.6 — Cloud Function para notificación de expiración (opcional, infraestructura)
 
-- [ ] **Crear** `functions/src/checkPeriodExpiration.ts`
+- [-] **Crear** `functions/src/checkPeriodExpiration.ts`
   - Función programada (Cloud Scheduler) que corre diariamente
   - Para cada usuario con período que expira en < 3 días y sin período siguiente creado:
     - Crear una `Alert` en la collection de alertas con prioridad HIGH

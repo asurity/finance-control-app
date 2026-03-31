@@ -3,7 +3,7 @@ import { Budget, BudgetPeriod } from '@/types/firestore';
 
 /**
  * Budget repository interface
- * 
+ *
  * Extends base repository with budget-specific operations.
  */
 export interface IBudgetRepository extends IRepository<Budget> {

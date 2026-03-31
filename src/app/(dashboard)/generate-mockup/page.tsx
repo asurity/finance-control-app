@@ -14,7 +14,7 @@ export default function GenerateMockupPage() {
   const [logs, setLogs] = useState<string[]>([]);
 
   const addLog = (message: string) => {
-    setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
+    setLogs((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
   };
 
   const generateMockupData = async () => {
@@ -26,7 +26,7 @@ export default function GenerateMockupPage() {
     setStatus('generating');
     setLogs([]);
     addLog('🚀 Iniciando generación de datos mockup...');
-    
+
     const orgId = `${user.id}-personal`;
 
     try {
@@ -57,9 +57,27 @@ export default function GenerateMockupPage() {
       // 2. Crear cuentas
       addLog('\n💳 Creando cuentas...');
       const accounts = [
-        { name: 'Cuenta Corriente', type: 'CHECKING', balance: 1500000, currency: 'CLP', isActive: true },
-        { name: 'Cuenta de Ahorro', type: 'SAVINGS', balance: 3000000, currency: 'CLP', isActive: true },
-        { name: 'Tarjeta de Crédito', type: 'CREDIT_CARD', balance: -500000, currency: 'CLP', isActive: true },
+        {
+          name: 'Cuenta Corriente',
+          type: 'CHECKING',
+          balance: 1500000,
+          currency: 'CLP',
+          isActive: true,
+        },
+        {
+          name: 'Cuenta de Ahorro',
+          type: 'SAVINGS',
+          balance: 3000000,
+          currency: 'CLP',
+          isActive: true,
+        },
+        {
+          name: 'Tarjeta de Crédito',
+          type: 'CREDIT_CARD',
+          balance: -500000,
+          currency: 'CLP',
+          isActive: true,
+        },
         { name: 'Efectivo', type: 'CASH', balance: 50000, currency: 'CLP', isActive: true },
       ];
 
@@ -76,23 +94,31 @@ export default function GenerateMockupPage() {
       const transactions: any[] = [];
 
       // Generar transacciones aleatorias
-      const expenseCategories = ['Alimentación', 'Transporte', 'Vivienda', 'Entretenimiento', 'Salud', 'Educación', 'Servicios'];
+      const expenseCategories = [
+        'Alimentación',
+        'Transporte',
+        'Vivienda',
+        'Entretenimiento',
+        'Salud',
+        'Educación',
+        'Servicios',
+      ];
       const incomeCategories = ['Salario', 'Freelance', 'Inversiones'];
 
       const expenseDescriptions: Record<string, string[]> = {
-        'Alimentación': ['Supermercado', 'Restaurante', 'Café', 'Delivery comida', 'Panadería'],
-        'Transporte': ['Combustible', 'Uber', 'Metro', 'Peaje', 'Estacionamiento'],
-        'Vivienda': ['Arriendo', 'Luz', 'Agua', 'Gas', 'Internet'],
-        'Entretenimiento': ['Netflix', 'Spotify', 'Cine', 'Concierto', 'Videojuegos'],
-        'Salud': ['Farmacia', 'Médico', 'Gimnasio', 'Seguro de salud'],
-        'Educación': ['Curso online', 'Libros', 'Universidad', 'Material escolar'],
-        'Servicios': ['Teléfono', 'Streaming', 'Suscripción', 'Seguro'],
+        Alimentación: ['Supermercado', 'Restaurante', 'Café', 'Delivery comida', 'Panadería'],
+        Transporte: ['Combustible', 'Uber', 'Metro', 'Peaje', 'Estacionamiento'],
+        Vivienda: ['Arriendo', 'Luz', 'Agua', 'Gas', 'Internet'],
+        Entretenimiento: ['Netflix', 'Spotify', 'Cine', 'Concierto', 'Videojuegos'],
+        Salud: ['Farmacia', 'Médico', 'Gimnasio', 'Seguro de salud'],
+        Educación: ['Curso online', 'Libros', 'Universidad', 'Material escolar'],
+        Servicios: ['Teléfono', 'Streaming', 'Suscripción', 'Seguro'],
       };
 
       const incomeDescriptions: Record<string, string[]> = {
-        'Salario': ['Sueldo mensual', 'Bonificación', 'Aguinaldo'],
-        'Freelance': ['Proyecto web', 'Consultoría', 'Desarrollo app'],
-        'Inversiones': ['Dividendos', 'Intereses', 'Venta de acciones'],
+        Salario: ['Sueldo mensual', 'Bonificación', 'Aguinaldo'],
+        Freelance: ['Proyecto web', 'Consultoría', 'Desarrollo app'],
+        Inversiones: ['Dividendos', 'Intereses', 'Venta de acciones'],
       };
 
       // Generar 100 transacciones aleatorias
@@ -122,9 +148,10 @@ export default function GenerateMockupPage() {
           const category = incomeCategories[Math.floor(Math.random() * incomeCategories.length)];
           const descriptions = incomeDescriptions[category];
           const description = descriptions[Math.floor(Math.random() * descriptions.length)];
-          const amount = category === 'Salario' 
-            ? Math.floor(Math.random() * 500000) + 1500000 // Salario: 1.5M - 2M
-            : Math.floor(Math.random() * 500000) + 200000; // Otros: 200k - 700k
+          const amount =
+            category === 'Salario'
+              ? Math.floor(Math.random() * 500000) + 1500000 // Salario: 1.5M - 2M
+              : Math.floor(Math.random() * 500000) + 200000; // Otros: 200k - 700k
 
           transactions.push({
             description,
@@ -160,9 +187,24 @@ export default function GenerateMockupPage() {
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
       const budgets = [
-        { name: 'Presupuesto Alimentación', amount: 300000, period: 'MONTHLY', categoryId: categoryIds['Alimentación'] },
-        { name: 'Presupuesto Transporte', amount: 150000, period: 'MONTHLY', categoryId: categoryIds['Transporte'] },
-        { name: 'Presupuesto Entretenimiento', amount: 100000, period: 'MONTHLY', categoryId: categoryIds['Entretenimiento'] },
+        {
+          name: 'Presupuesto Alimentación',
+          amount: 300000,
+          period: 'MONTHLY',
+          categoryId: categoryIds['Alimentación'],
+        },
+        {
+          name: 'Presupuesto Transporte',
+          amount: 150000,
+          period: 'MONTHLY',
+          categoryId: categoryIds['Transporte'],
+        },
+        {
+          name: 'Presupuesto Entretenimiento',
+          amount: 100000,
+          period: 'MONTHLY',
+          categoryId: categoryIds['Entretenimiento'],
+        },
       ];
 
       for (const budget of budgets) {
@@ -196,7 +238,8 @@ export default function GenerateMockupPage() {
         <CardHeader>
           <CardTitle>🎲 Generar Datos Mockup</CardTitle>
           <CardDescription>
-            Genera datos de ejemplo para probar el dashboard (categorías, cuentas, transacciones y presupuestos)
+            Genera datos de ejemplo para probar el dashboard (categorías, cuentas, transacciones y
+            presupuestos)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -208,8 +251,12 @@ export default function GenerateMockupPage() {
           ) : (
             <>
               <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm"><strong>Usuario:</strong> {user.email}</p>
-                <p className="text-sm"><strong>Organización:</strong> {user.id}-personal</p>
+                <p className="text-sm">
+                  <strong>Usuario:</strong> {user.email}
+                </p>
+                <p className="text-sm">
+                  <strong>Organización:</strong> {user.id}-personal
+                </p>
               </div>
 
               <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -228,8 +275,8 @@ export default function GenerateMockupPage() {
                 </div>
               </div>
 
-              <Button 
-                onClick={generateMockupData} 
+              <Button
+                onClick={generateMockupData}
                 disabled={status === 'generating'}
                 className="w-full"
                 size="lg"
@@ -262,7 +309,11 @@ export default function GenerateMockupPage() {
                     <h3 className="font-semibold text-green-900">¡Datos generados exitosamente!</h3>
                   </div>
                   <p className="text-sm text-green-800">
-                    Ahora puedes ir al <a href="/dashboard" className="underline font-medium">Dashboard</a> para ver los datos en acción.
+                    Ahora puedes ir al{' '}
+                    <a href="/dashboard" className="underline font-medium">
+                      Dashboard
+                    </a>{' '}
+                    para ver los datos en acción.
                   </p>
                 </div>
               )}
@@ -273,7 +324,9 @@ export default function GenerateMockupPage() {
                     <XCircle className="h-5 w-5 text-red-600" />
                     <h3 className="font-semibold text-red-900">Error al generar datos</h3>
                   </div>
-                  <p className="mt-2 text-sm text-red-800">Revisa los logs arriba para más detalles</p>
+                  <p className="mt-2 text-sm text-red-800">
+                    Revisa los logs arriba para más detalles
+                  </p>
                 </div>
               )}
             </>

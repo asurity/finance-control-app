@@ -3,7 +3,7 @@ import { Transaction, TransactionType } from '@/types/firestore';
 
 /**
  * Transaction repository interface
- * 
+ *
  * Extends base repository with transaction-specific operations.
  */
 export interface ITransactionRepository extends IRepository<Transaction> {
@@ -57,7 +57,10 @@ export interface ITransactionRepository extends IRepository<Transaction> {
    * @param endDate - End date
    * @returns Promise resolving to statistics object
    */
-  getStatistics(startDate: Date, endDate: Date): Promise<{
+  getStatistics(
+    startDate: Date,
+    endDate: Date
+  ): Promise<{
     totalIncome: number;
     totalExpenses: number;
     balance: number;

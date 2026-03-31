@@ -60,9 +60,7 @@ export class CreateCreditCardUseCase extends BaseUseCase<
 
     // Verify account doesn't already have a credit card
     const allCreditCards = await this.creditCardRepo.getAll();
-    const existingCard = allCreditCards.find(
-      (card) => card.accountId === input.accountId
-    );
+    const existingCard = allCreditCards.find((card) => card.accountId === input.accountId);
 
     if (existingCard) {
       throw new Error('This account already has a credit card linked');

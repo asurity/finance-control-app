@@ -20,10 +20,7 @@ export interface DeleteBudgetOutput {
  * Use Case: Delete Budget
  * Deletes a budget (safe operation, doesn't affect transactions)
  */
-export class DeleteBudgetUseCase extends BaseUseCase<
-  DeleteBudgetInput,
-  DeleteBudgetOutput
-> {
+export class DeleteBudgetUseCase extends BaseUseCase<DeleteBudgetInput, DeleteBudgetOutput> {
   constructor(private budgetRepo: IBudgetRepository) {
     super();
   }

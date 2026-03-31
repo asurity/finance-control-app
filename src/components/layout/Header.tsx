@@ -12,15 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Building2,
-  Check,
-  ChevronDown,
-  LogOut,
-  Plus,
-  Settings,
-  User,
-} from 'lucide-react';
+import { Building2, Check, ChevronDown, LogOut, Plus, Settings, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
 import { QuickTransactionModal } from '@/presentation/components/features/transactions/QuickTransactionModal';
@@ -104,7 +96,9 @@ export function Header({ title = 'Dashboard' }: HeaderProps) {
       <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 sm:py-3">
         {/* Page Title */}
         <div className="flex items-center gap-4">
-          <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-foreground pl-12 lg:pl-0">{title}</h2>
+          <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-foreground pl-12 lg:pl-0">
+            {title}
+          </h2>
         </div>
 
         {/* Right Section */}
@@ -119,10 +113,15 @@ export function Header({ title = 'Dashboard' }: HeaderProps) {
           {/* Organization Selector */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3">
+              <Button
+                variant="outline"
+                className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
+              >
                 <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span className="hidden md:inline">
-                  {organizationsLoading ? 'Cargando...' : currentOrganization?.name || 'Sin organización'}
+                  {organizationsLoading
+                    ? 'Cargando...'
+                    : currentOrganization?.name || 'Sin organización'}
                 </span>
                 <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Button>
@@ -151,7 +150,10 @@ export function Header({ title = 'Dashboard' }: HeaderProps) {
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 rounded-full">
+              <Button
+                variant="ghost"
+                className="relative h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 rounded-full"
+              >
                 <Avatar>
                   <AvatarImage src="" alt={user?.name || 'Usuario'} />
                   <AvatarFallback className="bg-primary text-primary-foreground">
@@ -191,7 +193,8 @@ export function Header({ title = 'Dashboard' }: HeaderProps) {
           <DialogHeader>
             <DialogTitle>Crear organización</DialogTitle>
             <DialogDescription>
-              Crea una organización como Familia o Empresa y comienza a registrar datos por separado.
+              Crea una organización como Familia o Empresa y comienza a registrar datos por
+              separado.
             </DialogDescription>
           </DialogHeader>
 

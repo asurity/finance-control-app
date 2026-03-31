@@ -4,7 +4,7 @@ import { Category as CategoryEntity } from '@/domain/entities/Category';
 
 /**
  * Category mapper
- * 
+ *
  * Transforms between Firestore document format and domain entity format.
  */
 export class CategoryMapper {
@@ -65,6 +65,6 @@ export class CategoryMapper {
    * @returns Array of Category domain entities
    */
   static toDomainArray(docs: Array<DocumentData & { id: string }>): Category[] {
-    return docs.map(doc => CategoryMapper.toDomain(doc));
+    return docs.map((doc) => CategoryMapper.toDomain(doc));
   }
 }

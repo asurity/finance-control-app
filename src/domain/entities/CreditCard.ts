@@ -189,7 +189,7 @@ export class CreditCard {
    */
   getDaysUntilCutoff(currentDate: Date = new Date()): number {
     const currentDay = currentDate.getDate();
-    
+
     if (currentDay < this.cutoffDay) {
       return this.cutoffDay - currentDay;
     } else if (currentDay === this.cutoffDay) {
@@ -212,7 +212,7 @@ export class CreditCard {
    */
   getDaysUntilPaymentDue(currentDate: Date = new Date()): number {
     const currentDay = currentDate.getDate();
-    
+
     if (currentDay < this.paymentDueDay) {
       return this.paymentDueDay - currentDay;
     } else if (currentDay === this.paymentDueDay) {

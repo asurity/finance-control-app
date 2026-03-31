@@ -145,10 +145,7 @@ export class Transaction {
    * Checks if this is the last installment
    */
   isLastInstallment(): boolean {
-    return (
-      this.isInstallment === true &&
-      this.installmentNumber === this.totalInstallments
-    );
+    return this.isInstallment === true && this.installmentNumber === this.totalInstallments;
   }
 
   /**

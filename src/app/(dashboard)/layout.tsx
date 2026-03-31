@@ -5,11 +5,7 @@ import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBann
 import { InitializeCategories } from '@/components/InitializeCategories';
 import { GlobalTransactionFAB } from '@/components/layout/GlobalTransactionFAB';
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute>
       <InitializeCategories />

@@ -23,10 +23,7 @@ export interface DeleteCategoryOutput {
  * Deletes a custom category after verifying it's safe to do so
  * Cannot delete system categories or categories with transactions
  */
-export class DeleteCategoryUseCase extends BaseUseCase<
-  DeleteCategoryInput,
-  DeleteCategoryOutput
-> {
+export class DeleteCategoryUseCase extends BaseUseCase<DeleteCategoryInput, DeleteCategoryOutput> {
   constructor(
     private categoryRepo: ICategoryRepository,
     private transactionRepo: ITransactionRepository
@@ -54,14 +51,14 @@ export class DeleteCategoryUseCase extends BaseUseCase<
     if (transactions.length > 0 && !input.force) {
       throw new Error(
         `Cannot delete category with ${transactions.length} existing transactions. ` +
-        'Use force=true to delete anyway, or reassign transactions to another category first.'
+          'Use force=true to delete anyway, or reassign transactions to another category first.'
       );
     }
 
     if (transactions.length > 0 && input.force) {
       console.warn(
         `Force-deleting category "${category.name}" with ${transactions.length} transactions. ` +
-        'These transactions will lose their category reference.'
+          'These transactions will lose their category reference.'
       );
     }
 

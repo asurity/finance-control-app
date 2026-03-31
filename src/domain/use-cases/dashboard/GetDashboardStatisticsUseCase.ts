@@ -14,17 +14,17 @@ export interface DashboardStatistics {
   totalExpenses: number;
   monthlyChange: number;
   monthlyChangePercent: number;
-  
+
   // Savings metrics
   savingsRate: number;
-  
+
   // Pending items
   pendingPayments: number;
   activeAlerts: number;
-  
+
   // Budget tracking
   budgetUsage: number;
-  
+
   // Top category
   topExpenseCategory: {
     name: string;
@@ -32,7 +32,7 @@ export interface DashboardStatistics {
     amount: number;
     percent: number;
   } | null;
-  
+
   // Transaction counts
   transactionCounts: {
     income: number;
@@ -68,14 +68,12 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
 
   async execute(input: GetDashboardStatisticsInput): Promise<DashboardStatistics> {
     // Calculate date range based on period
-    const { startDate, endDate, previousStartDate, previousEndDate } = 
-      this.calculateDateRange(input.period);
+    const { startDate, endDate, previousStartDate, previousEndDate } = this.calculateDateRange(
+      input.period
+    );
 
     // Get transactions for current period
-    const currentTransactions = await this.transactionRepo.getByDateRange(
-      startDate,
-      endDate
-    );
+    const currentTransactions = await this.transactionRepo.getByDateRange(startDate, endDate);
 
     // Get transactions for previous period (for comparison)
     const previousTransactions = await this.transactionRepo.getByDateRange(
@@ -90,19 +88,19 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
 
     // Calculate income and expenses
     const totalIncome = userCurrentTransactions
-      .filter(t => t.type === 'INCOME')
+      .filter((t) => t.type === 'INCOME')
       .reduce((sum, t) => sum + t.amount, 0);
 
     const totalExpenses = userCurrentTransactions
-      .filter(t => t.type === 'EXPENSE')
+      .filter((t) => t.type === 'EXPENSE')
       .reduce((sum, t) => sum + t.amount, 0);
 
     const previousIncome = userPreviousTransactions
-      .filter(t => t.type === 'INCOME')
+      .filter((t) => t.type === 'INCOME')
       .reduce((sum, t) => sum + t.amount, 0);
 
     const previousExpenses = userPreviousTransactions
-      .filter(t => t.type === 'EXPENSE')
+      .filter((t) => t.type === 'EXPENSE')
       .reduce((sum, t) => sum + t.amount, 0);
 
     // Get current balance from all accounts
@@ -113,31 +111,26 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
     const currentPeriodBalance = totalIncome - totalExpenses;
     const previousPeriodBalance = previousIncome - previousExpenses;
     const monthlyChange = currentPeriodBalance - previousPeriodBalance;
-    const monthlyChangePercent = previousPeriodBalance !== 0
-      ? (monthlyChange / Math.abs(previousPeriodBalance)) * 100
-      : 0;
+    const monthlyChangePercent =
+      previousPeriodBalance !== 0 ? (monthlyChange / Math.abs(previousPeriodBalance)) * 100 : 0;
 
     // Calculate savings rate
-    const savingsRate = totalIncome > 0
-      ? ((totalIncome - totalExpenses) / totalIncome) * 100
-      : 0;
+    const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
 
     // Get active budgets
     const activeBudgets = await this.budgetRepo.getActive(new Date());
-    
+
     // Calculate average budget usage
     let totalBudgetUsage = 0;
     for (const budget of activeBudgets) {
       const budgetTransactions = userCurrentTransactions.filter(
-        t => t.categoryId === budget.categoryId && t.type === 'EXPENSE'
+        (t) => t.categoryId === budget.categoryId && t.type === 'EXPENSE'
       );
       const spent = budgetTransactions.reduce((sum, t) => sum + t.amount, 0);
       const usage = (spent / budget.amount) * 100;
       totalBudgetUsage += usage;
     }
-    const budgetUsage = activeBudgets.length > 0
-      ? totalBudgetUsage / activeBudgets.length
-      : 0;
+    const budgetUsage = activeBudgets.length > 0 ? totalBudgetUsage / activeBudgets.length : 0;
 
     // Get active alerts
     const unreadAlerts = await this.alertRepo.getUnread();
@@ -147,15 +140,15 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
     // Calculate pending payments (transactions with future dates or recurring)
     const now = new Date();
     const pendingPayments = userCurrentTransactions.filter(
-      t => t.type === 'EXPENSE' && new Date(t.date) > now
+      (t) => t.type === 'EXPENSE' && new Date(t.date) > now
     ).length;
 
     // Calculate top expense category
     const expensesByCategory: Record<string, { amount: number; count: number }> = {};
-    
+
     userCurrentTransactions
-      .filter(t => t.type === 'EXPENSE')
-      .forEach(t => {
+      .filter((t) => t.type === 'EXPENSE')
+      .forEach((t) => {
         if (!expensesByCategory[t.categoryId]) {
           expensesByCategory[t.categoryId] = { amount: 0, count: 0 };
         }
@@ -181,8 +174,8 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
 
     // Transaction counts
     const transactionCounts = {
-      income: userCurrentTransactions.filter(t => t.type === 'INCOME').length,
-      expense: userCurrentTransactions.filter(t => t.type === 'EXPENSE').length,
+      income: userCurrentTransactions.filter((t) => t.type === 'INCOME').length,
+      expense: userCurrentTransactions.filter((t) => t.type === 'EXPENSE').length,
       total: userCurrentTransactions.length,
     };
 
@@ -221,10 +214,10 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
         startDate = new Date(now);
         startDate.setDate(now.getDate() - daysFromMonday);
         startDate.setHours(0, 0, 0, 0);
-        
+
         previousStartDate = new Date(startDate);
         previousStartDate.setDate(previousStartDate.getDate() - 7);
-        
+
         previousEndDate = new Date(startDate);
         previousEndDate.setDate(previousEndDate.getDate() - 1);
         previousEndDate.setHours(23, 59, 59, 999);
@@ -233,10 +226,10 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
       case 'month':
         startDate.setDate(1);
         startDate.setHours(0, 0, 0, 0);
-        
+
         previousStartDate = new Date(startDate);
         previousStartDate.setMonth(previousStartDate.getMonth() - 1);
-        
+
         previousEndDate = new Date(startDate);
         previousEndDate.setDate(previousEndDate.getDate() - 1);
         previousEndDate.setHours(23, 59, 59, 999);
@@ -245,10 +238,10 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
       case 'quarter':
         const currentQuarter = Math.floor(now.getMonth() / 3);
         startDate = new Date(now.getFullYear(), currentQuarter * 3, 1);
-        
+
         previousStartDate = new Date(startDate);
         previousStartDate.setMonth(previousStartDate.getMonth() - 3);
-        
+
         previousEndDate = new Date(startDate);
         previousEndDate.setDate(previousEndDate.getDate() - 1);
         previousEndDate.setHours(23, 59, 59, 999);
@@ -256,10 +249,10 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
 
       case 'year':
         startDate = new Date(now.getFullYear(), 0, 1);
-        
+
         previousStartDate = new Date(startDate);
         previousStartDate.setFullYear(previousStartDate.getFullYear() - 1);
-        
+
         previousEndDate = new Date(startDate);
         previousEndDate.setDate(previousEndDate.getDate() - 1);
         previousEndDate.setHours(23, 59, 59, 999);

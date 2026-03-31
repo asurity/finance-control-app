@@ -37,9 +37,7 @@ export class ProcessCreditCardPaymentUseCase extends BaseUseCase<
     super();
   }
 
-  async execute(
-    input: ProcessCreditCardPaymentInput
-  ): Promise<ProcessCreditCardPaymentOutput> {
+  async execute(input: ProcessCreditCardPaymentInput): Promise<ProcessCreditCardPaymentOutput> {
     // Get credit card
     const creditCard = await this.creditCardRepo.getById(input.creditCardId);
     if (!creditCard) {

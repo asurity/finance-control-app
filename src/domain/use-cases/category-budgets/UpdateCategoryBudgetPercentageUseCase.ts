@@ -66,9 +66,7 @@ export class UpdateCategoryBudgetPercentageUseCase extends BaseUseCase<
     }
 
     // Get budget period for total amount
-    const budgetPeriod = await this.budgetPeriodRepo.getById(
-      existingCategoryBudget.budgetPeriodId
-    );
+    const budgetPeriod = await this.budgetPeriodRepo.getById(existingCategoryBudget.budgetPeriodId);
     if (!budgetPeriod) {
       throw new Error('Budget period not found');
     }

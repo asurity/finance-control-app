@@ -78,6 +78,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
+import { PeriodStatusBanner } from '@/presentation/components/features/budgets/PeriodStatusBanner';
 
 type DashboardPeriod = 'week' | 'month' | 'quarter' | 'year';
 
@@ -169,6 +170,8 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      <PeriodStatusBanner />
+
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>

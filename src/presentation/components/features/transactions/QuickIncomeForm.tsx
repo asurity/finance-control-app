@@ -53,11 +53,11 @@ type QuickIncomeFormValues = z.infer<typeof CreateTransactionSchema>;
  * - Defaults inteligentes basados en comportamiento
  * - Mínimo de campos requeridos
  */
-export function QuickIncomeForm({ 
-  orgId, 
-  userId, 
+export function QuickIncomeForm({
+  orgId,
+  userId,
   onSuccess,
-  onAdvancedMode 
+  onAdvancedMode,
 }: QuickIncomeFormProps) {
   const [showDescription, setShowDescription] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -68,15 +68,16 @@ export function QuickIncomeForm({
   const { createTransaction } = useTransactions(orgId);
   const accountsHook = useAccounts(orgId);
   const categoriesHook = useCategories(orgId);
-  
+
   const { data: accounts = [], isLoading: accountsLoading } = accountsHook.useActiveAccounts();
-  const { data: allCategories = [], isLoading: categoriesLoading } = categoriesHook.useAllCategories();
+  const { data: allCategories = [], isLoading: categoriesLoading } =
+    categoriesHook.useAllCategories();
 
   // Smart defaults
-  const smartDefaults = useSmartDefaults({ 
-    orgId, 
-    userId, 
-    transactionType: 'INCOME' 
+  const smartDefaults = useSmartDefaults({
+    orgId,
+    userId,
+    transactionType: 'INCOME',
   });
 
   // Initialize form con smart defaults
@@ -113,27 +114,27 @@ export function QuickIncomeForm({
   }, []);
 
   // Filtrar categorías de ingresos
-  const incomeCategories = allCategories.filter(cat => cat.type === 'INCOME');
-  
+  const incomeCategories = allCategories.filter((cat) => cat.type === 'INCOME');
+
   // Categorías no frecuentes (para el selector completo)
   const otherCategories = incomeCategories.filter(
-    cat => !smartDefaults.recentCategories.some(rc => rc.id === cat.id)
+    (cat) => !smartDefaults.recentCategories.some((rc) => rc.id === cat.id)
   );
 
   // Submit handler
   const onSubmit = async (data: QuickIncomeFormValues) => {
     try {
       await createTransaction.mutateAsync(data);
-      
+
       // Guardar última cuenta usada
       if (typeof window !== 'undefined') {
         localStorage.setItem(`lastAccountId_${orgId}`, data.accountId);
       }
-      
+
       toast.success('¡Ingreso registrado!', {
-        description: `$${data.amount.toFixed(2)} en ${incomeCategories.find(c => c.id === data.categoryId)?.name}`,
+        description: `$${data.amount.toFixed(2)} en ${incomeCategories.find((c) => c.id === data.categoryId)?.name}`,
       });
-      
+
       form.reset({
         type: 'INCOME',
         amount: 0,
@@ -144,10 +145,10 @@ export function QuickIncomeForm({
         userId,
         tags: [],
       });
-      
+
       // Re-enfocar el input de monto para siguiente transacción
       setTimeout(() => amountInputRef.current?.focus(), 100);
-      
+
       onSuccess?.();
     } catch (error: any) {
       console.error('Error al crear transacción:', error);
@@ -161,7 +162,8 @@ export function QuickIncomeForm({
   const watchAmount = form.watch('amount');
   const watchDate = form.watch('date');
 
-  const isLoading = createTransaction.isPending || accountsLoading || categoriesLoading || smartDefaults.isLoading;
+  const isLoading =
+    createTransaction.isPending || accountsLoading || categoriesLoading || smartDefaults.isLoading;
 
   return (
     <Form {...form}>
@@ -204,11 +206,11 @@ export function QuickIncomeForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base font-semibold">¿Por qué concepto?</FormLabel>
-              
+
               {/* Categorías frecuentes como chips */}
               {smartDefaults.recentCategories.length > 0 && (
                 <div className="grid grid-cols-2 gap-2 mb-3">
-                  {smartDefaults.recentCategories.map(category => (
+                  {smartDefaults.recentCategories.map((category) => (
                     <button
                       key={category.id}
                       type="button"
@@ -233,7 +235,7 @@ export function QuickIncomeForm({
                           <Check className="h-5 w-5 text-primary flex-shrink-0" />
                         )}
                       </div>
-                      <div 
+                      <div
                         className="absolute top-0 right-0 w-3 h-3 rounded-bl-lg"
                         style={{ backgroundColor: category.color }}
                       />
@@ -259,8 +261,8 @@ export function QuickIncomeForm({
                     ) : (
                       <>
                         <ChevronDown className="mr-2 h-4 w-4" />
-                        {smartDefaults.recentCategories.length > 0 
-                          ? 'Ver otras categorías' 
+                        {smartDefaults.recentCategories.length > 0
+                          ? 'Ver otras categorías'
                           : 'Seleccionar categoría'}
                       </>
                     )}
@@ -274,10 +276,10 @@ export function QuickIncomeForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {incomeCategories.map(category => (
+                        {incomeCategories.map((category) => (
                           <SelectItem key={category.id} value={category.id}>
                             <div className="flex items-center gap-2">
-                              <div 
+                              <div
                                 className="w-3 h-3 rounded-full"
                                 style={{ backgroundColor: category.color }}
                               />
@@ -290,7 +292,7 @@ export function QuickIncomeForm({
                   )}
                 </>
               )}
-              
+
               <FormMessage />
             </FormItem>
           )}
@@ -310,7 +312,7 @@ export function QuickIncomeForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {accounts.map(account => (
+                  {accounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
                       {account.name}
                       {account.id === smartDefaults.mostUsedAccount && (
@@ -338,7 +340,11 @@ export function QuickIncomeForm({
           >
             <Calendar className="mr-2 h-4 w-4" />
             {format(watchDate, "d 'de' MMMM, yyyy", { locale: es })}
-            {showDatePicker ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
+            {showDatePicker ? (
+              <ChevronUp className="ml-2 h-4 w-4" />
+            ) : (
+              <ChevronDown className="ml-2 h-4 w-4" />
+            )}
           </Button>
 
           {showDatePicker && (
@@ -412,8 +418,8 @@ export function QuickIncomeForm({
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-2 pt-2">
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={isLoading || !watchAmount || !watchCategoryId}
             className="w-full h-12 text-base font-semibold bg-green-600 hover:bg-green-700"
           >

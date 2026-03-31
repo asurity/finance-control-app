@@ -22,7 +22,9 @@ export function useDashboardStats(period: DashboardPeriod = 'month') {
     queryKey: ['dashboard-stats', currentOrgId, period, user?.id],
     queryFn: async () => {
       if (!currentOrgId || !user) {
-        throw new Error(`Organization or user not available. OrgId: ${currentOrgId}, UserId: ${user?.id}`);
+        throw new Error(
+          `Organization or user not available. OrgId: ${currentOrgId}, UserId: ${user?.id}`
+        );
       }
 
       try {

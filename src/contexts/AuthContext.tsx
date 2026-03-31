@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import {
   User as FirebaseUser,
   onAuthStateChanged,
@@ -48,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Fetch user data from Firestore with retry logic
         let retries = 3;
         let userDoc = null;
-        
+
         while (retries > 0 && !userDoc) {
           try {
             const docRef = await getDoc(doc(db, 'users', firebaseUser.uid));
@@ -58,14 +52,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
             // If document doesn't exist yet, wait and retry
             if (retries > 1) {
-              await new Promise(resolve => setTimeout(resolve, 500));
+              await new Promise((resolve) => setTimeout(resolve, 500));
             }
           } catch (error) {
             console.error('Error fetching user data:', error);
           }
           retries--;
         }
-        
+
         if (userDoc && userDoc.exists()) {
           const userData = userDoc.data();
           setUser({
@@ -137,14 +131,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, name: string) => {
     let firebaseUser: FirebaseUser | null = null;
-    
+
     try {
       // Step 1: Create user in Firebase Auth
-      const { user } = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const { user } = await createUserWithEmailAndPassword(auth, email, password);
       firebaseUser = user;
 
       // Step 2: Update Firebase Auth profile with displayName
@@ -219,7 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Check if user exists in Firestore
       const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-      
+
       if (!userDoc.exists()) {
         newUser = true;
         const batch = writeBatch(db);

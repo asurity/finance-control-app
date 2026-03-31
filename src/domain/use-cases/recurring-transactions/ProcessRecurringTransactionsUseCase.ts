@@ -68,18 +68,11 @@ export class ProcessRecurringTransactionsUseCase extends BaseUseCase<
         createdTransactionIds.push(transactionId);
 
         // Update account balance
-        await this.updateAccountBalance(
-          recurring.accountId,
-          recurring.amount,
-          recurring.type
-        );
+        await this.updateAccountBalance(recurring.accountId, recurring.amount, recurring.type);
 
         // Update next occurrence date
         const nextDate = this.calculateNextOccurrence(recurring);
-        await this.recurringTransactionRepo.updateNextOccurrence(
-          recurring.id,
-          nextDate
-        );
+        await this.recurringTransactionRepo.updateNextOccurrence(recurring.id, nextDate);
       } catch (error) {
         errors.push({
           recurringTransactionId: recurring.id,

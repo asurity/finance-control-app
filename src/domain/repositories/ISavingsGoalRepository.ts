@@ -3,7 +3,7 @@ import { SavingsGoal, SavingsGoalStatus, SavingsGoalContribution } from '@/types
 
 /**
  * Savings goal repository interface
- * 
+ *
  * Extends base repository with savings goal-specific operations.
  */
 export interface ISavingsGoalRepository extends IRepository<SavingsGoal> {

@@ -7,63 +7,63 @@
 export { BaseUseCase } from './base/BaseUseCase';
 
 // Transactions
-export { 
+export {
   CreateTransactionUseCase,
   type CreateTransactionInput,
-  type CreateTransactionOutput 
+  type CreateTransactionOutput,
 } from './transactions/CreateTransactionUseCase';
 
-export { 
+export {
   DeleteTransactionUseCase,
   type DeleteTransactionInput,
-  type DeleteTransactionOutput 
+  type DeleteTransactionOutput,
 } from './transactions/DeleteTransactionUseCase';
 
 // Accounts
-export { 
+export {
   TransferBetweenAccountsUseCase,
   type TransferBetweenAccountsInput,
-  type TransferBetweenAccountsOutput 
+  type TransferBetweenAccountsOutput,
 } from './accounts/TransferBetweenAccountsUseCase';
 
 // Budgets
-export { 
+export {
   CalculateBudgetUsageUseCase,
   type CalculateBudgetUsageInput,
-  type CalculateBudgetUsageOutput 
+  type CalculateBudgetUsageOutput,
 } from './budgets/CalculateBudgetUsageUseCase';
 
 // Credit Cards
-export { 
+export {
   ProcessCreditCardPaymentUseCase,
   type ProcessCreditCardPaymentInput,
-  type ProcessCreditCardPaymentOutput 
+  type ProcessCreditCardPaymentOutput,
 } from './credit-cards/ProcessCreditCardPaymentUseCase';
 
 // Recurring Transactions
-export { 
+export {
   ProcessRecurringTransactionsUseCase,
   type ProcessRecurringTransactionsInput,
-  type ProcessRecurringTransactionsOutput 
+  type ProcessRecurringTransactionsOutput,
 } from './recurring-transactions/ProcessRecurringTransactionsUseCase';
 
 // Alerts
-export { 
+export {
   CheckBudgetAlertsUseCase,
   type CheckBudgetAlertsInput,
-  type CheckBudgetAlertsOutput 
+  type CheckBudgetAlertsOutput,
 } from './alerts/CheckBudgetAlertsUseCase';
 
 // Savings Goals
-export { 
+export {
   ContributeToSavingsGoalUseCase,
   type ContributeToSavingsGoalInput,
-  type ContributeToSavingsGoalOutput 
+  type ContributeToSavingsGoalOutput,
 } from './savings-goals/ContributeToSavingsGoalUseCase';
 
 // Categories
-export { 
+export {
   SeedDefaultCategoriesUseCase,
   type SeedDefaultCategoriesInput,
-  type SeedDefaultCategoriesOutput 
+  type SeedDefaultCategoriesOutput,
 } from './categories/SeedDefaultCategoriesUseCase';

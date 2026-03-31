@@ -55,9 +55,7 @@ export class GetTransactionStatisticsUseCase extends BaseUseCase<
     super();
   }
 
-  async execute(
-    input: GetTransactionStatisticsInput
-  ): Promise<GetTransactionStatisticsOutput> {
+  async execute(input: GetTransactionStatisticsInput): Promise<GetTransactionStatisticsOutput> {
     // Validate dates
     if (!(input.startDate instanceof Date) || isNaN(input.startDate.getTime())) {
       throw new Error('Invalid start date');
@@ -72,19 +70,16 @@ export class GetTransactionStatisticsUseCase extends BaseUseCase<
     }
 
     // Get transactions for date range
-    const transactions = await this.transactionRepo.getByDateRange(
-      input.startDate,
-      input.endDate
-    );
+    const transactions = await this.transactionRepo.getByDateRange(input.startDate, input.endDate);
 
     // Filter by userId if provided
     const filteredTransactions = input.userId
-      ? transactions.filter(t => t.userId === input.userId)
+      ? transactions.filter((t) => t.userId === input.userId)
       : transactions;
 
     // Get all categories for name mapping
     const categories = await this.categoryRepo.getAll();
-    const categoryMap = new Map(categories.map(c => [c.id, c.name]));
+    const categoryMap = new Map(categories.map((c) => [c.id, c.name]));
 
     // Calculate basic statistics
     let totalIncome = 0;
@@ -102,11 +97,10 @@ export class GetTransactionStatisticsUseCase extends BaseUseCase<
     const uniqueDays = new Set<string>();
 
     // Process all transactions
-    filteredTransactions.forEach(transaction => {
+    filteredTransactions.forEach((transaction) => {
       // Track unique days
-      const transactionDate = transaction.date instanceof Date
-        ? transaction.date
-        : new Date(transaction.date);
+      const transactionDate =
+        transaction.date instanceof Date ? transaction.date : new Date(transaction.date);
       const dayKey = transactionDate.toISOString().split('T')[0];
       uniqueDays.add(dayKey);
 

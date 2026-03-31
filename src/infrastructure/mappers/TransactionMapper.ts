@@ -4,7 +4,7 @@ import { Transaction as TransactionEntity } from '@/domain/entities/Transaction'
 
 /**
  * Transaction mapper
- * 
+ *
  * Transforms between Firestore document format and domain entity format.
  * Handles Timestamp ↔ Date conversions.
  */
@@ -48,9 +48,10 @@ export class TransactionMapper {
       description: transaction.description,
       amount: transaction.amount,
       type: transaction.type,
-      date: transaction.date instanceof Date 
-        ? Timestamp.fromDate(transaction.date) 
-        : Timestamp.fromDate(new Date(transaction.date)),
+      date:
+        transaction.date instanceof Date
+          ? Timestamp.fromDate(transaction.date)
+          : Timestamp.fromDate(new Date(transaction.date)),
       accountId: transaction.accountId,
       categoryId: transaction.categoryId,
       userId: transaction.userId,
@@ -92,9 +93,10 @@ export class TransactionMapper {
       data.type = transaction.type;
     }
     if (transaction.date !== undefined) {
-      data.date = transaction.date instanceof Date
-        ? Timestamp.fromDate(transaction.date)
-        : Timestamp.fromDate(new Date(transaction.date));
+      data.date =
+        transaction.date instanceof Date
+          ? Timestamp.fromDate(transaction.date)
+          : Timestamp.fromDate(new Date(transaction.date));
     }
     if (transaction.accountId !== undefined) {
       data.accountId = transaction.accountId;
@@ -133,6 +135,6 @@ export class TransactionMapper {
    * @returns Array of Transaction domain entities
    */
   static toDomainArray(docs: Array<DocumentData & { id: string }>): Transaction[] {
-    return docs.map(doc => TransactionMapper.toDomain(doc));
+    return docs.map((doc) => TransactionMapper.toDomain(doc));
   }
 }

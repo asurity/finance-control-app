@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Calendar, Plus, Trash2, Edit2, AlertCircle } from 'lucide-react';
+import { Calendar, Plus, Trash2, Edit2, AlertCircle, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { addMonths, startOfMonth, endOfMonth, format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -66,7 +66,6 @@ export default function BudgetsPage() {
   );
 }
 
-
 function BudgetsContent({
   orgId,
   userId,
@@ -83,7 +82,7 @@ function BudgetsContent({
 
   // Queries
   const { data: budgetPeriodsData } = budgetPeriodsHook.useBudgetPeriodsByUser(userId);
-  const budgetPeriods = budgetPeriodsData?.budgetPeriods || [];
+  const budgetPeriods = useMemo(() => budgetPeriodsData?.budgetPeriods || [], [budgetPeriodsData]);
   const { data: categories = [] } = categoriesHook.useAllCategories();
 
   // Filter only expense categories
@@ -101,7 +100,20 @@ function BudgetsContent({
   const [newPeriodName, setNewPeriodName] = useState('');
   const [newPeriodAmount, setNewPeriodAmount] = useState<number | ''>('');
   const [newPeriodStartDate, setNewPeriodStartDate] = useState<Date>(startOfMonth(new Date()));
-  const [newPeriodEndDate, setNewPeriodEndDate] = useState<Date>(endOfMonth(addMonths(new Date(), 0)));
+  const [newPeriodEndDate, setNewPeriodEndDate] = useState<Date>(
+    endOfMonth(addMonths(new Date(), 0))
+  );
+
+  // Clone period form state
+  const [isClonePeriodDialogOpen, setIsClonePeriodDialogOpen] = useState(false);
+  const [clonePeriodSourceId, setClonePeriodSourceId] = useState<string | null>(null);
+  const [clonePeriodAmount, setClonePeriodAmount] = useState<number | ''>('');
+  const [clonePeriodStartDate, setClonePeriodStartDate] = useState<Date>(
+    startOfMonth(addMonths(new Date(), 1))
+  );
+  const [clonePeriodEndDate, setClonePeriodEndDate] = useState<Date>(
+    endOfMonth(addMonths(new Date(), 1))
+  );
 
   // Category management
   const [isCreateCategoryDialogOpen, setIsCreateCategoryDialogOpen] = useState(false);
@@ -126,6 +138,12 @@ function BudgetsContent({
     selectedPeriodId || ''
   );
   const categoryBudgets = categoryBudgetsData?.categoryBudgets || [];
+
+  const { data: suggestions } = budgetPeriodsHook.useSuggestedCategories(
+    userId,
+    selectedPeriod?.startDate,
+    selectedPeriod?.endDate
+  );
 
   // Auto-select active period on load
   useMemo(() => {
@@ -170,6 +188,61 @@ function BudgetsContent({
     } catch (error: any) {
       console.error('Error al crear período:', error);
       toast.error('No se pudo crear el período', {
+        description: error.message,
+      });
+    }
+  };
+
+  const handleOpenCloneDialog = () => {
+    if (budgetPeriods.length === 0) {
+      toast.error('No hay períodos anteriores para copiar');
+      return;
+    }
+
+    // Sort to get the most recent one by endDate
+    const sorted = [...budgetPeriods].sort((a, b) => b.endDate.getTime() - a.endDate.getTime());
+    const source = sorted[0];
+
+    // Pre-fill next month
+    const newStart = startOfMonth(addMonths(source.startDate, 1));
+    const newEnd = endOfMonth(addMonths(source.endDate, 1));
+
+    setClonePeriodSourceId(source.id);
+    setClonePeriodAmount(source.totalAmount);
+    setClonePeriodStartDate(newStart);
+    setClonePeriodEndDate(newEnd);
+    setIsClonePeriodDialogOpen(true);
+  };
+
+  const handleClonePeriod = async () => {
+    if (!clonePeriodSourceId) return;
+    if (!clonePeriodAmount || clonePeriodAmount <= 0) {
+      toast.error('Ingresa un monto válido para el presupuesto');
+      return;
+    }
+
+    if (clonePeriodStartDate >= clonePeriodEndDate) {
+      toast.error('La fecha de fin debe ser posterior a la fecha de inicio');
+      return;
+    }
+
+    try {
+      const result = await budgetPeriodsHook.cloneBudgetPeriod.mutateAsync({
+        sourcePeriodId: clonePeriodSourceId,
+        newTotalAmount: Number(clonePeriodAmount),
+        newStartDate: clonePeriodStartDate,
+        newEndDate: clonePeriodEndDate,
+        userId,
+      });
+
+      toast.success('Período de presupuesto copiado', {
+        description: `Se han copiado ${result.categoryBudgetCount} categorías.`,
+      });
+      setSelectedPeriodId(result.budgetPeriodId);
+      setIsClonePeriodDialogOpen(false);
+    } catch (error: any) {
+      console.error('Error al copiar período:', error);
+      toast.error('No se pudo copiar el período', {
         description: error.message,
       });
     }
@@ -231,7 +304,7 @@ function BudgetsContent({
     }
 
     try {
-      const categoryId = await categoriesHook.createCategory.mutateAsync({
+      await categoriesHook.createCategory.mutateAsync({
         name: newCategoryName.trim(),
         type: 'EXPENSE',
         color: newCategoryColor,
@@ -310,7 +383,8 @@ function BudgetsContent({
       <div className="flex flex-col gap-2">
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">Presupuestos</h1>
         <p className="text-sm sm:text-base text-muted-foreground">
-          Gestiona períodos de presupuesto y asigna porcentajes a cada categoría en {organizationName}.
+          Gestiona períodos de presupuesto y asigna porcentajes a cada categoría en{' '}
+          {organizationName}.
         </p>
       </div>
 
@@ -337,10 +411,18 @@ function BudgetsContent({
                     Crea y administra períodos de presupuesto con montos y fechas definidas
                   </CardDescription>
                 </div>
-                <Button onClick={() => setIsCreatePeriodDialogOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nuevo Período
-                </Button>
+                <div className="flex gap-2">
+                  {budgetPeriods.length > 0 && (
+                    <Button variant="outline" onClick={handleOpenCloneDialog}>
+                      <Copy className="mr-2 h-4 w-4" />
+                      Copiar último
+                    </Button>
+                  )}
+                  <Button onClick={() => setIsCreatePeriodDialogOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nuevo Período
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -351,10 +433,7 @@ function BudgetsContent({
                   <p className="mt-1 text-sm text-muted-foreground">
                     Crea tu primer período para comenzar a asignar presupuestos por categoría
                   </p>
-                  <Button
-                    className="mt-4"
-                    onClick={() => setIsCreatePeriodDialogOpen(true)}
-                  >
+                  <Button className="mt-4" onClick={() => setIsCreatePeriodDialogOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" />
                     Crear Período
                   </Button>
@@ -370,9 +449,7 @@ function BudgetsContent({
                       <Card
                         key={period.id}
                         className={`cursor-pointer transition-all ${
-                          selectedPeriodId === period.id
-                            ? 'ring-2 ring-primary'
-                            : 'hover:bg-accent'
+                          selectedPeriodId === period.id ? 'ring-2 ring-primary' : 'hover:bg-accent'
                         }`}
                         onClick={() => setSelectedPeriodId(period.id)}
                       >
@@ -464,8 +541,8 @@ function BudgetsContent({
                     <Alert>
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>
-                        No hay categorías de gastos. Crea al menos una categoría para poder
-                        asignar presupuestos.
+                        No hay categorías de gastos. Crea al menos una categoría para poder asignar
+                        presupuestos.
                       </AlertDescription>
                     </Alert>
                   ) : (
@@ -478,6 +555,7 @@ function BudgetsContent({
                       onEditCategory={handleEditCategory}
                       onDeleteCategory={handleDeleteCategory}
                       isLoading={categoryBudgetsHook.setCategoryBudget.isPending}
+                      suggestions={suggestions || []}
                     />
                   )}
                 </CardContent>
@@ -506,6 +584,74 @@ function BudgetsContent({
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Clone Period Dialog */}
+      <Dialog open={isClonePeriodDialogOpen} onOpenChange={setIsClonePeriodDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Copiar Período de Presupuesto</DialogTitle>
+            <DialogDescription>
+              Crea un nuevo período copiando las categorías y porcentajes del anterior.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="cloneAmount">Monto Total</Label>
+              <Input
+                id="cloneAmount"
+                type="number"
+                placeholder="Ej. 1000000"
+                value={clonePeriodAmount}
+                onChange={(e) =>
+                  setClonePeriodAmount(e.target.value === '' ? '' : Number(e.target.value))
+                }
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="cloneStartDate">Fecha Inicio</Label>
+                <Input
+                  id="cloneStartDate"
+                  type="date"
+                  value={format(clonePeriodStartDate, 'yyyy-MM-dd')}
+                  onChange={(e) => {
+                    const date = new Date(e.target.value + 'T00:00:00');
+                    if (!isNaN(date.getTime())) setClonePeriodStartDate(date);
+                  }}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="cloneEndDate">Fecha Fin</Label>
+                <Input
+                  id="cloneEndDate"
+                  type="date"
+                  value={format(clonePeriodEndDate, 'yyyy-MM-dd')}
+                  onChange={(e) => {
+                    const date = new Date(e.target.value + 'T00:00:00');
+                    if (!isNaN(date.getTime())) setClonePeriodEndDate(date);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsClonePeriodDialogOpen(false);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleClonePeriod}
+              disabled={budgetPeriodsHook.cloneBudgetPeriod.isPending}
+            >
+              {budgetPeriodsHook.cloneBudgetPeriod.isPending ? 'Copiando...' : 'Copiar Período'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Create Period Dialog */}
       <Dialog open={isCreatePeriodDialogOpen} onOpenChange={setIsCreatePeriodDialogOpen}>
@@ -674,9 +820,7 @@ function BudgetsContent({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar categoría</DialogTitle>
-            <DialogDescription>
-              Modifica el nombre y color de la categoría
-            </DialogDescription>
+            <DialogDescription>Modifica el nombre y color de la categoría</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -735,7 +879,8 @@ function BudgetsContent({
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar categoría?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. ¿Estás seguro de eliminar la categoría "{categoryToDelete?.name}"?
+              Esta acción no se puede deshacer. ¿Estás seguro de eliminar la categoría &quot;
+              {categoryToDelete?.name}&quot;?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

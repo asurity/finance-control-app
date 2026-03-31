@@ -4,7 +4,7 @@ import { SavingsGoal as SavingsGoalEntity } from '@/domain/entities/SavingsGoal'
 
 /**
  * Savings goal mapper
- * 
+ *
  * Transforms between Firestore document format and domain entity format.
  * Handles Timestamp ↔ Date conversions.
  */
@@ -23,14 +23,26 @@ export class SavingsGoalMapper {
       doc.currency || 'CLP',
       doc.status,
       doc.userId,
-      doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : doc.createdAt ? new Date(doc.createdAt) : new Date(),
+      doc.createdAt instanceof Timestamp
+        ? doc.createdAt.toDate()
+        : doc.createdAt
+          ? new Date(doc.createdAt)
+          : new Date(),
       doc.description,
-      doc.targetDate instanceof Timestamp ? doc.targetDate.toDate() : doc.targetDate ? new Date(doc.targetDate) : undefined,
+      doc.targetDate instanceof Timestamp
+        ? doc.targetDate.toDate()
+        : doc.targetDate
+          ? new Date(doc.targetDate)
+          : undefined,
       doc.icon,
       doc.color,
       doc.linkedAccountId,
       doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : undefined,
-      doc.completedAt instanceof Timestamp ? doc.completedAt.toDate() : doc.completedAt ? new Date(doc.completedAt) : undefined
+      doc.completedAt instanceof Timestamp
+        ? doc.completedAt.toDate()
+        : doc.completedAt
+          ? new Date(doc.completedAt)
+          : undefined
     );
   }
 
@@ -39,7 +51,9 @@ export class SavingsGoalMapper {
    * @param savingsGoal - SavingsGoal domain entity without ID
    * @returns Firestore document data
    */
-  static toFirestore(savingsGoal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>): DocumentData {
+  static toFirestore(
+    savingsGoal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>
+  ): DocumentData {
     return {
       name: savingsGoal.name,
       description: savingsGoal.description || null,
@@ -47,9 +61,9 @@ export class SavingsGoalMapper {
       currentAmount: savingsGoal.currentAmount || 0,
       currency: savingsGoal.currency || 'CLP',
       targetDate: savingsGoal.targetDate
-        ? (savingsGoal.targetDate instanceof Date
+        ? savingsGoal.targetDate instanceof Date
           ? Timestamp.fromDate(savingsGoal.targetDate)
-          : Timestamp.fromDate(new Date(savingsGoal.targetDate)))
+          : Timestamp.fromDate(new Date(savingsGoal.targetDate))
         : null,
       status: savingsGoal.status || 'ACTIVE',
       icon: savingsGoal.icon || '🎯',
@@ -57,9 +71,9 @@ export class SavingsGoalMapper {
       linkedAccountId: savingsGoal.linkedAccountId || null,
       userId: savingsGoal.userId,
       completedAt: savingsGoal.completedAt
-        ? (savingsGoal.completedAt instanceof Date
+        ? savingsGoal.completedAt instanceof Date
           ? Timestamp.fromDate(savingsGoal.completedAt)
-          : Timestamp.fromDate(new Date(savingsGoal.completedAt)))
+          : Timestamp.fromDate(new Date(savingsGoal.completedAt))
         : null,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
@@ -84,21 +98,22 @@ export class SavingsGoalMapper {
     if (savingsGoal.status !== undefined) data.status = savingsGoal.status;
     if (savingsGoal.icon !== undefined) data.icon = savingsGoal.icon;
     if (savingsGoal.color !== undefined) data.color = savingsGoal.color;
-    if (savingsGoal.linkedAccountId !== undefined) data.linkedAccountId = savingsGoal.linkedAccountId;
+    if (savingsGoal.linkedAccountId !== undefined)
+      data.linkedAccountId = savingsGoal.linkedAccountId;
 
     if (savingsGoal.targetDate !== undefined) {
       data.targetDate = savingsGoal.targetDate
-        ? (savingsGoal.targetDate instanceof Date
+        ? savingsGoal.targetDate instanceof Date
           ? Timestamp.fromDate(savingsGoal.targetDate)
-          : Timestamp.fromDate(new Date(savingsGoal.targetDate)))
+          : Timestamp.fromDate(new Date(savingsGoal.targetDate))
         : null;
     }
 
     if (savingsGoal.completedAt !== undefined) {
       data.completedAt = savingsGoal.completedAt
-        ? (savingsGoal.completedAt instanceof Date
+        ? savingsGoal.completedAt instanceof Date
           ? Timestamp.fromDate(savingsGoal.completedAt)
-          : Timestamp.fromDate(new Date(savingsGoal.completedAt)))
+          : Timestamp.fromDate(new Date(savingsGoal.completedAt))
         : null;
     }
 
@@ -111,6 +126,6 @@ export class SavingsGoalMapper {
    * @returns Array of SavingsGoal domain entities
    */
   static toDomainArray(docs: Array<DocumentData & { id: string }>): SavingsGoalEntity[] {
-    return docs.map(doc => SavingsGoalMapper.toDomain(doc));
+    return docs.map((doc) => SavingsGoalMapper.toDomain(doc));
   }
 }

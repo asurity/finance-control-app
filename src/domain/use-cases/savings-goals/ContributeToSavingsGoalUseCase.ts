@@ -41,9 +41,7 @@ export class ContributeToSavingsGoalUseCase extends BaseUseCase<
     super();
   }
 
-  async execute(
-    input: ContributeToSavingsGoalInput
-  ): Promise<ContributeToSavingsGoalOutput> {
+  async execute(input: ContributeToSavingsGoalInput): Promise<ContributeToSavingsGoalOutput> {
     // Validate savings goal exists
     const goal = await this.savingsGoalRepo.getById(input.goalId);
     if (!goal) {
@@ -64,7 +62,9 @@ export class ContributeToSavingsGoalUseCase extends BaseUseCase<
     const transactionId = await this.transactionRepo.create({
       type: 'EXPENSE',
       amount: input.amount,
-      description: input.note ? `Contribución: ${goal.name} - ${input.note}` : `Contribución: ${goal.name}`,
+      description: input.note
+        ? `Contribución: ${goal.name} - ${input.note}`
+        : `Contribución: ${goal.name}`,
       date: new Date(),
       accountId: input.fromAccountId,
       categoryId: 'SAVINGS', // Should be a predefined category
@@ -73,10 +73,7 @@ export class ContributeToSavingsGoalUseCase extends BaseUseCase<
     });
 
     // Update account balance
-    await this.accountRepo.updateBalance(
-      input.fromAccountId,
-      account.balance - input.amount
-    );
+    await this.accountRepo.updateBalance(input.fromAccountId, account.balance - input.amount);
 
     // Add contribution to savings goal
     const contributionId = await this.savingsGoalRepo.addContribution(

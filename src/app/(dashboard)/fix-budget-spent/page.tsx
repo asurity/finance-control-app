@@ -24,80 +24,75 @@ export default function FixBudgetSpentPage() {
 
   const fixSpentAmounts = async () => {
     if (!user || !currentOrgId) return;
-    
+
     try {
       setLoading(true);
       setError(null);
       setResults(null);
-      
+
       const container = DIContainer.getInstance();
       container.setOrgId(currentOrgId);
-      
+
       const transactionRepo = container.getTransactionRepository();
       const budgetPeriodRepo = container.getBudgetPeriodRepository();
       const categoryBudgetRepo = container.getCategoryBudgetRepository();
-      
+
       console.log('🔧 CORRECCIÓN DE SPENT AMOUNTS - INICIADO');
       console.log('═'.repeat(100));
-      
+
       // Step 1: Get all budget periods
       console.log('\n📅 Paso 1: Obteniendo períodos de presupuesto...');
       const allPeriods = await budgetPeriodRepo.getAll();
       console.log(`   Encontrados: ${allPeriods.length} períodos`);
-      
+
       const updates: any[] = [];
       let totalUpdated = 0;
       let totalErrors = 0;
-      
+
       // Step 2: Process each period
       for (const period of allPeriods) {
         console.log(`\n📊 Procesando: ${period.name || 'Sin nombre'}`);
         console.log(`   Inicio: ${period.startDate.toLocaleDateString('es-CL')}`);
         console.log(`   Fin: ${period.endDate.toLocaleDateString('es-CL')}`);
-        
+
         // Get category budgets for this period
         const categoryBudgets = await categoryBudgetRepo.getByBudgetPeriodId(period.id);
         console.log(`   Category budgets: ${categoryBudgets.length}`);
-        
+
         // Get all transactions in this period using getByDateRange (includes boundaries)
         const transactionsInPeriod = await transactionRepo.getByDateRange(
           period.startDate,
           period.endDate
         );
-        
+
         console.log(`   Transacciones en período: ${transactionsInPeriod.length}`);
-        
+
         // Process each category budget
         for (const categoryBudget of categoryBudgets) {
           // Filter transactions for this category
           const categoryTransactions = transactionsInPeriod.filter(
-            tx => tx.categoryId === categoryBudget.categoryId && tx.type === 'EXPENSE'
+            (tx) => tx.categoryId === categoryBudget.categoryId && tx.type === 'EXPENSE'
           );
-          
+
           // Calculate total spent
-          const calculatedSpent = categoryTransactions.reduce(
-            (sum, tx) => sum + tx.amount,
-            0
-          );
-          
+          const calculatedSpent = categoryTransactions.reduce((sum, tx) => sum + tx.amount, 0);
+
           const currentSpent = categoryBudget.spentAmount;
           const difference = Math.abs(calculatedSpent - currentSpent);
-          
-          if (difference > 0.01) { // Allow for floating point precision
+
+          if (difference > 0.01) {
+            // Allow for floating point precision
             console.log(`   ⚠️  Diferencia encontrada en categoría ${categoryBudget.categoryId}`);
             console.log(`      Actual en DB: ${currentSpent.toLocaleString('es-CL')} CLP`);
             console.log(`      Calculado: ${calculatedSpent.toLocaleString('es-CL')} CLP`);
             console.log(`      Diferencia: ${difference.toLocaleString('es-CL')} CLP`);
-            
+
             try {
               // Update the spent amount
-              await categoryBudgetRepo.updateSpentAmount(
-                categoryBudget.id,
-                calculatedSpent
-              );
-              
+              await categoryBudgetRepo.updateSpentAmount(categoryBudget.id, calculatedSpent);
+
               console.log(`      ✅ Actualizado correctamente`);
-              
+
               updates.push({
                 periodName: period.name || 'Sin nombre',
                 categoryId: categoryBudget.categoryId,
@@ -106,11 +101,11 @@ export default function FixBudgetSpentPage() {
                 difference,
                 success: true,
               });
-              
+
               totalUpdated++;
             } catch (err) {
               console.error(`      ❌ Error al actualizar:`, err);
-              
+
               updates.push({
                 periodName: period.name || 'Sin nombre',
                 categoryId: categoryBudget.categoryId,
@@ -120,7 +115,7 @@ export default function FixBudgetSpentPage() {
                 success: false,
                 error: err instanceof Error ? err.message : 'Error desconocido',
               });
-              
+
               totalErrors++;
             }
           } else {
@@ -128,31 +123,30 @@ export default function FixBudgetSpentPage() {
           }
         }
       }
-      
+
       console.log('\n' + '═'.repeat(100));
       console.log('\n📊 RESUMEN:');
       console.log(`   Total actualizados: ${totalUpdated}`);
       console.log(`   Total errores: ${totalErrors}`);
       console.log('✅ Proceso completado\n');
-      
+
       setResults({
         updates,
         totalUpdated,
         totalErrors,
       });
-      
+
       if (totalUpdated > 0) {
         toast.success(`${totalUpdated} presupuestos actualizados correctamente`);
       }
-      
+
       if (totalErrors > 0) {
         toast.error(`${totalErrors} errores durante la actualización`);
       }
-      
+
       if (totalUpdated === 0 && totalErrors === 0) {
         toast.info('No se encontraron diferencias. Todo está sincronizado.');
       }
-      
     } catch (err: any) {
       console.error('❌ Error:', err);
       setError(err.message || 'Error al corregir montos');
@@ -185,8 +179,8 @@ export default function FixBudgetSpentPage() {
         <CardHeader>
           <CardTitle>Corrección Automática</CardTitle>
           <CardDescription>
-            Este proceso recalculará el monto gastado (spentAmount) para todos los presupuestos
-            de categoría basándose en las transacciones reales del período.
+            Este proceso recalculará el monto gastado (spentAmount) para todos los presupuestos de
+            categoría basándose en las transacciones reales del período.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -202,7 +196,13 @@ export default function FixBudgetSpentPage() {
                   <li>Para cada categoría, suma las transacciones REALES del período</li>
                   <li>Compara con el spentAmount almacenado</li>
                   <li>Actualiza los valores incorrectos</li>
-                  <li>Usa <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">{'>='}  y {'<='}</code> para incluir fechas límite</li>
+                  <li>
+                    Usa{' '}
+                    <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">
+                      {'>='} y {'<='}
+                    </code>{' '}
+                    para incluir fechas límite
+                  </li>
                 </ul>
               </div>
             </div>
@@ -265,11 +265,11 @@ export default function FixBudgetSpentPage() {
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   <h3 className="font-semibold mb-3">Detalle de actualizaciones:</h3>
                   {results.updates.map((update: any, i: number) => (
-                    <div 
-                      key={i} 
+                    <div
+                      key={i}
                       className={`p-3 border rounded-lg ${
-                        update.success 
-                          ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' 
+                        update.success
+                          ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
                           : 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
                       }`}
                     >
@@ -289,15 +289,21 @@ export default function FixBudgetSpentPage() {
                           <div className="mt-2 text-sm grid grid-cols-3 gap-2">
                             <div>
                               <p className="text-muted-foreground">Anterior:</p>
-                              <p className="font-medium">${update.oldSpent.toLocaleString('es-CL')}</p>
+                              <p className="font-medium">
+                                ${update.oldSpent.toLocaleString('es-CL')}
+                              </p>
                             </div>
                             <div>
                               <p className="text-muted-foreground">Nuevo:</p>
-                              <p className="font-medium text-green-600">${update.newSpent.toLocaleString('es-CL')}</p>
+                              <p className="font-medium text-green-600">
+                                ${update.newSpent.toLocaleString('es-CL')}
+                              </p>
                             </div>
                             <div>
                               <p className="text-muted-foreground">Diferencia:</p>
-                              <p className="font-medium">${update.difference.toLocaleString('es-CL')}</p>
+                              <p className="font-medium">
+                                ${update.difference.toLocaleString('es-CL')}
+                              </p>
                             </div>
                           </div>
                           {!update.success && update.error && (
@@ -317,9 +323,7 @@ export default function FixBudgetSpentPage() {
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-green-900 dark:text-green-100">
-                    Próximos pasos
-                  </p>
+                  <p className="font-semibold text-green-900 dark:text-green-100">Próximos pasos</p>
                   <ul className="text-sm text-green-800 dark:text-green-200 mt-2 space-y-1 list-disc list-inside">
                     <li>Refresca la página de Presupuestos para ver los cambios</li>
                     <li>Verifica que los montos ahora coincidan con las transacciones</li>

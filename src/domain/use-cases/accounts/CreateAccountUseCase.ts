@@ -18,10 +18,7 @@ export interface CreateAccountOutput {
  * Use Case: Create Account
  * Creates a new account with initial balance and configuration
  */
-export class CreateAccountUseCase extends BaseUseCase<
-  CreateAccountInput,
-  CreateAccountOutput
-> {
+export class CreateAccountUseCase extends BaseUseCase<CreateAccountInput, CreateAccountOutput> {
   constructor(private accountRepo: IAccountRepository) {
     super();
   }
@@ -59,7 +56,10 @@ export class CreateAccountUseCase extends BaseUseCase<
         throw new Error('Cutoff day must be between 1 and 31');
       }
 
-      if (input.paymentDueDay !== undefined && (input.paymentDueDay < 1 || input.paymentDueDay > 31)) {
+      if (
+        input.paymentDueDay !== undefined &&
+        (input.paymentDueDay < 1 || input.paymentDueDay > 31)
+      ) {
         throw new Error('Payment due day must be between 1 and 31');
       }
     }

@@ -27,7 +27,13 @@ export interface OrganizationMember {
   joinedAt: Date;
 }
 
-export type AccountType = 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD' | 'CASH' | 'INVESTMENT' | 'LINE_OF_CREDIT';
+export type AccountType =
+  | 'CHECKING'
+  | 'SAVINGS'
+  | 'CREDIT_CARD'
+  | 'CASH'
+  | 'INVESTMENT'
+  | 'LINE_OF_CREDIT';
 
 export interface Account {
   id: string;
@@ -149,7 +155,13 @@ export interface CreditCardStatement {
 // RECURRING TRANSACTIONS
 // ========================================
 
-export type RecurrenceFrequency = 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY';
+export type RecurrenceFrequency =
+  | 'DAILY'
+  | 'WEEKLY'
+  | 'BIWEEKLY'
+  | 'MONTHLY'
+  | 'QUARTERLY'
+  | 'YEARLY';
 
 export interface RecurringTransaction {
   id: string;
@@ -175,7 +187,7 @@ export interface RecurringTransaction {
 // ALERTS SYSTEM
 // ========================================
 
-export type AlertType = 
+export type AlertType =
   | 'BUDGET_THRESHOLD' // Budget limit approaching/exceeded
   | 'PAYMENT_DUE' // Payment due date approaching
   | 'LOW_BALANCE' // Account balance low

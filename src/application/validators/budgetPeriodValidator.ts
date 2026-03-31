@@ -18,14 +18,8 @@ export const CreateBudgetPeriodSchema = z
     endDate: z.date(),
     userId: z.string().min(1, 'El ID de usuario es requerido'),
     organizationId: z.string().min(1).nullable().optional(),
-    name: z
-      .string()
-      .max(100, 'El nombre no puede exceder 100 caracteres')
-      .optional(),
-    description: z
-      .string()
-      .max(500, 'La descripción no puede exceder 500 caracteres')
-      .optional(),
+    name: z.string().max(100, 'El nombre no puede exceder 100 caracteres').optional(),
+    description: z.string().max(500, 'La descripción no puede exceder 500 caracteres').optional(),
   })
   .refine((data) => data.endDate > data.startDate, {
     message: 'La fecha de fin debe ser posterior a la fecha de inicio',
@@ -38,11 +32,7 @@ export const CreateBudgetPeriodSchema = z
 export const UpdateBudgetPeriodSchema = z
   .object({
     id: z.string().min(1, 'El ID del período presupuestario es requerido'),
-    totalAmount: z
-      .number()
-      .positive('El monto total debe ser mayor a 0')
-      .finite()
-      .optional(),
+    totalAmount: z.number().positive('El monto total debe ser mayor a 0').finite().optional(),
     startDate: z.date().optional(),
     endDate: z.date().optional(),
     name: z.string().max(100).optional(),

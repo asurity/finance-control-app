@@ -32,9 +32,7 @@ export class GetTransactionsByCategoryUseCase extends BaseUseCase<
     super();
   }
 
-  async execute(
-    input: GetTransactionsByCategoryInput
-  ): Promise<GetTransactionsByCategoryOutput> {
+  async execute(input: GetTransactionsByCategoryInput): Promise<GetTransactionsByCategoryOutput> {
     if (!input.categoryId || input.categoryId.trim().length === 0) {
       throw new Error('Category ID is required');
     }
@@ -54,7 +52,7 @@ export class GetTransactionsByCategoryUseCase extends BaseUseCase<
         throw new Error('Invalid end date');
       }
 
-      filteredTransactions = transactions.filter(t => {
+      filteredTransactions = transactions.filter((t) => {
         const transactionDate = t.date instanceof Date ? t.date : new Date(t.date);
         return transactionDate >= input.startDate! && transactionDate <= input.endDate!;
       });

@@ -28,7 +28,9 @@ export class FirestoreRecurringTransactionRepository implements IRecurringTransa
     this.collectionPath = 'recurringTransactions';
   }
 
-  async create(data: Omit<RecurringTransaction, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  async create(
+    data: Omit<RecurringTransaction, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<string> {
     const ref = collection(db, this.collectionPath);
     const firestoreData = { ...RecurringTransactionMapper.toFirestore(data), orgId: this.orgId };
     const docRef = await addDoc(ref, firestoreData);
@@ -38,9 +40,9 @@ export class FirestoreRecurringTransactionRepository implements IRecurringTransa
   async getById(id: string): Promise<RecurringTransaction | null> {
     const docRef = doc(db, this.collectionPath, id);
     const docSnap = await getDoc(docRef);
-    
+
     if (!docSnap.exists()) return null;
-    
+
     return RecurringTransactionMapper.toDomain({ id: docSnap.id, ...docSnap.data() });
   }
 
@@ -48,8 +50,8 @@ export class FirestoreRecurringTransactionRepository implements IRecurringTransa
     const ref = collection(db, this.collectionPath);
     const q = query(ref, where('orgId', '==', this.orgId), orderBy('nextOccurrence', 'asc'));
     const snapshot = await getDocs(q);
-    
-    return snapshot.docs.map(doc => 
+
+    return snapshot.docs.map((doc) =>
       RecurringTransactionMapper.toDomain({ id: doc.id, ...doc.data() })
     );
   }
@@ -79,9 +81,9 @@ export class FirestoreRecurringTransactionRepository implements IRecurringTransa
       where('isActive', '==', true),
       orderBy('nextOccurrence', 'asc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
+    return snapshot.docs.map((doc) =>
       RecurringTransactionMapper.toDomain({ id: doc.id, ...doc.data() })
     );
   }
@@ -94,9 +96,9 @@ export class FirestoreRecurringTransactionRepository implements IRecurringTransa
       where('frequency', '==', frequency),
       where('isActive', '==', true)
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
+    return snapshot.docs.map((doc) =>
       RecurringTransactionMapper.toDomain({ id: doc.id, ...doc.data() })
     );
   }
@@ -109,9 +111,9 @@ export class FirestoreRecurringTransactionRepository implements IRecurringTransa
       where('accountId', '==', accountId),
       orderBy('nextOccurrence', 'asc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
+    return snapshot.docs.map((doc) =>
       RecurringTransactionMapper.toDomain({ id: doc.id, ...doc.data() })
     );
   }
@@ -124,9 +126,9 @@ export class FirestoreRecurringTransactionRepository implements IRecurringTransa
       where('categoryId', '==', categoryId),
       orderBy('nextOccurrence', 'asc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
+    return snapshot.docs.map((doc) =>
       RecurringTransactionMapper.toDomain({ id: doc.id, ...doc.data() })
     );
   }
@@ -139,9 +141,9 @@ export class FirestoreRecurringTransactionRepository implements IRecurringTransa
       where('isActive', '==', true),
       where('nextOccurrence', '<=', Timestamp.fromDate(currentDate))
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
+    return snapshot.docs.map((doc) =>
       RecurringTransactionMapper.toDomain({ id: doc.id, ...doc.data() })
     );
   }

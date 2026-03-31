@@ -11,7 +11,10 @@ import type { TransactionType } from '@/types/firestore';
  */
 export const CreateTransactionSchema = z.object({
   type: z.enum(['INCOME', 'EXPENSE']),
-  amount: z.number().positive('El monto debe ser mayor a 0').finite('El monto debe ser un número válido'),
+  amount: z
+    .number()
+    .positive('El monto debe ser mayor a 0')
+    .finite('El monto debe ser un número válido'),
   description: z.string().min(3, 'La descripción debe tener al menos 3 caracteres').max(200),
   date: z.date(),
   accountId: z.string().min(1, 'Debe seleccionar una cuenta'),
@@ -34,7 +37,11 @@ export const CreateTransactionSchema = z.object({
 export const UpdateTransactionSchema = z.object({
   id: z.string().min(1, 'El ID de transacción es requerido'),
   amount: z.number().positive('El monto debe ser mayor a 0').finite().optional(),
-  description: z.string().min(3, 'La descripción debe tener al menos 3 caracteres').max(200).optional(),
+  description: z
+    .string()
+    .min(3, 'La descripción debe tener al menos 3 caracteres')
+    .max(200)
+    .optional(),
   date: z.date().optional(),
   accountId: z.string().min(1).optional(),
   categoryId: z.string().min(1).optional(),

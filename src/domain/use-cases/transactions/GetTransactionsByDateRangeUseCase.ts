@@ -31,9 +31,7 @@ export class GetTransactionsByDateRangeUseCase extends BaseUseCase<
     super();
   }
 
-  async execute(
-    input: GetTransactionsByDateRangeInput
-  ): Promise<GetTransactionsByDateRangeOutput> {
+  async execute(input: GetTransactionsByDateRangeInput): Promise<GetTransactionsByDateRangeOutput> {
     // Validate dates
     if (!(input.startDate instanceof Date) || isNaN(input.startDate.getTime())) {
       throw new Error('Invalid start date');
@@ -48,15 +46,12 @@ export class GetTransactionsByDateRangeUseCase extends BaseUseCase<
     }
 
     // Get transactions by date range
-    const transactions = await this.transactionRepo.getByDateRange(
-      input.startDate,
-      input.endDate
-    );
+    const transactions = await this.transactionRepo.getByDateRange(input.startDate, input.endDate);
 
     // Filter by userId if provided
     let filteredTransactions = transactions;
     if (input.userId) {
-      filteredTransactions = transactions.filter(t => t.userId === input.userId);
+      filteredTransactions = transactions.filter((t) => t.userId === input.userId);
     }
 
     // Sort by date descending (newest first)

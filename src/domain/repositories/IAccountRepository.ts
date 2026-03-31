@@ -3,7 +3,7 @@ import { Account, AccountType } from '@/types/firestore';
 
 /**
  * Account repository interface
- * 
+ *
  * Extends base repository with account-specific operations.
  */
 export interface IAccountRepository extends IRepository<Account> {

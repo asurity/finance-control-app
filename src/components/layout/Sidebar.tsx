@@ -17,13 +17,7 @@ import {
   Bug,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { APP_CONFIG } from '@/lib/constants/config';
 
@@ -35,9 +29,27 @@ const menuItems = [
   { href: '/receivables', label: 'Por Cobrar', icon: TrendingUp, implemented: false, debug: false },
   { href: '/payables', label: 'Por Pagar', icon: Wallet, implemented: false, debug: false },
   { href: '/reports', label: 'Reportes', icon: FileText, implemented: true, debug: false },
-  { href: '/debug-transactions', label: '🔍 Debug Transacciones', icon: Bug, implemented: true, debug: true },
-  { href: '/analyze-alondrita', label: '🔬 Analizar Alondrita', icon: Bug, implemented: true, debug: true },
-  { href: '/fix-budget-spent', label: '🔧 Corregir Presupuestos', icon: Bug, implemented: true, debug: true },
+  {
+    href: '/debug-transactions',
+    label: '🔍 Debug Transacciones',
+    icon: Bug,
+    implemented: true,
+    debug: true,
+  },
+  {
+    href: '/analyze-alondrita',
+    label: '🔬 Analizar Alondrita',
+    icon: Bug,
+    implemented: true,
+    debug: true,
+  },
+  {
+    href: '/fix-budget-spent',
+    label: '🔧 Corregir Presupuestos',
+    icon: Bug,
+    implemented: true,
+    debug: true,
+  },
   { href: '/settings', label: 'Configuración', icon: Settings, implemented: false, debug: false },
 ];
 
@@ -51,7 +63,7 @@ function SidebarContent({ onLinkClick }: SidebarContentProps) {
 
   // Filtrar items de debug en producción
   const isDevelopment = process.env.NODE_ENV === 'development';
-  const visibleMenuItems = menuItems.filter(item => isDevelopment || !item.debug);
+  const visibleMenuItems = menuItems.filter((item) => isDevelopment || !item.debug);
 
   const handleNavigation = (href: string) => {
     router.push(href);
@@ -62,9 +74,7 @@ function SidebarContent({ onLinkClick }: SidebarContentProps) {
     <>
       <div className="p-6 border-b">
         <h1 className="text-2xl font-bold text-primary">Control Financiero</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Gestión profesional
-        </p>
+        <p className="text-sm text-muted-foreground mt-1">Gestión profesional</p>
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">

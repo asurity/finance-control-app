@@ -80,10 +80,7 @@ export class UpdateBudgetPeriodUseCase extends BaseUseCase<
 
     // If total amount changed, recalculate all category budgets
     if (input.totalAmount && input.totalAmount !== existingBudgetPeriod.totalAmount) {
-      await this.categoryBudgetRepo.recalculateAllocatedAmounts(
-        input.id,
-        input.totalAmount
-      );
+      await this.categoryBudgetRepo.recalculateAllocatedAmounts(input.id, input.totalAmount);
     }
 
     return {

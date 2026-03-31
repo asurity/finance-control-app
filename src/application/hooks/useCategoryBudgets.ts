@@ -19,15 +19,13 @@ import {
  */
 export const categoryBudgetKeys = {
   all: (orgId: string) => ['categoryBudgets', orgId] as const,
-  byBudgetPeriod: (orgId: string, budgetPeriodId: string) => 
+  byBudgetPeriod: (orgId: string, budgetPeriodId: string) =>
     ['categoryBudgets', orgId, 'budgetPeriod', budgetPeriodId] as const,
-  byCategory: (orgId: string, categoryId: string) => 
+  byCategory: (orgId: string, categoryId: string) =>
     ['categoryBudgets', orgId, 'category', categoryId] as const,
-  byUser: (orgId: string, userId: string) => 
-    ['categoryBudgets', orgId, 'user', userId] as const,
-  status: (orgId: string, id: string) => 
-    ['categoryBudgets', orgId, 'status', id] as const,
-  summary: (orgId: string, budgetPeriodId: string) => 
+  byUser: (orgId: string, userId: string) => ['categoryBudgets', orgId, 'user', userId] as const,
+  status: (orgId: string, id: string) => ['categoryBudgets', orgId, 'status', id] as const,
+  summary: (orgId: string, budgetPeriodId: string) =>
     ['categoryBudgets', orgId, 'summary', budgetPeriodId] as const,
 };
 
@@ -43,7 +41,8 @@ export function useCategoryBudgets(orgId: string) {
 
   // Get use cases
   const setCategoryBudgetUseCase = container.getSetCategoryBudgetUseCase();
-  const updateCategoryBudgetPercentageUseCase = container.getUpdateCategoryBudgetPercentageUseCase();
+  const updateCategoryBudgetPercentageUseCase =
+    container.getUpdateCategoryBudgetPercentageUseCase();
   const deleteCategoryBudgetUseCase = container.getDeleteCategoryBudgetUseCase();
   const getCategoryBudgetStatusUseCase = container.getGetCategoryBudgetStatusUseCase();
   const getBudgetPeriodSummaryUseCase = container.getGetBudgetPeriodSummaryUseCase();
@@ -119,17 +118,17 @@ export function useCategoryBudgets(orgId: string) {
     mutationFn: (input: SetCategoryBudgetDTO) => setCategoryBudgetUseCase.execute(input),
     onSuccess: (data, variables) => {
       // Invalidate relevant queries
-      queryClient.invalidateQueries({ 
-        queryKey: categoryBudgetKeys.byBudgetPeriod(orgId, variables.budgetPeriodId) 
+      queryClient.invalidateQueries({
+        queryKey: categoryBudgetKeys.byBudgetPeriod(orgId, variables.budgetPeriodId),
       });
-      queryClient.invalidateQueries({ 
-        queryKey: categoryBudgetKeys.summary(orgId, variables.budgetPeriodId) 
+      queryClient.invalidateQueries({
+        queryKey: categoryBudgetKeys.summary(orgId, variables.budgetPeriodId),
       });
-      queryClient.invalidateQueries({ 
-        queryKey: categoryBudgetKeys.byCategory(orgId, variables.categoryId) 
+      queryClient.invalidateQueries({
+        queryKey: categoryBudgetKeys.byCategory(orgId, variables.categoryId),
       });
-      queryClient.invalidateQueries({ 
-        queryKey: categoryBudgetKeys.byUser(orgId, variables.userId) 
+      queryClient.invalidateQueries({
+        queryKey: categoryBudgetKeys.byUser(orgId, variables.userId),
       });
     },
   });
@@ -138,7 +137,7 @@ export function useCategoryBudgets(orgId: string) {
    * Mutation: Update category budget percentage
    */
   const updateCategoryBudgetPercentage = useMutation({
-    mutationFn: (input: UpdateCategoryBudgetPercentageDTO) => 
+    mutationFn: (input: UpdateCategoryBudgetPercentageDTO) =>
       updateCategoryBudgetPercentageUseCase.execute(input),
     onSuccess: (data, variables) => {
       // Invalidate specific status

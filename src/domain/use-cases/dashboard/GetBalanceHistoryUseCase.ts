@@ -40,12 +40,12 @@ export class GetBalanceHistoryUseCase {
     // Determine number of data points and date range
     const config = this.getConfigForPeriod(period, points);
     const intervals = this.generateIntervals(config);
-    
+
     // Get all transactions from the organization
     const allTransactions = await this.transactionRepository.getAll();
     const startDate = new Date(intervals[0].start);
     const endDate = new Date(intervals[intervals.length - 1].end);
-    
+
     const relevantTransactions = allTransactions.filter((tx) => {
       const txDate = tx.date;
       return txDate >= startDate && txDate <= endDate;
@@ -63,7 +63,7 @@ export class GetBalanceHistoryUseCase {
     for (let i = intervals.length - 1; i >= 0; i--) {
       const interval = intervals[i];
       const intervalEnd = new Date(interval.end);
-      
+
       // Get transactions in this interval
       const intervalTransactions = relevantTransactions.filter((tx) => {
         return tx.date >= new Date(interval.start) && tx.date <= intervalEnd;
@@ -73,7 +73,7 @@ export class GetBalanceHistoryUseCase {
       const income = intervalTransactions
         .filter((tx) => tx.type === 'INCOME')
         .reduce((sum: number, tx) => sum + tx.amount, 0);
-      
+
       const expenses = intervalTransactions
         .filter((tx) => tx.type === 'EXPENSE')
         .reduce((sum: number, tx) => sum + tx.amount, 0);
@@ -95,7 +95,7 @@ export class GetBalanceHistoryUseCase {
     const startBalance = dataPoints[0]?.balance ?? currentBalance;
     const endBalance = dataPoints[dataPoints.length - 1]?.balance ?? currentBalance;
     const changePercent = startBalance > 0 ? ((endBalance - startBalance) / startBalance) * 100 : 0;
-    
+
     let trend: 'up' | 'down' | 'stable' = 'stable';
     if (changePercent > 5) trend = 'up';
     else if (changePercent < -5) trend = 'down';
@@ -131,10 +131,14 @@ export class GetBalanceHistoryUseCase {
     }
   }
 
-  private generateIntervals(config: { points: number; intervalType: string; daysPerInterval: number }) {
+  private generateIntervals(config: {
+    points: number;
+    intervalType: string;
+    daysPerInterval: number;
+  }) {
     const intervals: Array<{ start: Date; end: Date }> = [];
     const now = new Date();
-    
+
     for (let i = config.points - 1; i >= 0; i--) {
       const end = new Date(now);
       const start = new Date(now);
@@ -143,7 +147,7 @@ export class GetBalanceHistoryUseCase {
         end.setMonth(end.getMonth() - i);
         end.setDate(1); // Start of month
         end.setHours(23, 59, 59, 999);
-        
+
         start.setMonth(start.getMonth() - i);
         start.setDate(1);
         start.setHours(0, 0, 0, 0);
@@ -152,7 +156,7 @@ export class GetBalanceHistoryUseCase {
         const daysBack = i * config.daysPerInterval;
         start.setDate(start.getDate() - daysBack);
         start.setHours(0, 0, 0, 0);
-        
+
         end.setDate(end.getDate() - daysBack);
         end.setHours(23, 59, 59, 999);
       }

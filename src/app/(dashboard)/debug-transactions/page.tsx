@@ -2,7 +2,7 @@
 
 /**
  * Debug Transactions Page
- * Helps diagnose transaction totalization issues 
+ * Helps diagnose transaction totalization issues
  */
 
 import { useEffect, useState } from 'react';
@@ -48,40 +48,40 @@ export default function DebugTransactionsPage() {
 
   const analyzeTransactions = async () => {
     if (!user || !currentOrgId) return;
-    
+
     try {
       setLoading(true);
       setError(null);
-      
+
       const container = DIContainer.getInstance();
       container.setOrgId(currentOrgId);
-      
+
       const transactionRepo = container.getTransactionRepository();
       const categoryRepo = container.getCategoryRepository();
       const accountRepo = container.getAccountRepository();
-      
+
       // Get all data
       const allTransactions = await transactionRepo.getAll();
       const allCategories = await categoryRepo.getAll();
       const allAccounts = await accountRepo.getAll();
-      
+
       console.log('📊 Total transactions:', allTransactions.length);
       console.log('📂 Total categories:', allCategories.length);
       console.log('💰 Total accounts:', allAccounts.length);
-      
+
       // Create maps for quick lookup
-      const categoryMap = new Map(allCategories.map(c => [c.id, c.name]));
-      const accountMap = new Map(allAccounts.map(a => [a.id, a.name]));
-      
+      const categoryMap = new Map(allCategories.map((c) => [c.id, c.name]));
+      const accountMap = new Map(allAccounts.map((a) => [a.id, a.name]));
+
       // Group transactions by category
       const categoryGroups = new Map<string, TransactionDebugInfo[]>();
-      
-      allTransactions.forEach(tx => {
+
+      allTransactions.forEach((tx) => {
         if (tx.type !== 'EXPENSE') return; // Only expenses for this analysis
-        
+
         const categoryName = categoryMap.get(tx.categoryId) || 'Sin categoría';
         const accountName = accountMap.get(tx.accountId) || 'Cuenta desconocida';
-        
+
         const debugInfo: TransactionDebugInfo = {
           id: tx.id,
           type: tx.type,
@@ -93,23 +93,23 @@ export default function DebugTransactionsPage() {
           accountName,
           userId: tx.userId,
           isInstallment: tx.isInstallment,
-          installmentInfo: tx.isInstallment 
-            ? `Cuota ${tx.installmentNumber}/${tx.totalInstallments}` 
+          installmentInfo: tx.isInstallment
+            ? `Cuota ${tx.installmentNumber}/${tx.totalInstallments}`
             : undefined,
         };
-        
+
         const existing = categoryGroups.get(tx.categoryId) || [];
         existing.push(debugInfo);
         categoryGroups.set(tx.categoryId, existing);
       });
-      
+
       // Calculate totals per category
       const categoryAnalysis: CategoryAnalysis[] = [];
-      
+
       categoryGroups.forEach((transactions, categoryId) => {
         const totalAmount = transactions.reduce((sum, tx) => sum + tx.amount, 0);
         const categoryName = categoryMap.get(categoryId) || 'Sin categoría';
-        
+
         categoryAnalysis.push({
           categoryId,
           categoryName,
@@ -118,12 +118,12 @@ export default function DebugTransactionsPage() {
           transactions: transactions.sort((a, b) => b.date.getTime() - a.date.getTime()),
         });
       });
-      
+
       // Sort by total amount (descending)
       categoryAnalysis.sort((a, b) => b.totalAmount - a.totalAmount);
-      
+
       setAnalysis(categoryAnalysis);
-      
+
       // Log detailed info
       console.log('\n📈 ANÁLISIS POR CATEGORÍA:');
       categoryAnalysis.forEach((cat, index) => {
@@ -133,10 +133,11 @@ export default function DebugTransactionsPage() {
         console.log('   Detalle:');
         cat.transactions.forEach((tx, i) => {
           const installmentStr = tx.installmentInfo ? ` [${tx.installmentInfo}]` : '';
-          console.log(`      ${i + 1}. ${tx.description}${installmentStr}: ${tx.amount.toLocaleString('es-CL')} CLP (${format(tx.date, 'dd/MM/yyyy')})`);
+          console.log(
+            `      ${i + 1}. ${tx.description}${installmentStr}: ${tx.amount.toLocaleString('es-CL')} CLP (${format(tx.date, 'dd/MM/yyyy')})`
+          );
         });
       });
-      
     } catch (err: any) {
       console.error('Error analyzing transactions:', err);
       setError(err.message || 'Error al analizar transacciones');
@@ -159,8 +160,8 @@ export default function DebugTransactionsPage() {
     );
   }
 
-  const selectedCategoryData = selectedCategory 
-    ? analysis.find(c => c.categoryId === selectedCategory) 
+  const selectedCategoryData = selectedCategory
+    ? analysis.find((c) => c.categoryId === selectedCategory)
     : null;
 
   return (
@@ -202,9 +203,7 @@ export default function DebugTransactionsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Resumen por Categoría</CardTitle>
-            <CardDescription>
-              {analysis.length} categorías con gastos
-            </CardDescription>
+            <CardDescription>{analysis.length} categorías con gastos</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -244,14 +243,14 @@ export default function DebugTransactionsPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              {selectedCategoryData 
-                ? `Detalle: ${selectedCategoryData.categoryName}` 
+              {selectedCategoryData
+                ? `Detalle: ${selectedCategoryData.categoryName}`
                 : 'Selecciona una categoría'}
             </CardTitle>
             {selectedCategoryData && (
               <CardDescription>
-                Total: {selectedCategoryData.totalAmount.toLocaleString('es-CL')} CLP
-                ({selectedCategoryData.transactionCount} transacciones)
+                Total: {selectedCategoryData.totalAmount.toLocaleString('es-CL')} CLP (
+                {selectedCategoryData.transactionCount} transacciones)
               </CardDescription>
             )}
           </CardHeader>
@@ -303,12 +302,8 @@ export default function DebugTransactionsPage() {
           <CardTitle className="text-base">💡 Información adicional</CardTitle>
         </CardHeader>
         <CardContent className="text-sm space-y-2">
-          <p>
-            • Abre la consola del navegador (F12) para ver logs detallados
-          </p>
-          <p>
-            • Los totales mostrados aquí son calculados directamente de Firestore
-          </p>
+          <p>• Abre la consola del navegador (F12) para ver logs detallados</p>
+          <p>• Los totales mostrados aquí son calculados directamente de Firestore</p>
           <p>
             • Si los totales aquí coinciden con tus registros pero el dashboard muestra otra cosa,
             hay un problema en el filtrado de fecha del dashboard

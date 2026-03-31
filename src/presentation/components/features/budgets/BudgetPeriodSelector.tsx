@@ -33,13 +33,25 @@ export function BudgetPeriodSelector({
 }: BudgetPeriodSelectorProps) {
   const getStatusBadge = (period: BudgetPeriod) => {
     if (period.isActive()) {
-      return <Badge variant="default" className="ml-2">Activo</Badge>;
+      return (
+        <Badge variant="default" className="ml-2">
+          Activo
+        </Badge>
+      );
     }
     if (period.isUpcoming()) {
-      return <Badge variant="secondary" className="ml-2">Próximo</Badge>;
+      return (
+        <Badge variant="secondary" className="ml-2">
+          Próximo
+        </Badge>
+      );
     }
     if (period.hasExpired()) {
-      return <Badge variant="outline" className="ml-2">Expirado</Badge>;
+      return (
+        <Badge variant="outline" className="ml-2">
+          Expirado
+        </Badge>
+      );
     }
     return null;
   };
@@ -47,14 +59,12 @@ export function BudgetPeriodSelector({
   const formatPeriodLabel = (period: BudgetPeriod) => {
     const start = format(period.startDate, 'dd/MM/yyyy', { locale: es });
     const end = format(period.endDate, 'dd/MM/yyyy', { locale: es });
-    return period.name 
-      ? `${period.name} (${start} - ${end})` 
-      : `${start} - ${end}`;
+    return period.name ? `${period.name} (${start} - ${end})` : `${start} - ${end}`;
   };
 
   if (periods.length === 0) {
     return (
-      <div className={cn("flex items-center gap-2 text-muted-foreground", className)}>
+      <div className={cn('flex items-center gap-2 text-muted-foreground', className)}>
         <Calendar className="h-4 w-4" />
         <span>No hay períodos de presupuesto</span>
       </div>
@@ -62,7 +72,7 @@ export function BudgetPeriodSelector({
   }
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn('flex items-center gap-2', className)}>
       <Calendar className="h-4 w-4 text-muted-foreground" />
       <Select value={selectedId || undefined} onValueChange={onSelect}>
         <SelectTrigger className="w-full">

@@ -3,7 +3,7 @@ import { BudgetPeriod } from '@/domain/entities/BudgetPeriod';
 
 /**
  * Budget Period mapper
- * 
+ *
  * Transforms between Firestore document format and domain entity format.
  * Handles Timestamp ↔ Date conversions.
  */

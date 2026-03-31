@@ -4,7 +4,7 @@ import { CreditCard as CreditCardEntity } from '@/domain/entities/CreditCard';
 
 /**
  * Credit card mapper
- * 
+ *
  * Transforms between Firestore document format and domain entity format.
  * Handles Timestamp ↔ Date conversions.
  */
@@ -80,7 +80,8 @@ export class CreditCardMapper {
     if (creditCard.cutoffDay !== undefined) data.cutoffDay = creditCard.cutoffDay;
     if (creditCard.paymentDueDay !== undefined) data.paymentDueDay = creditCard.paymentDueDay;
     if (creditCard.interestRate !== undefined) data.interestRate = creditCard.interestRate;
-    if (creditCard.minimumPaymentPercent !== undefined) data.minimumPaymentPercent = creditCard.minimumPaymentPercent;
+    if (creditCard.minimumPaymentPercent !== undefined)
+      data.minimumPaymentPercent = creditCard.minimumPaymentPercent;
     if (creditCard.currency !== undefined) data.currency = creditCard.currency;
     if (creditCard.isActive !== undefined) data.isActive = creditCard.isActive;
 
@@ -93,6 +94,6 @@ export class CreditCardMapper {
    * @returns Array of CreditCard domain entities
    */
   static toDomainArray(docs: Array<DocumentData & { id: string }>): CreditCardEntity[] {
-    return docs.map(doc => CreditCardMapper.toDomain(doc));
+    return docs.map((doc) => CreditCardMapper.toDomain(doc));
   }
 }

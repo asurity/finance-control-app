@@ -116,9 +116,7 @@ export class GetUpcomingPaymentsUseCase extends BaseUseCase<
     }
 
     // Calculate days until due (negative if overdue)
-    const daysUntilDue = Math.ceil(
-      (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-    );
+    const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
     // Only include if within the specified time frame or overdue
     if (daysUntilDue > daysAhead && daysUntilDue > 0) {

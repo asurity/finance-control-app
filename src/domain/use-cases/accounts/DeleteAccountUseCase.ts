@@ -23,10 +23,7 @@ export interface DeleteAccountOutput {
  * Deletes an account after verifying it's safe to do so
  * By default, prevents deletion of accounts with transactions
  */
-export class DeleteAccountUseCase extends BaseUseCase<
-  DeleteAccountInput,
-  DeleteAccountOutput
-> {
+export class DeleteAccountUseCase extends BaseUseCase<DeleteAccountInput, DeleteAccountOutput> {
   constructor(
     private accountRepo: IAccountRepository,
     private transactionRepo: ITransactionRepository
@@ -49,23 +46,20 @@ export class DeleteAccountUseCase extends BaseUseCase<
     if (transactions.length > 0 && !input.force) {
       throw new Error(
         `Cannot delete account with ${transactions.length} existing transactions. ` +
-        'Use force=true to delete anyway, or transfer/delete transactions first.'
+          'Use force=true to delete anyway, or transfer/delete transactions first.'
       );
     }
 
     // Check if account is linked to a credit card
     if (account.creditCardId) {
       throw new Error(
-        'This account is linked to a credit card. ' +
-        'Delete or unlink the credit card first.'
+        'This account is linked to a credit card. ' + 'Delete or unlink the credit card first.'
       );
     }
 
     // Warn if deleting an account with balance
     if (account.balance !== 0) {
-      console.warn(
-        `Deleting account "${account.name}" with non-zero balance: ${account.balance}`
-      );
+      console.warn(`Deleting account "${account.name}" with non-zero balance: ${account.balance}`);
     }
 
     // Delete account

@@ -22,10 +22,7 @@ export interface UpdateAccountOutput {
  * Updates account information (name, type, limits, etc.)
  * Note: Balance updates are handled by transaction use cases
  */
-export class UpdateAccountUseCase extends BaseUseCase<
-  UpdateAccountInput,
-  UpdateAccountOutput
-> {
+export class UpdateAccountUseCase extends BaseUseCase<UpdateAccountInput, UpdateAccountOutput> {
   constructor(private accountRepo: IAccountRepository) {
     super();
   }

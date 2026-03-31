@@ -18,16 +18,16 @@ export function useUnreadAlerts(limit: number = 3) {
     queryKey: ['unread-alerts', currentOrgId, user?.id, limit],
     queryFn: async () => {
       if (!user || !currentOrgId) throw new Error('User not authenticated');
-      
+
       const container = DIContainer.getInstance();
       container.setOrgId(currentOrgId);
-      
+
       const alertRepo = container.getAlertRepository();
       const allAlerts = await alertRepo.getAll({ userId: user.id });
-      
+
       // Filter unread and sort by date descending
       const unreadAlerts = allAlerts
-        .filter(alert => !alert.isRead)
+        .filter((alert) => !alert.isRead)
         .sort((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0))
         .slice(0, limit);
 

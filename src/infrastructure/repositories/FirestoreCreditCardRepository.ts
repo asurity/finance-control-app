@@ -37,9 +37,9 @@ export class FirestoreCreditCardRepository implements ICreditCardRepository {
   async getById(id: string): Promise<CreditCard | null> {
     const docRef = doc(db, this.collectionPath, id);
     const docSnap = await getDoc(docRef);
-    
+
     if (!docSnap.exists()) return null;
-    
+
     return CreditCardMapper.toDomain({ id: docSnap.id, ...docSnap.data() });
   }
 
@@ -47,10 +47,8 @@ export class FirestoreCreditCardRepository implements ICreditCardRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(ref, where('orgId', '==', this.orgId), orderBy('name', 'asc'));
     const snapshot = await getDocs(q);
-    
-    return snapshot.docs.map(doc => 
-      CreditCardMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+
+    return snapshot.docs.map((doc) => CreditCardMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async update(id: string, data: Partial<CreditCard>): Promise<void> {
@@ -78,21 +76,17 @@ export class FirestoreCreditCardRepository implements ICreditCardRepository {
       where('isActive', '==', true),
       orderBy('name', 'asc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      CreditCardMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => CreditCardMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getByAccount(accountId: string): Promise<CreditCard[]> {
     const ref = collection(db, this.collectionPath);
     const q = query(ref, where('orgId', '==', this.orgId), where('accountId', '==', accountId));
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      CreditCardMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => CreditCardMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async updateBalance(creditCardId: string, newBalance: number): Promise<void> {

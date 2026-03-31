@@ -71,9 +71,7 @@ export function FloatingActionButton({
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
             'w-14 h-14 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center',
-            isOpen
-              ? 'bg-gray-600 hover:bg-gray-700 rotate-45'
-              : 'bg-primary hover:bg-primary/90'
+            isOpen ? 'bg-gray-600 hover:bg-gray-700 rotate-45' : 'bg-primary hover:bg-primary/90'
           )}
         >
           {isOpen ? (

@@ -4,7 +4,7 @@ import { Account as AccountEntity } from '@/domain/entities/Account';
 
 /**
  * Account mapper
- * 
+ *
  * Transforms between Firestore document format and domain entity format.
  */
 export class AccountMapper {
@@ -92,6 +92,6 @@ export class AccountMapper {
    * @returns Array of Account domain entities
    */
   static toDomainArray(docs: Array<DocumentData & { id: string }>): Account[] {
-    return docs.map(doc => AccountMapper.toDomain(doc));
+    return docs.map((doc) => AccountMapper.toDomain(doc));
   }
 }

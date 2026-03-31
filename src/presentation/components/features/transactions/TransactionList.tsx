@@ -116,9 +116,7 @@ export function TransactionList({
 
               {/* Category */}
               <TableCell>
-                <Badge
-                  variant={transaction.type === 'INCOME' ? 'default' : 'secondary'}
-                >
+                <Badge variant={transaction.type === 'INCOME' ? 'default' : 'secondary'}>
                   {categories[transaction.categoryId] || 'Sin categoría'}
                 </Badge>
               </TableCell>
@@ -159,22 +157,14 @@ export function TransactionList({
                   )}
 
                   {onEdit && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onEdit(transaction)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => onEdit(transaction)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                   )}
 
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={deleteTransaction.isPending}
-                      >
+                      <Button variant="ghost" size="sm" disabled={deleteTransaction.isPending}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </AlertDialogTrigger>
@@ -182,8 +172,8 @@ export function TransactionList({
                       <AlertDialogHeader>
                         <AlertDialogTitle>¿Eliminar transacción?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Esta acción no se puede deshacer. Se eliminará permanentemente
-                          la transacción y se actualizará el balance de la cuenta.
+                          Esta acción no se puede deshacer. Se eliminará permanentemente la
+                          transacción y se actualizará el balance de la cuenta.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

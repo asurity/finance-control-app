@@ -48,7 +48,7 @@ const priorityConfig = {
 };
 
 export function AlertsWidget({ alerts }: AlertsWidgetProps) {
-  const unreadAlerts = alerts.filter(alert => !alert.isRead).slice(0, 3);
+  const unreadAlerts = alerts.filter((alert) => !alert.isRead).slice(0, 3);
 
   if (unreadAlerts.length === 0) {
     return (
@@ -60,12 +60,8 @@ export function AlertsWidget({ alerts }: AlertsWidgetProps) {
         <CardContent>
           <div className="text-center py-8">
             <Info className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">
-              No tienes alertas pendientes
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              ¡Todo bajo control!
-            </p>
+            <p className="text-sm text-muted-foreground">No tienes alertas pendientes</p>
+            <p className="text-xs text-muted-foreground mt-1">¡Todo bajo control!</p>
           </div>
         </CardContent>
       </Card>
@@ -86,9 +82,9 @@ export function AlertsWidget({ alerts }: AlertsWidgetProps) {
           {unreadAlerts.map((alert) => {
             const config = priorityConfig[alert.priority];
             const Icon = config.icon;
-            
+
             return (
-              <div 
+              <div
                 key={alert.id}
                 className="p-3 border rounded-lg hover:bg-muted/50 transition-colors"
               >
@@ -103,9 +99,7 @@ export function AlertsWidget({ alerts }: AlertsWidgetProps) {
                         {config.label}
                       </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {alert.message}
-                    </p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{alert.message}</p>
                     <p className="text-xs text-muted-foreground mt-1">
                       {alert.createdAt ? formatRelativeDate(alert.createdAt) : ''}
                     </p>
@@ -115,7 +109,10 @@ export function AlertsWidget({ alerts }: AlertsWidgetProps) {
             );
           })}
         </div>
-        <Link href="/alerts" className="flex items-center justify-center gap-2 mt-4 text-sm text-primary hover:underline">
+        <Link
+          href="/alerts"
+          className="flex items-center justify-center gap-2 mt-4 text-sm text-primary hover:underline"
+        >
           Ver todas las alertas
           <ArrowRight className="h-4 w-4" />
         </Link>

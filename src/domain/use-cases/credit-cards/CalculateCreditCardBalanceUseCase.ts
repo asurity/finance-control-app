@@ -71,9 +71,6 @@ export class CalculateCreditCardBalanceUseCase extends BaseUseCase<
 
     // Return the greater of: percentage payment or minimum floor
     // But never more than the current balance
-    return Math.min(
-      Math.max(percentagePayment, MINIMUM_FLOOR),
-      currentBalance
-    );
+    return Math.min(Math.max(percentagePayment, MINIMUM_FLOOR), currentBalance);
   }
 }

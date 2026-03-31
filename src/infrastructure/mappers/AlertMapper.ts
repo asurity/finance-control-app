@@ -4,7 +4,7 @@ import { Alert as AlertEntity } from '@/domain/entities/Alert';
 
 /**
  * Alert mapper
- * 
+ *
  * Transforms between Firestore document format and domain entity format.
  * Handles Timestamp ↔ Date conversions.
  */
@@ -28,8 +28,16 @@ export class AlertMapper {
       doc.relatedEntityType,
       doc.relatedEntityId,
       doc.thresholdPercent,
-      doc.readAt instanceof Timestamp ? doc.readAt.toDate() : doc.readAt ? new Date(doc.readAt) : undefined,
-      doc.archivedAt instanceof Timestamp ? doc.archivedAt.toDate() : doc.archivedAt ? new Date(doc.archivedAt) : undefined
+      doc.readAt instanceof Timestamp
+        ? doc.readAt.toDate()
+        : doc.readAt
+          ? new Date(doc.readAt)
+          : undefined,
+      doc.archivedAt instanceof Timestamp
+        ? doc.archivedAt.toDate()
+        : doc.archivedAt
+          ? new Date(doc.archivedAt)
+          : undefined
     );
   }
 
@@ -51,10 +59,14 @@ export class AlertMapper {
       relatedEntityId: alert.relatedEntityId || null,
       thresholdPercent: alert.thresholdPercent || null,
       readAt: alert.readAt
-        ? (alert.readAt instanceof Date ? Timestamp.fromDate(alert.readAt) : Timestamp.fromDate(new Date(alert.readAt)))
+        ? alert.readAt instanceof Date
+          ? Timestamp.fromDate(alert.readAt)
+          : Timestamp.fromDate(new Date(alert.readAt))
         : null,
       archivedAt: alert.archivedAt
-        ? (alert.archivedAt instanceof Date ? Timestamp.fromDate(alert.archivedAt) : Timestamp.fromDate(new Date(alert.archivedAt)))
+        ? alert.archivedAt instanceof Date
+          ? Timestamp.fromDate(alert.archivedAt)
+          : Timestamp.fromDate(new Date(alert.archivedAt))
         : null,
       createdAt: Timestamp.now(),
     };
@@ -80,13 +92,17 @@ export class AlertMapper {
 
     if (alert.readAt !== undefined) {
       data.readAt = alert.readAt
-        ? (alert.readAt instanceof Date ? Timestamp.fromDate(alert.readAt) : Timestamp.fromDate(new Date(alert.readAt)))
+        ? alert.readAt instanceof Date
+          ? Timestamp.fromDate(alert.readAt)
+          : Timestamp.fromDate(new Date(alert.readAt))
         : null;
     }
 
     if (alert.archivedAt !== undefined) {
       data.archivedAt = alert.archivedAt
-        ? (alert.archivedAt instanceof Date ? Timestamp.fromDate(alert.archivedAt) : Timestamp.fromDate(new Date(alert.archivedAt)))
+        ? alert.archivedAt instanceof Date
+          ? Timestamp.fromDate(alert.archivedAt)
+          : Timestamp.fromDate(new Date(alert.archivedAt))
         : null;
     }
 
@@ -99,6 +115,6 @@ export class AlertMapper {
    * @returns Array of Alert domain entities
    */
   static toDomainArray(docs: Array<DocumentData & { id: string }>): Alert[] {
-    return docs.map(doc => AlertMapper.toDomain(doc));
+    return docs.map((doc) => AlertMapper.toDomain(doc));
   }
 }

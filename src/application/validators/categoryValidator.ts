@@ -14,7 +14,11 @@ export const CreateCategorySchema = z.object({
   type: z.enum(['INCOME', 'EXPENSE']),
   userId: z.string().min(1),
   icon: z.string().optional().default('📁'),
-  color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional().default('#6B7280'),
+  color: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+    .optional()
+    .default('#6B7280'),
   description: z.string().max(200).optional(),
   parentCategoryId: z.string().min(1).optional(),
   isActive: z.boolean().default(true),
@@ -28,7 +32,10 @@ export const UpdateCategorySchema = z.object({
   name: z.string().min(2).max(50).optional(),
   type: z.enum(['INCOME', 'EXPENSE']).optional(),
   icon: z.string().optional(),
-  color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
+  color: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+    .optional(),
   description: z.string().max(200).optional(),
   parentCategoryId: z.string().min(1).optional().nullable(),
   isActive: z.boolean().optional(),
@@ -63,37 +70,38 @@ export const GetCategoryHierarchySchema = z.object({
 /**
  * Schema for category usage statistics
  */
-export const CategoryUsageSchema = z.object({
-  categoryId: z.string().min(1),
-  startDate: z.date(),
-  endDate: z.date(),
-}).refine(
-  (data) => data.endDate >= data.startDate,
-  {
+export const CategoryUsageSchema = z
+  .object({
+    categoryId: z.string().min(1),
+    startDate: z.date(),
+    endDate: z.date(),
+  })
+  .refine((data) => data.endDate >= data.startDate, {
     message: 'La fecha de fin debe ser posterior o igual a la fecha de inicio',
     path: ['endDate'],
-  }
-);
+  });
 
 /**
  * Schema for deleting a category
  */
-export const DeleteCategorySchema = z.object({
-  categoryId: z.string().min(1),
-  force: z.boolean().default(false),
-  replacementCategoryId: z.string().min(1).optional(),
-}).refine(
-  (data) => {
-    if (!data.force && !data.replacementCategoryId) {
-      return false;
+export const DeleteCategorySchema = z
+  .object({
+    categoryId: z.string().min(1),
+    force: z.boolean().default(false),
+    replacementCategoryId: z.string().min(1).optional(),
+  })
+  .refine(
+    (data) => {
+      if (!data.force && !data.replacementCategoryId) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'Debe proporcionar una categoría de reemplazo o usar force=true',
+      path: ['replacementCategoryId'],
     }
-    return true;
-  },
-  {
-    message: 'Debe proporcionar una categoría de reemplazo o usar force=true',
-    path: ['replacementCategoryId'],
-  }
-);
+  );
 
 // Type exports
 export type CreateCategoryInput = z.infer<typeof CreateCategorySchema>;

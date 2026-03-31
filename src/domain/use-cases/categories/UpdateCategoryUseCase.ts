@@ -22,10 +22,7 @@ export interface UpdateCategoryOutput {
  * Updates category information (name, icon, color)
  * Note: Cannot update system categories or change the type
  */
-export class UpdateCategoryUseCase extends BaseUseCase<
-  UpdateCategoryInput,
-  UpdateCategoryOutput
-> {
+export class UpdateCategoryUseCase extends BaseUseCase<UpdateCategoryInput, UpdateCategoryOutput> {
   constructor(private categoryRepo: ICategoryRepository) {
     super();
   }

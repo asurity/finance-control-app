@@ -73,20 +73,20 @@ export class GetDailyWeeklyStatsUseCase extends BaseUseCase<
 
     // Calculate today's stats
     const todayExpenses = todayTransactions
-      .filter(t => t.type === 'EXPENSE')
+      .filter((t) => t.type === 'EXPENSE')
       .reduce((sum, t) => sum + t.amount, 0);
 
     const todayIncome = todayTransactions
-      .filter(t => t.type === 'INCOME')
+      .filter((t) => t.type === 'INCOME')
       .reduce((sum, t) => sum + t.amount, 0);
 
     // Calculate this week's stats
     const thisWeekExpenses = thisWeekTransactions
-      .filter(t => t.type === 'EXPENSE')
+      .filter((t) => t.type === 'EXPENSE')
       .reduce((sum, t) => sum + t.amount, 0);
 
     const thisWeekIncome = thisWeekTransactions
-      .filter(t => t.type === 'INCOME')
+      .filter((t) => t.type === 'INCOME')
       .reduce((sum, t) => sum + t.amount, 0);
 
     const daysElapsed = differenceInDays(date, thisWeekStart) + 1;
@@ -94,11 +94,11 @@ export class GetDailyWeeklyStatsUseCase extends BaseUseCase<
 
     // Calculate last week's stats
     const lastWeekExpenses = lastWeekTransactions
-      .filter(t => t.type === 'EXPENSE')
+      .filter((t) => t.type === 'EXPENSE')
       .reduce((sum, t) => sum + t.amount, 0);
 
     const lastWeekIncome = lastWeekTransactions
-      .filter(t => t.type === 'INCOME')
+      .filter((t) => t.type === 'INCOME')
       .reduce((sum, t) => sum + t.amount, 0);
 
     // Get active budget period to calculate daily budget

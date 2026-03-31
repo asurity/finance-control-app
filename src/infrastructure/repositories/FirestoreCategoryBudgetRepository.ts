@@ -19,7 +19,7 @@ import { CategoryBudgetMapper } from '@/infrastructure/mappers/CategoryBudgetMap
 
 /**
  * Firestore implementation of Category Budget Repository
- * 
+ *
  * Handles all category budget persistence operations using Firestore.
  */
 export class FirestoreCategoryBudgetRepository implements ICategoryBudgetRepository {
@@ -52,9 +52,7 @@ export class FirestoreCategoryBudgetRepository implements ICategoryBudgetReposit
     const q = query(ref, where('orgId', '==', this.orgId), orderBy('percentage', 'desc'));
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map((doc) =>
-      CategoryBudgetMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => CategoryBudgetMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async update(id: string, data: CategoryBudget): Promise<void> {
@@ -84,9 +82,7 @@ export class FirestoreCategoryBudgetRepository implements ICategoryBudgetReposit
     );
 
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) =>
-      CategoryBudgetMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => CategoryBudgetMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getByBudgetPeriodAndCategory(
@@ -119,22 +115,28 @@ export class FirestoreCategoryBudgetRepository implements ICategoryBudgetReposit
 
   async getByCategoryId(categoryId: string): Promise<CategoryBudget[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(ref, where('orgId', '==', this.orgId), where('categoryId', '==', categoryId), orderBy('createdAt', 'desc'));
+    const q = query(
+      ref,
+      where('orgId', '==', this.orgId),
+      where('categoryId', '==', categoryId),
+      orderBy('createdAt', 'desc')
+    );
 
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) =>
-      CategoryBudgetMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => CategoryBudgetMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getByUserId(userId: string): Promise<CategoryBudget[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(ref, where('orgId', '==', this.orgId), where('userId', '==', userId), orderBy('percentage', 'desc'));
+    const q = query(
+      ref,
+      where('orgId', '==', this.orgId),
+      where('userId', '==', userId),
+      orderBy('percentage', 'desc')
+    );
 
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) =>
-      CategoryBudgetMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => CategoryBudgetMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async updateSpentAmount(id: string, spentAmount: number): Promise<void> {
@@ -185,10 +187,7 @@ export class FirestoreCategoryBudgetRepository implements ICategoryBudgetReposit
     await batch.commit();
   }
 
-  async recalculateAllocatedAmounts(
-    budgetPeriodId: string,
-    newTotalAmount: number
-  ): Promise<void> {
+  async recalculateAllocatedAmounts(budgetPeriodId: string, newTotalAmount: number): Promise<void> {
     const categoryBudgets = await this.getByBudgetPeriodId(budgetPeriodId);
 
     if (categoryBudgets.length === 0) return;

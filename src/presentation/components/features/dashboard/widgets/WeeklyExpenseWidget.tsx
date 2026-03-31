@@ -7,7 +7,15 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
-import { Calendar, TrendingDown, TrendingUp, ArrowUp, ArrowDown, Receipt, DollarSign } from 'lucide-react';
+import {
+  Calendar,
+  TrendingDown,
+  TrendingUp,
+  ArrowUp,
+  ArrowDown,
+  Receipt,
+  DollarSign,
+} from 'lucide-react';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { DailyWeeklyStats } from '@/domain/use-cases/dashboard/GetDailyWeeklyStatsUseCase';
@@ -19,13 +27,12 @@ interface WeeklyExpenseWidgetProps {
 
 export function WeeklyExpenseWidget({ stats, date = new Date() }: WeeklyExpenseWidgetProps) {
   const { thisWeek, lastWeek } = stats;
-  
+
   // Calculate change percentage
   const changeAmount = thisWeek.totalExpenses - lastWeek.totalExpenses;
-  const changePercent = lastWeek.totalExpenses > 0 
-    ? ((changeAmount / lastWeek.totalExpenses) * 100)
-    : 0;
-  
+  const changePercent =
+    lastWeek.totalExpenses > 0 ? (changeAmount / lastWeek.totalExpenses) * 100 : 0;
+
   const isIncrease = changeAmount > 0;
   const ChangeIcon = isIncrease ? ArrowUp : ArrowDown;
   const changeColor = isIncrease ? 'text-red-500' : 'text-green-500';
@@ -51,10 +58,10 @@ export function WeeklyExpenseWidget({ stats, date = new Date() }: WeeklyExpenseW
         {/* Main expense amount */}
         <div>
           <p className="text-xs text-muted-foreground mb-1">Total gastado</p>
-          <MoneyDisplay 
-            amount={thisWeek.totalExpenses} 
-            type="expense" 
-            size="xl" 
+          <MoneyDisplay
+            amount={thisWeek.totalExpenses}
+            type="expense"
+            size="xl"
             className="font-bold"
           />
         </div>
@@ -63,11 +70,7 @@ export function WeeklyExpenseWidget({ stats, date = new Date() }: WeeklyExpenseW
         <div className="flex items-center justify-between py-2 px-3 bg-muted/50 rounded-lg">
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Semana pasada:</span>
-            <MoneyDisplay 
-              amount={lastWeek.totalExpenses} 
-              type="neutral" 
-              size="sm"
-            />
+            <MoneyDisplay amount={lastWeek.totalExpenses} type="neutral" size="sm" />
           </div>
           {lastWeek.totalExpenses > 0 && (
             <div className={`flex items-center gap-1 text-xs font-medium ${changeColor}`}>
@@ -83,9 +86,9 @@ export function WeeklyExpenseWidget({ stats, date = new Date() }: WeeklyExpenseW
             <TrendingDown className="w-4 h-4" />
             <span>Promedio diario</span>
           </div>
-          <MoneyDisplay 
-            amount={thisWeek.dailyAverage} 
-            type="expense" 
+          <MoneyDisplay
+            amount={thisWeek.dailyAverage}
+            type="expense"
             size="sm"
             className="font-medium"
           />
@@ -98,9 +101,9 @@ export function WeeklyExpenseWidget({ stats, date = new Date() }: WeeklyExpenseW
               <DollarSign className="w-4 h-4" />
               <span>Ingresos</span>
             </div>
-            <MoneyDisplay 
-              amount={thisWeek.totalIncome} 
-              type="income" 
+            <MoneyDisplay
+              amount={thisWeek.totalIncome}
+              type="income"
               size="sm"
               className="font-medium"
             />
@@ -111,7 +114,8 @@ export function WeeklyExpenseWidget({ stats, date = new Date() }: WeeklyExpenseW
         <div className="flex items-center gap-2 pt-2 border-t text-sm text-muted-foreground">
           <Receipt className="w-4 h-4" />
           <span>
-            {thisWeek.transactionCount} {thisWeek.transactionCount === 1 ? 'transacción' : 'transacciones'}
+            {thisWeek.transactionCount}{' '}
+            {thisWeek.transactionCount === 1 ? 'transacción' : 'transacciones'}
           </span>
         </div>
       </CardContent>

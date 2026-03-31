@@ -39,9 +39,9 @@ export class FirestoreAlertRepository implements IAlertRepository {
   async getById(id: string): Promise<Alert | null> {
     const docRef = doc(db, this.collectionPath, id);
     const docSnap = await getDoc(docRef);
-    
+
     if (!docSnap.exists()) return null;
-    
+
     return AlertMapper.toDomain({ id: docSnap.id, ...docSnap.data() });
   }
 
@@ -49,10 +49,8 @@ export class FirestoreAlertRepository implements IAlertRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(ref, where('orgId', '==', this.orgId), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
-    
-    return snapshot.docs.map(doc => 
-      AlertMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+
+    return snapshot.docs.map((doc) => AlertMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async update(id: string, data: Partial<Alert>): Promise<void> {
@@ -81,11 +79,9 @@ export class FirestoreAlertRepository implements IAlertRepository {
       where('isArchived', '==', false),
       orderBy('createdAt', 'desc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      AlertMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => AlertMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getByType(type: AlertType): Promise<Alert[]> {
@@ -96,11 +92,9 @@ export class FirestoreAlertRepository implements IAlertRepository {
       where('type', '==', type),
       orderBy('createdAt', 'desc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      AlertMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => AlertMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getByPriority(priority: AlertPriority): Promise<Alert[]> {
@@ -111,11 +105,9 @@ export class FirestoreAlertRepository implements IAlertRepository {
       where('priority', '==', priority),
       orderBy('createdAt', 'desc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      AlertMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => AlertMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getByUser(userId: string): Promise<Alert[]> {
@@ -126,11 +118,9 @@ export class FirestoreAlertRepository implements IAlertRepository {
       where('userId', '==', userId),
       orderBy('createdAt', 'desc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      AlertMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => AlertMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async markAsRead(alertId: string): Promise<void> {
@@ -169,11 +159,9 @@ export class FirestoreAlertRepository implements IAlertRepository {
       where('isArchived', '==', true),
       orderBy('archivedAt', 'desc')
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      AlertMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => AlertMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async createBudgetAlert(
@@ -205,7 +193,7 @@ export class FirestoreAlertRepository implements IAlertRepository {
     amount: number
   ): Promise<string> {
     const daysUntilDue = Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-    
+
     const alert: Omit<Alert, 'id' | 'createdAt'> = {
       type: 'PAYMENT_DUE',
       priority: daysUntilDue <= 1 ? 'URGENT' : daysUntilDue <= 3 ? 'HIGH' : 'MEDIUM',
@@ -250,13 +238,13 @@ export class FirestoreAlertRepository implements IAlertRepository {
     total: number;
   }> {
     const alerts = await this.getUnread();
-    const userAlerts = alerts.filter(alert => alert.userId === userId);
+    const userAlerts = alerts.filter((alert) => alert.userId === userId);
 
     const counts = {
-      urgent: userAlerts.filter(a => a.priority === 'URGENT').length,
-      high: userAlerts.filter(a => a.priority === 'HIGH').length,
-      medium: userAlerts.filter(a => a.priority === 'MEDIUM').length,
-      low: userAlerts.filter(a => a.priority === 'LOW').length,
+      urgent: userAlerts.filter((a) => a.priority === 'URGENT').length,
+      high: userAlerts.filter((a) => a.priority === 'HIGH').length,
+      medium: userAlerts.filter((a) => a.priority === 'MEDIUM').length,
+      low: userAlerts.filter((a) => a.priority === 'LOW').length,
       total: userAlerts.length,
     };
 

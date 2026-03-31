@@ -49,16 +49,17 @@ export class UpdateTransactionUseCase extends BaseUseCase<
     }
 
     // Verify transaction can be edited (not part of paid installments)
-    if (
-      originalTransaction.isInstallment &&
-      originalTransaction.installmentNumber !== 1
-    ) {
-      throw new Error('Cannot edit installment transactions directly. Edit from first installment.');
+    if (originalTransaction.isInstallment && originalTransaction.installmentNumber !== 1) {
+      throw new Error(
+        'Cannot edit installment transactions directly. Edit from first installment.'
+      );
     }
 
     // Verify transaction is not from recurring (should be managed from recurring entity)
     if (originalTransaction.isRecurring) {
-      throw new Error('Cannot edit recurring transactions directly. Manage from recurring transaction.');
+      throw new Error(
+        'Cannot edit recurring transactions directly. Manage from recurring transaction.'
+      );
     }
 
     // Handle account change
@@ -71,10 +72,7 @@ export class UpdateTransactionUseCase extends BaseUseCase<
     }
     // Handle amount change on same account
     else if (input.amount && input.amount !== originalTransaction.amount) {
-      await this.handleAmountChange(
-        originalTransaction,
-        input.amount
-      );
+      await this.handleAmountChange(originalTransaction, input.amount);
     }
 
     // Update transaction with new values
@@ -138,10 +136,7 @@ export class UpdateTransactionUseCase extends BaseUseCase<
   /**
    * Handles amount change on same account
    */
-  private async handleAmountChange(
-    originalTransaction: any,
-    newAmount: number
-  ): Promise<void> {
+  private async handleAmountChange(originalTransaction: any, newAmount: number): Promise<void> {
     const account = await this.accountRepo.getById(originalTransaction.accountId);
     if (!account) {
       throw new Error('Account not found');

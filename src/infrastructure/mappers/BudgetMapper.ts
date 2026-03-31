@@ -4,7 +4,7 @@ import { Budget as BudgetEntity } from '@/domain/entities/Budget';
 
 /**
  * Budget mapper
- * 
+ *
  * Transforms between Firestore document format and domain entity format.
  * Handles Timestamp ↔ Date conversions.
  */
@@ -47,12 +47,14 @@ export class BudgetMapper {
       userId: budget.userId,
       alertThreshold: budget.alertThreshold || 80,
       isActive: budget.isActive !== undefined ? budget.isActive : true,
-      startDate: budget.startDate instanceof Date
-        ? Timestamp.fromDate(budget.startDate)
-        : Timestamp.fromDate(new Date(budget.startDate)),
-      endDate: budget.endDate instanceof Date
-        ? Timestamp.fromDate(budget.endDate)
-        : Timestamp.fromDate(new Date(budget.endDate)),
+      startDate:
+        budget.startDate instanceof Date
+          ? Timestamp.fromDate(budget.startDate)
+          : Timestamp.fromDate(new Date(budget.startDate)),
+      endDate:
+        budget.endDate instanceof Date
+          ? Timestamp.fromDate(budget.endDate)
+          : Timestamp.fromDate(new Date(budget.endDate)),
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
@@ -76,17 +78,19 @@ export class BudgetMapper {
     if (budget.userId !== undefined) data.userId = budget.userId;
     if (budget.alertThreshold !== undefined) data.alertThreshold = budget.alertThreshold;
     if (budget.isActive !== undefined) data.isActive = budget.isActive;
-    
+
     if (budget.startDate !== undefined) {
-      data.startDate = budget.startDate instanceof Date
-        ? Timestamp.fromDate(budget.startDate)
-        : Timestamp.fromDate(new Date(budget.startDate));
+      data.startDate =
+        budget.startDate instanceof Date
+          ? Timestamp.fromDate(budget.startDate)
+          : Timestamp.fromDate(new Date(budget.startDate));
     }
-    
+
     if (budget.endDate !== undefined) {
-      data.endDate = budget.endDate instanceof Date
-        ? Timestamp.fromDate(budget.endDate)
-        : Timestamp.fromDate(new Date(budget.endDate));
+      data.endDate =
+        budget.endDate instanceof Date
+          ? Timestamp.fromDate(budget.endDate)
+          : Timestamp.fromDate(new Date(budget.endDate));
     }
 
     return data;
@@ -98,6 +102,6 @@ export class BudgetMapper {
    * @returns Array of Budget domain entities
    */
   static toDomainArray(docs: Array<DocumentData & { id: string }>): BudgetEntity[] {
-    return docs.map(doc => BudgetMapper.toDomain(doc));
+    return docs.map((doc) => BudgetMapper.toDomain(doc));
   }
 }

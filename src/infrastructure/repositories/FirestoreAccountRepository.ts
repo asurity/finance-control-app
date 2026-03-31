@@ -18,7 +18,7 @@ import { AccountMapper } from '@/infrastructure/mappers/AccountMapper';
 
 /**
  * Firestore implementation of Account Repository
- * 
+ *
  * Handles all account persistence operations using Firestore.
  */
 export class FirestoreAccountRepository implements IAccountRepository {
@@ -40,9 +40,9 @@ export class FirestoreAccountRepository implements IAccountRepository {
   async getById(id: string): Promise<Account | null> {
     const docRef = doc(db, this.collectionPath, id);
     const docSnap = await getDoc(docRef);
-    
+
     if (!docSnap.exists()) return null;
-    
+
     return AccountMapper.toDomain({ id: docSnap.id, ...docSnap.data() });
   }
 
@@ -50,11 +50,11 @@ export class FirestoreAccountRepository implements IAccountRepository {
     const ref = collection(db, this.collectionPath);
     const q = query(ref, where('orgId', '==', this.orgId));
     const snapshot = await getDocs(q);
-    
-    const accounts = snapshot.docs.map(doc => 
+
+    const accounts = snapshot.docs.map((doc) =>
       AccountMapper.toDomain({ id: doc.id, ...doc.data() })
     );
-    
+
     // Sort in memory to avoid composite index requirement
     return accounts.sort((a, b) => a.name.localeCompare(b.name));
   }
@@ -77,18 +77,14 @@ export class FirestoreAccountRepository implements IAccountRepository {
   }
 
   async getActive(): Promise<Account[]> {
- const ref = collection(db, this.collectionPath);
-    const q = query(
-      ref,
-      where('orgId', '==', this.orgId),
-      where('isActive', '==', true)
-    );
-    
+    const ref = collection(db, this.collectionPath);
+    const q = query(ref, where('orgId', '==', this.orgId), where('isActive', '==', true));
+
     const snapshot = await getDocs(q);
-    const accounts = snapshot.docs.map(doc => 
+    const accounts = snapshot.docs.map((doc) =>
       AccountMapper.toDomain({ id: doc.id, ...doc.data() })
     );
-    
+
     // Sort in memory to avoid composite index requirement
     return accounts.sort((a, b) => a.name.localeCompare(b.name));
   }
@@ -101,11 +97,9 @@ export class FirestoreAccountRepository implements IAccountRepository {
       where('type', '==', type),
       where('isActive', '==', true)
     );
-    
+
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => 
-      AccountMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => AccountMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async updateBalance(accountId: string, newBalance: number): Promise<void> {

@@ -3,7 +3,16 @@
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Landmark, PlusCircle, Wallet, MoreVertical, Pencil, Trash2, TrendingUp, CreditCard } from 'lucide-react';
+import {
+  Landmark,
+  PlusCircle,
+  Wallet,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  TrendingUp,
+  CreditCard,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
 
@@ -11,7 +20,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
 import { useAccounts } from '@/application/hooks/useAccounts';
 import { useDebtSummary } from '@/presentation/components/features/dashboard/hooks/useDebtSummary';
-import { CreateAccountSchema, UpdateAccountSchema } from '@/application/validators/accountValidator';
+import {
+  CreateAccountSchema,
+  UpdateAccountSchema,
+} from '@/application/validators/accountValidator';
 import type { z } from 'zod';
 import type { AccountType } from '@/types/firestore';
 import type { Account } from '@/types/firestore';
@@ -146,40 +158,45 @@ function AccountsContent({
 
   const selectedType = form.watch('type');
   const editSelectedType = editForm.watch('type');
-  
+
   // Separate accounts by type
   const assetAccounts = useMemo(
-    () => accounts.filter(
-      (account) => 
-        account.isActive && 
-        (account.type === 'CHECKING' || 
-         account.type === 'SAVINGS' || 
-         account.type === 'CASH' || 
-         account.type === 'INVESTMENT')
-    ),
+    () =>
+      accounts.filter(
+        (account) =>
+          account.isActive &&
+          (account.type === 'CHECKING' ||
+            account.type === 'SAVINGS' ||
+            account.type === 'CASH' ||
+            account.type === 'INVESTMENT')
+      ),
     [accounts]
   );
 
   const debtAccounts = useMemo(
-    () => accounts.filter(
-      (account) => 
-        account.isActive && 
-        (account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT')
-    ),
+    () =>
+      accounts.filter(
+        (account) =>
+          account.isActive && (account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT')
+      ),
     [accounts]
   );
 
   const totalBalance = useMemo(
-    () => accounts.filter((account) => account.isActive).reduce((sum, account) => sum + account.balance, 0),
+    () =>
+      accounts
+        .filter((account) => account.isActive)
+        .reduce((sum, account) => sum + account.balance, 0),
     [accounts]
   );
 
   const onSubmit = async (values: AccountFormValues) => {
     try {
       const isCreditAccount = values.type === 'CREDIT_CARD' || values.type === 'LINE_OF_CREDIT';
-      const paymentDueDay = isCreditAccount && values.creditCardCutoffDay && values.creditCardPaymentDays
-        ? Math.min(values.creditCardCutoffDay + values.creditCardPaymentDays, 31)
-        : undefined;
+      const paymentDueDay =
+        isCreditAccount && values.creditCardCutoffDay && values.creditCardPaymentDays
+          ? Math.min(values.creditCardCutoffDay + values.creditCardPaymentDays, 31)
+          : undefined;
 
       await accountsHook.createAccount.mutateAsync({
         name: values.name,
@@ -209,10 +226,10 @@ function AccountsContent({
 
   const handleEditAccount = (account: Account) => {
     setEditingAccount(account);
-    
+
     // Convertir los valores del account al formato que espera el formulario
     const isCreditAccount = account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT';
-    
+
     editForm.reset({
       id: account.id,
       name: account.name,
@@ -224,20 +241,22 @@ function AccountsContent({
       cardNumber: account.cardNumber || '',
       creditLimit: isCreditAccount ? account.creditLimit : undefined,
       creditCardCutoffDay: isCreditAccount ? account.cutoffDay : undefined,
-      creditCardPaymentDays: isCreditAccount && account.cutoffDay && account.paymentDueDay 
-        ? account.paymentDueDay - account.cutoffDay 
-        : undefined,
+      creditCardPaymentDays:
+        isCreditAccount && account.cutoffDay && account.paymentDueDay
+          ? account.paymentDueDay - account.cutoffDay
+          : undefined,
     } as any);
-    
+
     setIsEditDialogOpen(true);
   };
 
   const handleUpdateAccount = async (values: UpdateAccountFormValues) => {
     try {
       const isCreditAccount = values.type === 'CREDIT_CARD' || values.type === 'LINE_OF_CREDIT';
-      const paymentDueDay = isCreditAccount && values.creditCardCutoffDay && values.creditCardPaymentDays
-        ? Math.min(values.creditCardCutoffDay + values.creditCardPaymentDays, 31)
-        : undefined;
+      const paymentDueDay =
+        isCreditAccount && values.creditCardCutoffDay && values.creditCardPaymentDays
+          ? Math.min(values.creditCardCutoffDay + values.creditCardPaymentDays, 31)
+          : undefined;
 
       await accountsHook.updateAccount.mutateAsync({
         id: values.id,
@@ -251,11 +270,12 @@ function AccountsContent({
         creditLimit: isCreditAccount ? values.creditLimit : undefined,
         cutoffDay: isCreditAccount ? values.creditCardCutoffDay : undefined,
         paymentDueDay,
-        availableCredit: isCreditAccount && values.creditLimit && values.balance !== undefined
-          ? (values.type === 'LINE_OF_CREDIT' 
-              ? values.balance 
-              : values.creditLimit - Math.abs(values.balance))
-          : undefined,
+        availableCredit:
+          isCreditAccount && values.creditLimit && values.balance !== undefined
+            ? values.type === 'LINE_OF_CREDIT'
+              ? values.balance
+              : values.creditLimit - Math.abs(values.balance)
+            : undefined,
       });
 
       toast.success('Cuenta actualizada exitosamente');
@@ -302,9 +322,7 @@ function AccountsContent({
               <TrendingUp className="h-5 w-5" />
               Resumen Financiero
             </CardTitle>
-            <CardDescription>
-              Visión general de tu patrimonio neto
-            </CardDescription>
+            <CardDescription>Visión general de tu patrimonio neto</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -312,15 +330,17 @@ function AccountsContent({
               <div className="text-center py-4 px-4 bg-muted/50 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-2">Patrimonio Neto</p>
                 <div className="flex items-center justify-center gap-2">
-                  <span className={`text-3xl font-bold ${
-                    debtSummary.netWorth >= 0 
-                      ? 'text-green-600 dark:text-green-500' 
-                      : 'text-red-600 dark:text-red-500'
-                  }`}>
+                  <span
+                    className={`text-3xl font-bold ${
+                      debtSummary.netWorth >= 0
+                        ? 'text-green-600 dark:text-green-500'
+                        : 'text-red-600 dark:text-red-500'
+                    }`}
+                  >
                     {debtSummary.netWorth >= 0 ? '↑' : '↓'}
                   </span>
-                  <MoneyDisplay 
-                    amount={Math.abs(debtSummary.netWorth)} 
+                  <MoneyDisplay
+                    amount={Math.abs(debtSummary.netWorth)}
                     className="text-3xl font-bold"
                     showSign={false}
                   />
@@ -335,14 +355,15 @@ function AccountsContent({
                       <div className="w-3 h-3 rounded-full bg-green-500" />
                       <span className="text-sm font-medium">Total Activos</span>
                     </div>
-                    <MoneyDisplay 
-                      amount={debtSummary.totalAssets} 
+                    <MoneyDisplay
+                      amount={debtSummary.totalAssets}
                       className="font-semibold"
                       showSign={false}
                     />
                   </div>
                   <p className="text-xs text-muted-foreground pl-5">
-                    {assetAccounts.length} cuenta{assetAccounts.length !== 1 ? 's' : ''} activa{assetAccounts.length !== 1 ? 's' : ''}
+                    {assetAccounts.length} cuenta{assetAccounts.length !== 1 ? 's' : ''} activa
+                    {assetAccounts.length !== 1 ? 's' : ''}
                   </p>
                 </div>
 
@@ -352,8 +373,8 @@ function AccountsContent({
                       <div className="w-3 h-3 rounded-full bg-red-500" />
                       <span className="text-sm font-medium">Total Deudas</span>
                     </div>
-                    <MoneyDisplay 
-                      amount={debtSummary.totalDebt} 
+                    <MoneyDisplay
+                      amount={debtSummary.totalDebt}
                       className="font-semibold"
                       showSign={false}
                     />
@@ -367,29 +388,39 @@ function AccountsContent({
               {/* Visual bar */}
               <div className="flex h-4 rounded-full overflow-hidden bg-muted">
                 {debtSummary.totalAssets > 0 && (
-                  <div 
-                    className="bg-green-500 transition-all flex items-center justify-center text-xs text-white font-medium" 
-                    style={{ 
-                      width: `${(debtSummary.totalAssets / (debtSummary.totalAssets + debtSummary.totalDebt)) * 100}%` 
+                  <div
+                    className="bg-green-500 transition-all flex items-center justify-center text-xs text-white font-medium"
+                    style={{
+                      width: `${(debtSummary.totalAssets / (debtSummary.totalAssets + debtSummary.totalDebt)) * 100}%`,
                     }}
                   >
                     {debtSummary.totalAssets > debtSummary.totalDebt && (
                       <span className="px-2">
-                        {((debtSummary.totalAssets / (debtSummary.totalAssets + debtSummary.totalDebt)) * 100).toFixed(0)}%
+                        {(
+                          (debtSummary.totalAssets /
+                            (debtSummary.totalAssets + debtSummary.totalDebt)) *
+                          100
+                        ).toFixed(0)}
+                        %
                       </span>
                     )}
                   </div>
                 )}
                 {debtSummary.totalDebt > 0 && (
-                  <div 
-                    className="bg-red-500 transition-all flex items-center justify-center text-xs text-white font-medium" 
-                    style={{ 
-                      width: `${(debtSummary.totalDebt / (debtSummary.totalAssets + debtSummary.totalDebt)) * 100}%` 
+                  <div
+                    className="bg-red-500 transition-all flex items-center justify-center text-xs text-white font-medium"
+                    style={{
+                      width: `${(debtSummary.totalDebt / (debtSummary.totalAssets + debtSummary.totalDebt)) * 100}%`,
                     }}
                   >
                     {debtSummary.totalDebt > debtSummary.totalAssets && (
                       <span className="px-2">
-                        {((debtSummary.totalDebt / (debtSummary.totalAssets + debtSummary.totalDebt)) * 100).toFixed(0)}%
+                        {(
+                          (debtSummary.totalDebt /
+                            (debtSummary.totalAssets + debtSummary.totalDebt)) *
+                          100
+                        ).toFixed(0)}
+                        %
                       </span>
                     )}
                   </div>
@@ -462,9 +493,7 @@ function AccountsContent({
                       <FormControl>
                         <Input placeholder="Ej: Banco Estado, BCI, Santander" {...field} />
                       </FormControl>
-                      <FormDescription>
-                        Nombre de la institución financiera
-                      </FormDescription>
+                      <FormDescription>Nombre de la institución financiera</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -477,16 +506,9 @@ function AccountsContent({
                     <FormItem>
                       <FormLabel>Últimos 4 dígitos (opcional)</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="1234" 
-                          maxLength={4}
-                          pattern="\d{4}"
-                          {...field} 
-                        />
+                        <Input placeholder="1234" maxLength={4} pattern="\d{4}" {...field} />
                       </FormControl>
-                      <FormDescription>
-                        Solo los últimos 4 dígitos de la tarjeta
-                      </FormDescription>
+                      <FormDescription>Solo los últimos 4 dígitos de la tarjeta</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -540,7 +562,9 @@ function AccountsContent({
                               type="number"
                               step="0.01"
                               value={field.value ?? ''}
-                              onChange={(event) => field.onChange(Number(event.target.value) || undefined)}
+                              onChange={(event) =>
+                                field.onChange(Number(event.target.value) || undefined)
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -561,7 +585,9 @@ function AccountsContent({
                                 min="1"
                                 max="31"
                                 value={field.value ?? ''}
-                                onChange={(event) => field.onChange(Number(event.target.value) || undefined)}
+                                onChange={(event) =>
+                                  field.onChange(Number(event.target.value) || undefined)
+                                }
                               />
                             </FormControl>
                             <FormMessage />
@@ -581,7 +607,9 @@ function AccountsContent({
                                 min="1"
                                 max="60"
                                 value={field.value ?? ''}
-                                onChange={(event) => field.onChange(Number(event.target.value) || undefined)}
+                                onChange={(event) =>
+                                  field.onChange(Number(event.target.value) || undefined)
+                                }
                               />
                             </FormControl>
                             <FormDescription>
@@ -595,7 +623,11 @@ function AccountsContent({
                   </>
                 ) : null}
 
-                <Button type="submit" className="w-full" disabled={accountsHook.createAccount.isPending}>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={accountsHook.createAccount.isPending}
+                >
                   {accountsHook.createAccount.isPending ? 'Guardando...' : 'Crear cuenta'}
                 </Button>
               </form>
@@ -613,8 +645,12 @@ function AccountsContent({
                 Mis Cuentas
               </CardTitle>
               <CardDescription>
-                Cuentas de activos: {assetAccounts.length > 0 && (
-                  <>Balance total: <MoneyDisplay amount={debtSummary?.totalAssets ?? 0} type="balance" size="sm" /></>
+                Cuentas de activos:{' '}
+                {assetAccounts.length > 0 && (
+                  <>
+                    Balance total:{' '}
+                    <MoneyDisplay amount={debtSummary?.totalAssets ?? 0} type="balance" size="sm" />
+                  </>
                 )}
               </CardDescription>
             </CardHeader>
@@ -647,7 +683,8 @@ function AccountsContent({
                         <TableRow key={account.id}>
                           <TableCell className="font-medium">{account.name}</TableCell>
                           <TableCell>
-                            {accountTypeOptions.find((option) => option.value === account.type)?.label || account.type}
+                            {accountTypeOptions.find((option) => option.value === account.type)
+                              ?.label || account.type}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {account.bankName || '-'}
@@ -673,7 +710,7 @@ function AccountsContent({
                                   <Pencil className="mr-2 h-4 w-4" />
                                   Editar
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={() => {
                                     setDeletingAccount(account);
                                     setIsDeleteDialogOpen(true);
@@ -703,8 +740,12 @@ function AccountsContent({
                 Mis Deudas
               </CardTitle>
               <CardDescription>
-                Tarjetas de crédito y líneas de crédito: {debtAccounts.length > 0 && (
-                  <>Total adeudado: <MoneyDisplay amount={debtSummary?.totalDebt ?? 0} type="expense" size="sm" /></>
+                Tarjetas de crédito y líneas de crédito:{' '}
+                {debtAccounts.length > 0 && (
+                  <>
+                    Total adeudado:{' '}
+                    <MoneyDisplay amount={debtSummary?.totalDebt ?? 0} type="expense" size="sm" />
+                  </>
                 )}
               </CardDescription>
             </CardHeader>
@@ -737,13 +778,14 @@ function AccountsContent({
                     </TableHeader>
                     <TableBody>
                       {debtAccounts.map((account) => {
-                        const isCreditAccount = account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT';
+                        const isCreditAccount =
+                          account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT';
                         const creditLimit = account.creditLimit || 0;
-                        
+
                         // Calculate used credit and available credit based on account type
                         let usedCredit = 0;
                         let availableCredit = 0;
-                        
+
                         if (isCreditAccount && creditLimit > 0) {
                           if (account.type === 'LINE_OF_CREDIT') {
                             // LINE_OF_CREDIT: balance is available (positive), used = limit - balance
@@ -755,14 +797,16 @@ function AccountsContent({
                             availableCredit = creditLimit - usedCredit;
                           }
                         }
-                        
-                        const creditUtilization = isCreditAccount && creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
-                        
+
+                        const creditUtilization =
+                          isCreditAccount && creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
+
                         return (
                           <TableRow key={account.id}>
                             <TableCell className="font-medium">{account.name}</TableCell>
                             <TableCell>
-                              {accountTypeOptions.find((option) => option.value === account.type)?.label || account.type}
+                              {accountTypeOptions.find((option) => option.value === account.type)
+                                ?.label || account.type}
                             </TableCell>
                             <TableCell className="text-muted-foreground">
                               {account.bankName || '-'}
@@ -781,25 +825,26 @@ function AccountsContent({
                             <TableCell className="text-right text-muted-foreground">
                               {isCreditAccount && creditLimit > 0 ? (
                                 <MoneyDisplay amount={creditLimit} type="neutral" size="sm" />
-                              ) : '-'}
+                              ) : (
+                                '-'
+                              )}
                             </TableCell>
                             <TableCell className="text-right">
                               {isCreditAccount && creditLimit > 0 ? (
                                 <div className="space-y-1">
-                                  <MoneyDisplay 
-                                    amount={availableCredit} 
-                                    type="neutral" 
+                                  <MoneyDisplay
+                                    amount={availableCredit}
+                                    type="neutral"
                                     size="sm"
                                     className={
-                                      creditUtilization > 90 ? 'text-red-600 dark:text-red-400' :
-                                      creditUtilization > 70 ? 'text-yellow-600 dark:text-yellow-400' :
-                                      'text-green-600 dark:text-green-400'
+                                      creditUtilization > 90
+                                        ? 'text-red-600 dark:text-red-400'
+                                        : creditUtilization > 70
+                                          ? 'text-yellow-600 dark:text-yellow-400'
+                                          : 'text-green-600 dark:text-green-400'
                                     }
                                   />
-                                  <Progress 
-                                    value={creditUtilization} 
-                                    className="h-1.5"
-                                  />
+                                  <Progress value={creditUtilization} className="h-1.5" />
                                   <p className="text-xs text-muted-foreground">
                                     {creditUtilization.toFixed(0)}% usado
                                   </p>
@@ -821,7 +866,7 @@ function AccountsContent({
                                     <Pencil className="mr-2 h-4 w-4" />
                                     Editar
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem 
+                                  <DropdownMenuItem
                                     onClick={() => {
                                       setDeletingAccount(account);
                                       setIsDeleteDialogOpen(true);
@@ -917,12 +962,7 @@ function AccountsContent({
                   <FormItem>
                     <FormLabel>Últimos 4 dígitos (opcional)</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="1234" 
-                        maxLength={4}
-                        pattern="\d{4}"
-                        {...field} 
-                      />
+                      <Input placeholder="1234" maxLength={4} pattern="\d{4}" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -944,9 +984,7 @@ function AccountsContent({
                           onChange={(event) => field.onChange(Number(event.target.value) || 0)}
                         />
                       </FormControl>
-                      <FormDescription>
-                        Cuidado al modificar manualmente
-                      </FormDescription>
+                      <FormDescription>Cuidado al modificar manualmente</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -980,7 +1018,9 @@ function AccountsContent({
                             type="number"
                             step="0.01"
                             value={field.value ?? ''}
-                            onChange={(event) => field.onChange(Number(event.target.value) || undefined)}
+                            onChange={(event) =>
+                              field.onChange(Number(event.target.value) || undefined)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -1001,7 +1041,9 @@ function AccountsContent({
                               min="1"
                               max="31"
                               value={field.value ?? ''}
-                              onChange={(event) => field.onChange(Number(event.target.value) || undefined)}
+                              onChange={(event) =>
+                                field.onChange(Number(event.target.value) || undefined)
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -1021,7 +1063,9 @@ function AccountsContent({
                               min="1"
                               max="60"
                               value={field.value ?? ''}
-                              onChange={(event) => field.onChange(Number(event.target.value) || undefined)}
+                              onChange={(event) =>
+                                field.onChange(Number(event.target.value) || undefined)
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -1052,11 +1096,7 @@ function AccountsContent({
               />
 
               <div className="flex gap-2 justify-end">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsEditDialogOpen(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={accountsHook.updateAccount.isPending}>
@@ -1075,18 +1115,23 @@ function AccountsContent({
             <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta acción no se puede deshacer. Se eliminará permanentemente la cuenta{' '}
-              <span className="font-semibold">{deletingAccount?.name}</span> y todos sus datos asociados.
+              <span className="font-semibold">{deletingAccount?.name}</span> y todos sus datos
+              asociados.
               {deletingAccount && Math.abs(deletingAccount.balance) > 0 && (
                 <span className="block mt-2 text-orange-600 dark:text-orange-400">
-                  ⚠️ Esta cuenta tiene un saldo de <MoneyDisplay amount={deletingAccount.balance} type="balance" size="sm" className="inline" />
+                  ⚠️ Esta cuenta tiene un saldo de{' '}
+                  <MoneyDisplay
+                    amount={deletingAccount.balance}
+                    type="balance"
+                    size="sm"
+                    className="inline"
+                  />
                 </span>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeletingAccount(null)}>
-              Cancelar
-            </AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDeletingAccount(null)}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteAccount}
               className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"

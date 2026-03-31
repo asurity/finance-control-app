@@ -18,7 +18,7 @@ import { BudgetPeriodMapper } from '@/infrastructure/mappers/BudgetPeriodMapper'
 
 /**
  * Firestore implementation of Budget Period Repository
- * 
+ *
  * Handles all budget period persistence operations using Firestore.
  */
 export class FirestoreBudgetPeriodRepository implements IBudgetPeriodRepository {
@@ -51,9 +51,7 @@ export class FirestoreBudgetPeriodRepository implements IBudgetPeriodRepository 
     const q = query(ref, where('orgId', '==', this.orgId), orderBy('startDate', 'desc'));
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map((doc) =>
-      BudgetPeriodMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => BudgetPeriodMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async update(id: string, data: BudgetPeriod): Promise<void> {
@@ -75,12 +73,15 @@ export class FirestoreBudgetPeriodRepository implements IBudgetPeriodRepository 
 
   async getByUserId(userId: string): Promise<BudgetPeriod[]> {
     const ref = collection(db, this.collectionPath);
-    const q = query(ref, where('orgId', '==', this.orgId), where('userId', '==', userId), orderBy('startDate', 'desc'));
+    const q = query(
+      ref,
+      where('orgId', '==', this.orgId),
+      where('userId', '==', userId),
+      orderBy('startDate', 'desc')
+    );
 
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) =>
-      BudgetPeriodMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => BudgetPeriodMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getByOrganizationId(organizationId: string): Promise<BudgetPeriod[]> {
@@ -93,9 +94,7 @@ export class FirestoreBudgetPeriodRepository implements IBudgetPeriodRepository 
     );
 
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) =>
-      BudgetPeriodMapper.toDomain({ id: doc.id, ...doc.data() })
-    );
+    return snapshot.docs.map((doc) => BudgetPeriodMapper.toDomain({ id: doc.id, ...doc.data() }));
   }
 
   async getActiveByUserId(userId: string): Promise<BudgetPeriod[]> {
@@ -112,9 +111,7 @@ export class FirestoreBudgetPeriodRepository implements IBudgetPeriodRepository 
 
     try {
       const snapshot = await getDocs(q);
-      return snapshot.docs.map((doc) =>
-        BudgetPeriodMapper.toDomain({ id: doc.id, ...doc.data() })
-      );
+      return snapshot.docs.map((doc) => BudgetPeriodMapper.toDomain({ id: doc.id, ...doc.data() }));
     } catch (error: any) {
       // If composite index not available, fallback to client-side filtering
       if (error.code === 'failed-precondition') {
@@ -172,9 +169,7 @@ export class FirestoreBudgetPeriodRepository implements IBudgetPeriodRepository 
 
     try {
       const snapshot = await getDocs(q);
-      return snapshot.docs.map((doc) =>
-        BudgetPeriodMapper.toDomain({ id: doc.id, ...doc.data() })
-      );
+      return snapshot.docs.map((doc) => BudgetPeriodMapper.toDomain({ id: doc.id, ...doc.data() }));
     } catch (error: any) {
       // If composite index not available, fallback to client-side filtering
       if (error.code === 'failed-precondition') {

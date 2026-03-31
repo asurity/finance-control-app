@@ -20,10 +20,7 @@ export interface GetAccountByIdOutput {
  * Use Case: Get Account By ID
  * Retrieves a single account by its ID
  */
-export class GetAccountByIdUseCase extends BaseUseCase<
-  GetAccountByIdInput,
-  GetAccountByIdOutput
-> {
+export class GetAccountByIdUseCase extends BaseUseCase<GetAccountByIdInput, GetAccountByIdOutput> {
   constructor(private accountRepo: IAccountRepository) {
     super();
   }

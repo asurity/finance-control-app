@@ -18,14 +18,14 @@ export function useAccountsSummary() {
     queryKey: ['accounts-summary', currentOrgId, user?.id],
     queryFn: async () => {
       if (!user || !currentOrgId) throw new Error('User not authenticated');
-      
+
       const container = DIContainer.getInstance();
       container.setOrgId(currentOrgId);
-      
+
       const accountRepo = container.getAccountRepository();
       const accounts = await accountRepo.getAll({ userId: user.id });
-      
-      const activeAccounts = accounts.filter(acc => acc.isActive);
+
+      const activeAccounts = accounts.filter((acc) => acc.isActive);
       const totalBalance = activeAccounts.reduce((sum, acc) => sum + acc.balance, 0);
 
       return {

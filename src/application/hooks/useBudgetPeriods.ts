@@ -12,6 +12,9 @@ import {
   GetBudgetPeriodDTO,
   ListBudgetPeriodsDTO,
   GetCurrentBudgetPeriodDTO,
+  CloneBudgetPeriodDTO,
+  CheckPeriodExpirationDTO,
+  SuggestCategoryBudgetsDTO,
 } from '@/application/dto';
 
 /**
@@ -19,13 +22,16 @@ import {
  */
 export const budgetPeriodKeys = {
   all: (orgId: string) => ['budgetPeriods', orgId] as const,
-  byUser: (orgId: string, userId: string) => ['budgetPeriods', orgId, 'user', userId] as const,
+  byUser: (orgId: string, userId: string) => ['budgetPeriods', orgId, 'user', userId] as const,      
   byId: (orgId: string, id: string) => ['budgetPeriods', orgId, 'detail', id] as const,
-  active: (orgId: string, userId: string) => ['budgetPeriods', orgId, 'active', userId] as const,
-  current: (orgId: string, userId: string, date?: Date) => 
+  active: (orgId: string, userId: string) => ['budgetPeriods', orgId, 'active', userId] as const,    
+  current: (orgId: string, userId: string, date?: Date) =>
     ['budgetPeriods', orgId, 'current', userId, date?.toISOString()] as const,
-  byDateRange: (orgId: string, userId: string, startDate: Date, endDate: Date) => 
+  byDateRange: (orgId: string, userId: string, startDate: Date, endDate: Date) =>
     ['budgetPeriods', orgId, 'dateRange', userId, startDate.toISOString(), endDate.toISOString()] as const,
+  expiration: (orgId: string, userId: string) => ['budgetPeriods', orgId, 'expiration', userId] as const,
+  suggestions: (orgId: string, userId: string, startDate: Date, endDate: Date) => 
+    ['budgetPeriods', orgId, 'suggestions', userId, startDate.toISOString(), endDate.toISOString()] as const,
 };
 
 /**
@@ -45,8 +51,9 @@ export function useBudgetPeriods(orgId: string) {
   const getBudgetPeriodUseCase = container.getGetBudgetPeriodUseCase();
   const listBudgetPeriodsUseCase = container.getListBudgetPeriodsUseCase();
   const getCurrentBudgetPeriodUseCase = container.getGetCurrentBudgetPeriodUseCase();
-
-  // ========================================
+  const cloneBudgetPeriodUseCase = container.getCloneBudgetPeriodUseCase();
+  const checkPeriodExpirationUseCase = container.getCheckPeriodExpirationUseCase();
+  const suggestCategoryBudgetsUseCase = container.getSuggestCategoryBudgetsUseCase();
   // Queries
   // ========================================
 
@@ -105,6 +112,28 @@ export function useBudgetPeriods(orgId: string) {
     });
   };
 
+  /**
+   * Query: Check period expiration status
+   */
+  const usePeriodExpiration = (userId: string) => {
+    return useQuery({
+      queryKey: budgetPeriodKeys.expiration(orgId, userId),
+      queryFn: () => checkPeriodExpirationUseCase.execute({ userId }),
+      enabled: !!userId,
+    });
+  };
+
+  /**
+   * Query: Suggest category budgets based on previous period length
+   */
+  const useSuggestedCategories = (userId: string, startDate?: Date, endDate?: Date) => {
+    return useQuery({
+      queryKey: budgetPeriodKeys.suggestions(orgId, userId, startDate as Date, endDate as Date),
+      queryFn: () => suggestCategoryBudgetsUseCase.execute({ userId, startDate: startDate!, endDate: endDate! }),
+      enabled: !!userId && !!startDate && !!endDate,
+    });
+  };
+
   // ========================================
   // Mutations
   // ========================================
@@ -152,6 +181,21 @@ export function useBudgetPeriods(orgId: string) {
     },
   });
 
+  /**
+   * Mutation: Clone budget period
+   */
+  const cloneBudgetPeriod = useMutation({
+    mutationFn: (input: CloneBudgetPeriodDTO) => cloneBudgetPeriodUseCase.execute(input),
+    onSuccess: (data, variables) => {
+      // Invalidate queries
+      queryClient.invalidateQueries({ queryKey: budgetPeriodKeys.byUser(orgId, variables.userId) });
+      queryClient.invalidateQueries({ queryKey: budgetPeriodKeys.active(orgId, variables.userId) });
+      queryClient.invalidateQueries({ queryKey: budgetPeriodKeys.current(orgId, variables.userId) });
+      queryClient.invalidateQueries({ queryKey: budgetPeriodKeys.expiration(orgId, variables.userId) });
+      queryClient.invalidateQueries({ queryKey: ['categoryBudgets', orgId] });
+    },
+  });
+
   return {
     // Queries
     useBudgetPeriodsByUser,
@@ -159,9 +203,10 @@ export function useBudgetPeriods(orgId: string) {
     useActiveBudgetPeriods,
     useCurrentBudgetPeriod,
     useBudgetPeriodsByDateRange,
+    usePeriodExpiration,
+    useSuggestedCategories,
     // Mutations
     createBudgetPeriod,
     updateBudgetPeriod,
     deleteBudgetPeriod,
-  };
-}
+    cloneBudgetPeriod,
