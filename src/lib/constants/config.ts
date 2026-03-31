@@ -11,7 +11,7 @@ export const APP_CONFIG = {
   name: process.env.NEXT_PUBLIC_APP_NAME || 'Control Financiero',
   url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   description: 'Sistema de control financiero para negocios y finanzas personales',
-  version: '0.7.2',
+  version: '0.7.3',
 
   // Configuración regional
   defaultCurrency: 'CLP',
