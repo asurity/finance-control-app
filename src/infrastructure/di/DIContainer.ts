@@ -294,7 +294,8 @@ export class DIContainer {
       this.getTransactionRepository(),
       this.getAccountRepository(),
       this.getBudgetRepository(),
-      this.getAlertRepository()
+      this.getAlertRepository(),
+      this.getBudgetPeriodRepository()
     );
   }
 
@@ -308,14 +309,16 @@ export class DIContainer {
   getGetExpensesByCategoryUseCase(): GetExpensesByCategoryUseCase {
     return new GetExpensesByCategoryUseCase(
       this.getTransactionRepository(),
-      this.getCategoryRepository()
+      this.getCategoryRepository(),
+      this.getBudgetPeriodRepository()
     );
   }
 
   getGetDailyWeeklyStatsUseCase(): GetDailyWeeklyStatsUseCase {
     return new GetDailyWeeklyStatsUseCase(
       this.getTransactionRepository(),
-      this.getBudgetPeriodRepository()
+      this.getBudgetPeriodRepository(),
+      this.getCategoryRepository()
     );
   }
 

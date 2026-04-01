@@ -35,6 +35,10 @@ import {
   WeeklyPatternChartSkeleton,
 } from '@/presentation/components/features/dashboard/charts/WeeklyPatternChart';
 import {
+  PeriodBalanceChart,
+  PeriodBalanceChartSkeleton,
+} from '@/presentation/components/features/dashboard/charts/PeriodBalanceChart';
+import {
   BudgetGauge,
   BudgetGaugeSkeleton,
 } from '@/presentation/components/features/dashboard/charts/BudgetGauge';
@@ -60,6 +64,7 @@ import {
 } from '@/presentation/components/features/dashboard/widgets/WeeklyExpenseWidget';
 import { formatCurrency, formatCurrencyAbsolute } from '@/lib/utils/format';
 import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
+import { startOfWeek, endOfWeek } from 'date-fns';
 import {
   Select,
   SelectContent,
@@ -125,10 +130,19 @@ export default function DashboardPage() {
     return { startDate: start, endDate: end };
   }, [period]);
 
+  // Calculate date range for weekly pattern - independent of selected period
+  // Show current week (Monday to Sunday) to analyze spending patterns
+  const weeklyPatternDates = useMemo(() => {
+    const now = new Date();
+    const start = startOfWeek(now, { weekStartsOn: 1 }); // Monday
+    const end = endOfWeek(now, { weekStartsOn: 1 }); // Sunday
+    return { startDate: start, endDate: end };
+  }, []);
+
   const weeklyPattern = useWeeklyPattern(
     currentOrgId || '',
-    periodDates.startDate,
-    periodDates.endDate
+    weeklyPatternDates.startDate,
+    weeklyPatternDates.endDate
   );
   const balanceSparkline = balanceHistory?.dataPoints.map((point) => point.balance) ?? [];
   const incomeSparkline = balanceHistory?.dataPoints.map((point) => point.income) ?? [];
@@ -297,7 +311,7 @@ export default function DashboardPage() {
       {isLoading || !stats ? (
         <KPICardSkeleton />
       ) : (
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 space-y-4">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <h3 className="text-sm font-medium text-muted-foreground">Balance del Período</h3>
@@ -318,7 +332,7 @@ export default function DashboardPage() {
               <DollarSign className="h-5 w-5 text-primary" />
             </div>
           </div>
-          <div className="mt-4 flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-3 w-3 text-green-600" />
               <span className="text-muted-foreground">Ingresos:</span>
@@ -334,23 +348,34 @@ export default function DashboardPage() {
               </span>
             </div>
           </div>
+
+          {/* Period Balance Chart - Daily Accumulations */}
+          {stats.dailyAccumulations && stats.dailyAccumulations.length > 0 && (
+            <div className="pt-4 border-t">
+              <h4 className="text-sm font-medium text-muted-foreground mb-3">
+                Acumulado del Período
+              </h4>
+              <PeriodBalanceChart data={stats.dailyAccumulations} period={period} />
+            </div>
+          )}
         </div>
       )}
+
 
       {/* Financial Projection Widget */}
       <FinancialProjectionWidget />
 
-      {/* KPIs Grid - Primary Row */}
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5">
-        {/* KPI 1: Balance Total */}
+      {/* KPIs Grid - Row 1: Disponible e Ingresos */}
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 sm:gap-4 md:grid-cols-2 lg:grid-cols-2">
+        {/* KPI 1: Disponible para Gastar */}
         {isLoading || !stats ? (
           <KPICardSkeleton />
         ) : (
           <KPICard
-            title="Balance Total"
-            value={formatCurrency(stats.currentBalance)}
+            title="Disponible para Gastar"
+            value={formatCurrency(stats.availableToSpend)}
             valueClassName={
-              stats.currentBalance >= 0
+              stats.availableToSpend >= 0
                 ? 'text-green-600 dark:text-green-400'
                 : 'text-red-600 dark:text-red-400'
             }
@@ -380,7 +405,10 @@ export default function DashboardPage() {
             sparklineData={incomeSparkline}
           />
         )}
+      </div>
 
+      {/* KPIs Grid - Row 2: Gastos y Categoría Top */}
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 sm:gap-4 md:grid-cols-2 lg:grid-cols-2">
         {/* KPI 3: Gastos del Período */}
         {isLoading || !stats ? (
           <KPICardSkeleton />
@@ -395,90 +423,7 @@ export default function DashboardPage() {
           />
         )}
 
-        {/* KPI 4: Tasa de Ahorro */}
-        {isLoading || !stats ? (
-          <KPICardSkeleton />
-        ) : (
-          <KPICard
-            title="Tasa de Ahorro"
-            value={`${stats.savingsRate.toFixed(1)}%`}
-            changeType={
-              stats.savingsRate > 20 ? 'positive' : stats.savingsRate > 10 ? 'neutral' : 'negative'
-            }
-            icon={<Wallet className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
-            description={
-              stats.savingsRate > 20
-                ? '¡Excelente tasa de ahorro!'
-                : stats.savingsRate > 10
-                  ? 'Buena tasa de ahorro'
-                  : 'Considera aumentar tus ahorros'
-            }
-          />
-        )}
-      </div>
-
-      {/* KPIs Grid - Secondary Row */}
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* KPI 5: Pagos Pendientes */}
-        {isLoading || !stats ? (
-          <KPICardSkeleton />
-        ) : (
-          <KPICard
-            title="Pagos Pendientes"
-            value={stats.pendingPayments}
-            icon={<CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
-            changeType={stats.pendingPayments > 0 ? 'neutral' : 'positive'}
-            description={
-              stats.pendingPayments === 0
-                ? 'Sin pagos pendientes'
-                : stats.pendingPayments === 1
-                  ? '1 pago próximo'
-                  : `${stats.pendingPayments} pagos próximos`
-            }
-          />
-        )}
-
-        {/* KPI 6: Alertas Activas */}
-        {isLoading || !stats ? (
-          <KPICardSkeleton />
-        ) : (
-          <KPICard
-            title="Alertas Activas"
-            value={stats.activeAlerts}
-            icon={<Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
-            changeType={stats.activeAlerts > 5 ? 'negative' : 'neutral'}
-            description={
-              stats.activeAlerts === 0
-                ? 'Todo bajo control'
-                : stats.activeAlerts === 1
-                  ? '1 alerta sin leer'
-                  : `${stats.activeAlerts} alertas sin leer`
-            }
-          />
-        )}
-
-        {/* KPI 7: Uso de Presupuesto */}
-        {isLoading || !stats ? (
-          <KPICardSkeleton />
-        ) : (
-          <KPICard
-            title="Uso de Presupuesto"
-            value={`${stats.budgetUsage.toFixed(1)}%`}
-            changeType={
-              stats.budgetUsage > 90 ? 'negative' : stats.budgetUsage > 70 ? 'neutral' : 'positive'
-            }
-            icon={<PieChart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
-            description={
-              stats.budgetUsage > 90
-                ? '¡Cerca del límite!'
-                : stats.budgetUsage > 70
-                  ? 'Monitorear gastos'
-                  : 'Dentro del presupuesto'
-            }
-          />
-        )}
-
-        {/* KPI 8: Categoría con Mayor Gasto */}
+        {/* KPI 4: Categoría con Mayor Gasto */}
         {isLoading || !stats ? (
           <KPICardSkeleton />
         ) : (
@@ -498,8 +443,11 @@ export default function DashboardPage() {
             }
           />
         )}
+      </div>
 
-        {/* KPI 9: Gauge de Presupuesto */}
+      {/* Row 3: Presupuesto del Periodo y Patrón Semanal */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Gauge de Presupuesto */}
         {budgetVsActual.isLoading ? (
           <BudgetGaugeSkeleton />
         ) : budgetVsActual.hasActivePeriod ? (
@@ -517,21 +465,17 @@ export default function DashboardPage() {
             }
           />
         ) : null}
+
+        {/* Weekly Pattern Chart */}
+        {weeklyPattern.isLoading ? (
+          <WeeklyPatternChartSkeleton />
+        ) : weeklyPattern.data.length > 0 ? (
+          <WeeklyPatternChart data={weeklyPattern.data} peakDay={weeklyPattern.peakDay} />
+        ) : null}
       </div>
 
       {/* Charts Section */}
       <div className="grid gap-4 md:grid-cols-2">
-        {/* Balance Evolution Chart */}
-        {isLoadingBalance ? (
-          <BalanceChartSkeleton />
-        ) : balanceHistory ? (
-          <BalanceChart
-            data={balanceHistory.dataPoints}
-            trend={balanceHistory.trend}
-            startBalance={balanceHistory.startBalance}
-            endBalance={balanceHistory.endBalance}
-          />
-        ) : null}
 
         {/* Expenses By Category Chart */}
         {isLoadingExpenses ? (
@@ -553,17 +497,10 @@ export default function DashboardPage() {
             totalSpent={budgetVsActual.data.reduce((sum, d) => sum + d.spent, 0)}
           />
         ) : null}
-
-        {/* Weekly Pattern Chart - NEW */}
-        {weeklyPattern.isLoading ? (
-          <WeeklyPatternChartSkeleton />
-        ) : weeklyPattern.data.length > 0 ? (
-          <WeeklyPatternChart data={weeklyPattern.data} peakDay={weeklyPattern.peakDay} />
-        ) : null}
       </div>
 
-      {/* Widgets Section */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Widgets Section - Row 1: Transacciones y Estado Financiero */}
+      <div className="grid gap-4 md:grid-cols-2">
         {/* Recent Transactions Widget */}
         {isLoadingTransactions ? (
           <RecentTransactionsWidgetSkeleton />
@@ -573,7 +510,20 @@ export default function DashboardPage() {
 
         {/* Debt Summary Widget */}
         <DebtSummaryWidget />
+      </div>
 
+      {/* Widgets Section - Row 2: Alertas */}
+      <div className="grid gap-4">
+        {/* Alerts Widget */}
+        {isLoadingAlerts ? (
+          <AlertsWidgetSkeleton />
+        ) : unreadAlerts ? (
+          <AlertsWidget alerts={unreadAlerts} />
+        ) : null}
+      </div>
+
+      {/* Widgets Section - Row 2: Compromisos y Metas */}
+      <div className="grid gap-4 md:grid-cols-2">
         {/* Recurring Commitments Widget */}
         {user && currentOrgId && (
           <RecurringCommitmentsWidget orgId={currentOrgId} userId={user.id} />
@@ -583,13 +533,6 @@ export default function DashboardPage() {
         {user && currentOrgId && (
           <SavingsGoalsWidget orgId={currentOrgId} userId={user.id} />
         )}
-
-        {/* Alerts Widget */}
-        {isLoadingAlerts ? (
-          <AlertsWidgetSkeleton />
-        ) : unreadAlerts ? (
-          <AlertsWidget alerts={unreadAlerts} />
-        ) : null}
       </div>
     </div>
   );

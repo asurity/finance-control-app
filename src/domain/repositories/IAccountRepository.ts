@@ -50,6 +50,12 @@ export interface IAccountRepository extends IRepository<Account> {
   getNetWorth(): Promise<number>;
 
   /**
+   * Calculates total available to spend (cash + available credit)
+   * @returns Promise resolving to total money available to spend
+   */
+  getAvailableToSpend(): Promise<number>;
+
+  /**
    * Gets account balance history for a period
    * @param accountId - Account ID
    * @param startDate - Start date

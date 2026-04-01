@@ -66,6 +66,8 @@ export class GetDebtSummaryUseCase extends BaseUseCase<GetDebtSummaryInput, Debt
     // Get all active accounts
     const accounts = await this.accountRepo.getActive();
 
+    console.log('[GetDebtSummary] All active accounts:', accounts.length);
+
     // Separate accounts by type
     const creditCardAccounts = accounts.filter((acc) => acc.type === 'CREDIT_CARD');
     const lineOfCreditAccounts = accounts.filter((acc) => acc.type === 'LINE_OF_CREDIT');
@@ -77,6 +79,10 @@ export class GetDebtSummaryUseCase extends BaseUseCase<GetDebtSummaryInput, Debt
         acc.type === 'INVESTMENT'
     );
 
+    console.log('[GetDebtSummary] Credit cards:', creditCardAccounts.length);
+    console.log('[GetDebtSummary] Lines of credit:', lineOfCreditAccounts.length);
+    console.log('[GetDebtSummary] Debit accounts:', debitAccounts.length);
+
     // Calculate credit card details
     const creditCards = creditCardAccounts.map((acc) => {
       const creditLimit = acc.creditLimit || 0;
@@ -85,6 +91,14 @@ export class GetDebtSummaryUseCase extends BaseUseCase<GetDebtSummaryInput, Debt
       // For credit cards: balance negative = debt, positive = saldo a favor
       const usedCredit = Math.max(0, -acc.balance);
       const utilizationPercent = creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
+
+      console.log(`[GetDebtSummary] Credit Card: ${acc.name}`, {
+        rawBalance: acc.balance,
+        usedCredit,
+        creditLimit,
+        availableCredit,
+        utilizationPercent,
+      });
 
       // Calculate days until next payment
       let daysUntilPayment: number | null = null;
@@ -122,17 +136,30 @@ export class GetDebtSummaryUseCase extends BaseUseCase<GetDebtSummaryInput, Debt
     // Calculate line of credit details
     const linesOfCredit = lineOfCreditAccounts.map((acc) => {
       const creditLimit = acc.creditLimit || 0;
-      const availableCredit = acc.availableCredit || acc.balance || 0;
+      
+      // For lines of credit: availableCredit or balance represents what's available
+      // availableCredit is NOT the sum of balance + limit, it's just what's available
+      const availableCredit = (acc.availableCredit !== undefined && acc.availableCredit > 0) 
+        ? acc.availableCredit 
+        : (acc.balance || 0);
 
-      // For lines of credit: balance is available amount (positive)
-      // Used credit = limit - available
-      const usedCredit = creditLimit - availableCredit;
+      // Debt = limit - available credit
+      const usedCredit = Math.max(0, creditLimit - availableCredit);
       const utilizationPercent = creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
+
+      console.log(`[GetDebtSummary] Line of Credit: ${acc.name}`, {
+        rawBalance: acc.balance,
+        rawAvailableCredit: acc.availableCredit,
+        creditLimit,
+        availableCredit,
+        usedCredit,
+        utilizationPercent,
+      });
 
       return {
         accountId: acc.id,
         accountName: acc.name,
-        balance: usedCredit, // Amount owed
+        balance: usedCredit, // Amount owed (debt)
         creditLimit,
         availableCredit,
         utilizationPercent,
@@ -158,6 +185,14 @@ export class GetDebtSummaryUseCase extends BaseUseCase<GetDebtSummaryInput, Debt
     const totalAssets = debitAccountsData.reduce((sum, acc) => sum + acc.balance, 0);
 
     const netWorth = totalAssets - totalDebt;
+
+    console.log('[GetDebtSummary] Summary:', {
+      totalDebt,
+      totalAssets,
+      netWorth,
+      creditCardsDebt: creditCards.reduce((sum, cc) => sum + cc.balance, 0),
+      linesOfCreditDebt: linesOfCredit.reduce((sum, loc) => sum + loc.balance, 0),
+    });
 
     return {
       totalDebt,

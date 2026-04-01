@@ -23,8 +23,7 @@ export function useExpensesByCategory(period: 'week' | 'month' | 'quarter' | 'ye
       container.setOrgId(currentOrgId);
 
       const useCase = container.getGetExpensesByCategoryUseCase();
-      const useCasePeriod = period === 'week' ? 'month' : period;
-      return useCase.execute({ userId: user.id, period: useCasePeriod });
+      return useCase.execute({ userId: user.id, period });
     },
     enabled: !!user && !!currentOrgId,
     staleTime: 5 * 60 * 1000, // 5 minutes

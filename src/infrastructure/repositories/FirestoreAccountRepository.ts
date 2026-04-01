@@ -169,6 +169,27 @@ export class FirestoreAccountRepository implements IAccountRepository {
     return assets - liabilities;
   }
 
+  async getAvailableToSpend(): Promise<number> {
+    const accounts = await this.getActive();
+
+    let cashAvailable = 0;
+    let creditAvailable = 0;
+
+    accounts.forEach((account) => {
+      if (account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT') {
+        // For credit accounts, add available credit
+        const availableCredit = account.availableCredit ?? 
+          (account.creditLimit ? account.creditLimit + account.balance : 0);
+        creditAvailable += availableCredit;
+      } else {
+        // For regular accounts, add positive balance
+        cashAvailable += Math.max(0, account.balance);
+      }
+    });
+
+    return cashAvailable + creditAvailable;
+  }
+
   async getBalanceHistory(
     accountId: string,
     startDate: Date,

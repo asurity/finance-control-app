@@ -22,8 +22,38 @@ import type { TransactionFilterState } from '@/types/filters';
 export default function TransactionsPage() {
   const { user } = useAuth();
   const { currentOrgId } = useOrganization();
+  const budgetPeriodsHook = useBudgetPeriods(currentOrgId || '');
 
-  // Initial filters state
+  // Obtener periodos activos de la organización
+  const { data: activePeriodsData } = budgetPeriodsHook.useActiveBudgetPeriods(user?.id || '');
+
+  // Debug
+  useEffect(() => {
+    console.log('[TransactionsPage] activePeriodsData:', activePeriodsData);
+  }, [activePeriodsData]);
+
+  // Encontrar el periodo que contiene la fecha actual
+  const activeBudgetPeriod = useMemo(() => {
+    const periods = activePeriodsData?.budgetPeriods ?? [];
+    if (periods.length === 0) return null;
+    const now = new Date();
+    const current = periods.find(p => p.startDate <= now && p.endDate >= now);
+    if (current) {
+      return {
+        startDate: current.startDate,
+        endDate: current.endDate,
+        name: current.name,
+      };
+    }
+    // Si no encuentra, usar el más reciente
+    return {
+      startDate: periods[0].startDate,
+      endDate: periods[0].endDate,
+      name: periods[0].name,
+    };
+  }, [activePeriodsData]);
+
+  // Initial filters state - usar periodo activo si está disponible
   const [filters, setFilters] = useState<TransactionFilterState>({
     dateRange: {
       startDate: startOfMonth(new Date()),
@@ -36,6 +66,20 @@ export default function TransactionsPage() {
     minAmount: null,
     maxAmount: null,
   });
+
+  // Update filters when budget period loads
+  useEffect(() => {
+    if (activeBudgetPeriod) {
+      console.log('[TransactionsPage] Setting filters to active period:', activeBudgetPeriod);
+      setFilters(prev => ({
+        ...prev,
+        dateRange: {
+          startDate: activeBudgetPeriod.startDate,
+          endDate: activeBudgetPeriod.endDate,
+        },
+      }));
+    }
+  }, [activeBudgetPeriod]);
 
   // Quick search with debounce
   const [quickSearch, setQuickSearch] = useState('');
@@ -64,6 +108,7 @@ export default function TransactionsPage() {
       onFiltersChange={setFilters}
       quickSearch={quickSearch}
       onQuickSearchChange={setQuickSearch}
+      activeBudgetPeriod={activeBudgetPeriod}
     />
   );
 }
@@ -74,6 +119,11 @@ interface TransactionsContentProps {
   onFiltersChange: (filters: TransactionFilterState) => void;
   quickSearch: string;
   onQuickSearchChange: (search: string) => void;
+  activeBudgetPeriod?: {
+    startDate: Date;
+    endDate: Date;
+    name: string;
+  } | null;
 }
 
 function TransactionsContent({
@@ -82,12 +132,12 @@ function TransactionsContent({
   onFiltersChange,
   quickSearch,
   onQuickSearchChange,
+  activeBudgetPeriod,
 }: TransactionsContentProps) {
   const { user } = useAuth();
   const transactionsHook = useTransactions(orgId);
   const accountsHook = useAccounts(orgId);
   const categoriesHook = useCategories(orgId);
-  const budgetPeriodsHook = useBudgetPeriods(orgId);
 
   const { data: transactionsData = [], isLoading: transactionsLoading } =
     transactionsHook.useTransactionsByDateRange(
@@ -98,12 +148,6 @@ function TransactionsContent({
   const { data: accounts = [], isLoading: accountsLoading } = accountsHook.useAllAccounts();
 
   const { data: categories = [], isLoading: categoriesLoading } = categoriesHook.useAllCategories();
-
-  // Obtener periodo activo de la organización
-  const { data: currentBudgetPeriod } = budgetPeriodsHook.useCurrentBudgetPeriod(
-    user?.id || '',
-    new Date()
-  );
 
   const accountsMap = useMemo(() => {
     return accounts.reduce(
@@ -205,11 +249,11 @@ function TransactionsContent({
           <p className="text-sm sm:text-base text-muted-foreground">
             Gestiona todos tus ingresos y gastos
           </p>
-          {currentBudgetPeriod?.budgetPeriod && (
+          {activeBudgetPeriod && (
             <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               <span className="font-medium">Periodo activo:</span>{' '}
-              {format(currentBudgetPeriod.budgetPeriod.startDate, "dd 'de' MMMM", { locale: es })} -{' '}
-              {format(currentBudgetPeriod.budgetPeriod.endDate, "dd 'de' MMMM, yyyy", { locale: es })}
+              {format(activeBudgetPeriod.startDate, "dd 'de' MMMM", { locale: es })} -{' '}
+              {format(activeBudgetPeriod.endDate, "dd 'de' MMMM, yyyy", { locale: es })}
             </p>
           )}
         </div>
@@ -238,27 +282,8 @@ function TransactionsContent({
         categories={categories}
         onFiltersChange={onFiltersChange}
         initialFilters={filters}
+        activeBudgetPeriod={activeBudgetPeriod}
       />
-
-      {/* Totals Bar */}
-      <Card className="bg-muted/50">
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground mb-1">Ingresos</p>
-              <MoneyDisplay amount={totals.income} type="income" size="lg" />
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground mb-1">Gastos</p>
-              <MoneyDisplay amount={totals.expenses} type="expense" size="lg" />
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground mb-1">Balance</p>
-              <MoneyDisplay amount={totals.balance} type="balance" size="lg" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Transactions List */}
       <Card>

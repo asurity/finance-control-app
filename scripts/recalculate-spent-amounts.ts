@@ -5,48 +5,89 @@
  * This fixes any inconsistencies caused by data sync issues
  */
 
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, doc, updateDoc, query, where, Timestamp } from 'firebase/firestore';
+import admin from 'firebase-admin';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
+// Initialize Firebase Admin SDK
+const serviceAccountPath = join(process.cwd(), 'cuentas-financieras-0625-firebase-adminsdk-fbsvc-d97375c92b.json');
+const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
-const ORG_ID = 'JU0yGy4cmIQC0xqBL3lv';
+const db = admin.firestore();
+
+const ORG_ID = 'QorVu0F4Y73evZrK6BF8';
 
 async function recalculateAllSpentAmounts() {
   console.log('🔄 Iniciando recalculación de montos gastados...\n');
   
   try {
+    // Step 0: Debug - Check what organizations exist
+    console.log('🔍 DEBUG: Verificando organizaciones en la base de datos...\n');
+    
+    const allBudgetPeriodsSnapshot = await db.collection('budgetPeriods').limit(10).get();
+    console.log(`   Total budget periods encontrados (muestra): ${allBudgetPeriodsSnapshot.docs.length}`);
+    
+    if (allBudgetPeriodsSnapshot.docs.length > 0) {
+      const orgIds = new Set<string>();
+      allBudgetPeriodsSnapshot.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.orgId) orgIds.add(data.orgId);
+      });
+      console.log(`   OrganizationIds encontrados en budgetPeriods:`, Array.from(orgIds));
+    }
+    
+    const allTransactionsSnapshot = await db.collection('transactions').limit(10).get();
+    console.log(`   Total transactions encontradas (muestra): ${allTransactionsSnapshot.docs.length}`);
+    
+    if (allTransactionsSnapshot.docs.length > 0) {
+      const orgIds = new Set<string>();
+      allTransactionsSnapshot.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.orgId) orgIds.add(data.orgId);
+      });
+      console.log(`   OrganizationIds encontrados en transactions:`, Array.from(orgIds));
+    }
+    
+    const allCategoryBudgetsSnapshot = await db.collection('categoryBudgets').limit(10).get();
+    console.log(`   Total category budgets encontrados (muestra): ${allCategoryBudgetsSnapshot.docs.length}`);
+    
+    if (allCategoryBudgetsSnapshot.docs.length > 0) {
+      const orgIds = new Set<string>();
+      allCategoryBudgetsSnapshot.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.orgId) orgIds.add(data.orgId);
+      });
+      console.log(`   OrganizationIds encontrados en categoryBudgets:`, Array.from(orgIds));
+    }
+    
+    console.log(`\n   Configurado para usar orgId: ${ORG_ID}\n`);
+    console.log('═'.repeat(100) + '\n');
+    
     // Step 1: Get all budget periods
     console.log('📂 Paso 1: Obteniendo períodos de presupuesto...');
-    const budgetPeriodsSnapshot = await getDocs(
-      query(collection(db, 'budgetPeriods'), where('orgId', '==', ORG_ID))
-    );
+    const budgetPeriodsSnapshot = await db.collection('budgetPeriods')
+      .where('orgId', '==', ORG_ID)
+      .get();
     
     console.log(`   Encontrados ${budgetPeriodsSnapshot.docs.length} períodos\n`);
     
     // Step 2: Get all category budgets
     console.log('💰 Paso 2: Obteniendo category budgets...');
-    const categoryBudgetsSnapshot = await getDocs(
-      query(collection(db, 'categoryBudgets'), where('orgId', '==', ORG_ID))
-    );
+    const categoryBudgetsSnapshot = await db.collection('categoryBudgets')
+      .where('orgId', '==', ORG_ID)
+      .get();
     
     console.log(`   Encontrados ${categoryBudgetsSnapshot.docs.length} category budgets\n`);
     
     // Step 3: Get all transactions
     console.log('📊 Paso 3: Obteniendo todas las transacciones...');
-    const transactionsSnapshot = await getDocs(
-      query(collection(db, 'transactions'), where('orgId', '==', ORG_ID))
-    );
+    const transactionsSnapshot = await db.collection('transactions')
+      .where('orgId', '==', ORG_ID)
+      .get();
     
     console.log(`   Encontradas ${transactionsSnapshot.docs.length} transacciones\n`);
     
@@ -56,8 +97,8 @@ async function recalculateAllSpentAmounts() {
       const data = doc.data();
       budgetPeriodsMap.set(doc.id, {
         id: doc.id,
-        startDate: data.startDate instanceof Timestamp ? data.startDate.toDate() : new Date(data.startDate),
-        endDate: data.endDate instanceof Timestamp ? data.endDate.toDate() : new Date(data.endDate),
+        startDate: data.startDate?.toDate() || new Date(data.startDate),
+        endDate: data.endDate?.toDate() || new Date(data.endDate),
         name: data.name,
       });
     });
@@ -90,7 +131,7 @@ async function recalculateAllSpentAmounts() {
       // Filter transactions for this category and period
       const relevantTransactions = transactionsSnapshot.docs.filter(txDoc => {
         const tx = txDoc.data();
-        const txDate = tx.date instanceof Timestamp ? tx.date.toDate() : new Date(tx.date);
+        const txDate = tx.date?.toDate() || new Date(tx.date);
         
         // Use >= and <= to INCLUDE boundary dates
         const isInPeriod = txDate >= budgetPeriod.startDate && txDate <= budgetPeriod.endDate;
@@ -141,10 +182,9 @@ async function recalculateAllSpentAmounts() {
     
     for (const update of updates) {
       try {
-        const docRef = doc(db, 'categoryBudgets', update.id);
-        await updateDoc(docRef, {
+        await db.collection('categoryBudgets').doc(update.id).update({
           spentAmount: update.newSpent,
-          updatedAt: new Date(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
         successCount++;
         console.log(`✅ Actualizado ${update.periodName} - ${update.categoryId}`);

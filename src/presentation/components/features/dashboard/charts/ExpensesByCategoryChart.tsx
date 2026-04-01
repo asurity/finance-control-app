@@ -34,31 +34,14 @@ const DEFAULT_COLORS = [
 ];
 
 export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCategoryChartProps) {
-  // Take top 8 categories and group the rest as "Otros"
-  const topCategories = data.slice(0, 7);
-  const otherCategories = data.slice(7);
-
-  let chartData = topCategories.map((cat, index) => ({
+  // Show all categories without grouping
+  const chartData = data.map((cat, index) => ({
     name: cat.categoryName,
     value: cat.amount,
     percentage: cat.percentage,
     count: cat.transactionCount,
     color: cat.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length],
   }));
-
-  if (otherCategories.length > 0) {
-    const otherAmount = otherCategories.reduce((sum, cat) => sum + cat.amount, 0);
-    const otherPercentage = (otherAmount / totalExpenses) * 100;
-    const otherCount = otherCategories.reduce((sum, cat) => sum + cat.transactionCount, 0);
-
-    chartData.push({
-      name: 'Otros',
-      value: otherAmount,
-      percentage: otherPercentage,
-      count: otherCount,
-      color: 'hsl(var(--muted-foreground))',
-    });
-  }
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -112,7 +95,7 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Gastos por Categoría</CardTitle>
+          <CardTitle>Gastos por Categoría en el Periodo</CardTitle>
           <CardDescription>Distribución de gastos en el período</CardDescription>
         </CardHeader>
         <CardContent>
@@ -127,7 +110,7 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Gastos por Categoría</CardTitle>
+        <CardTitle>Gastos por Categoría en el Periodo</CardTitle>
         <CardDescription>
           Distribución de {formatCurrencyAbsolute(totalExpenses)} en gastos
         </CardDescription>
@@ -161,22 +144,27 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
           </PieChart>
         </ResponsiveContainer>
 
-        {/* Top Categories List */}
+        {/* All Categories Table */}
         <div className="mt-4 space-y-2">
-          <h4 className="text-sm font-semibold">Top Categorías</h4>
-          <div className="space-y-2">
-            {topCategories.slice(0, 3).map((cat, index) => (
-              <div key={cat.categoryId} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
+          <h4 className="text-sm font-semibold">Todas las Categorías</h4>
+          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            {data.map((cat, index) => (
+              <div key={cat.categoryId} className="flex items-center justify-between text-sm py-1">
+                <div className="flex items-center gap-2 flex-1">
                   <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: cat.color || DEFAULT_COLORS[index] }}
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: cat.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length] }}
                   />
-                  <span>{cat.categoryName}</span>
+                  <span className="flex-1">{cat.categoryName}</span>
                 </div>
-                <span className="font-medium text-red-600 dark:text-red-400">
-                  {formatCurrencyAbsolute(cat.amount)}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="font-medium text-red-600 dark:text-red-400 min-w-[100px] text-right">
+                    {formatCurrencyAbsolute(cat.amount)}
+                  </span>
+                  <span className="text-muted-foreground min-w-[50px] text-right">
+                    {cat.percentage.toFixed(1)}%
+                  </span>
+                </div>
               </div>
             ))}
           </div>
