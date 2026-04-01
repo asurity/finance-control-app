@@ -333,7 +333,9 @@ export class DIContainer {
   getUpdateTransactionUseCase(): UpdateTransactionUseCase {
     return new UpdateTransactionUseCase(
       this.getTransactionRepository(),
-      this.getAccountRepository()
+      this.getAccountRepository(),
+      this.getBudgetPeriodRepository(),
+      this.getCategoryBudgetRepository()
     );
   }
 

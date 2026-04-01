@@ -1,6 +1,8 @@
 import { BaseUseCase } from '../base/BaseUseCase';
 import { ITransactionRepository } from '@/domain/repositories/ITransactionRepository';
 import { IAccountRepository } from '@/domain/repositories/IAccountRepository';
+import { IBudgetPeriodRepository } from '@/domain/repositories/IBudgetPeriodRepository';
+import { ICategoryBudgetRepository } from '@/domain/repositories/ICategoryBudgetRepository';
 import { Transaction as TransactionEntity } from '@/domain/entities/Transaction';
 import { TransactionType } from '@/types/firestore';
 
@@ -36,7 +38,9 @@ export class UpdateTransactionUseCase extends BaseUseCase<
 > {
   constructor(
     private transactionRepo: ITransactionRepository,
-    private accountRepo: IAccountRepository
+    private accountRepo: IAccountRepository,
+    private budgetPeriodRepo?: IBudgetPeriodRepository,
+    private categoryBudgetRepo?: ICategoryBudgetRepository
   ) {
     super();
   }
@@ -73,6 +77,25 @@ export class UpdateTransactionUseCase extends BaseUseCase<
     // Handle amount change on same account
     else if (input.amount && input.amount !== originalTransaction.amount) {
       await this.handleAmountChange(originalTransaction, input.amount);
+    }
+
+    // Update category budgets for EXPENSE transactions
+    if (originalTransaction.type === 'EXPENSE') {
+      const oldAccount = await this.accountRepo.getById(originalTransaction.accountId);
+      const newAccountId = input.accountId || originalTransaction.accountId;
+      const newAccount = input.accountId
+        ? await this.accountRepo.getById(newAccountId)
+        : oldAccount;
+
+      if (newAccount) {
+        await this.updateCategoryBudgets(
+          newAccount.orgId,
+          originalTransaction,
+          input.categoryId || originalTransaction.categoryId,
+          input.amount || originalTransaction.amount,
+          input.date || originalTransaction.date
+        );
+      }
     }
 
     // Update transaction with new values
@@ -159,5 +182,141 @@ export class UpdateTransactionUseCase extends BaseUseCase<
     }
 
     await this.accountRepo.updateBalance(account.id, newBalance);
+  }
+
+  /**
+   * Updates category budgets when an EXPENSE transaction is modified
+   * Handles changes in amount, category, and/or date
+   */
+  private async updateCategoryBudgets(
+    organizationId: string | undefined,
+    originalTransaction: any,
+    newCategoryId: string,
+    newAmount: number,
+    newDate: Date
+  ): Promise<void> {
+    // Skip if budget repositories are not available or no organizationId
+    if (!this.budgetPeriodRepo || !this.categoryBudgetRepo || !organizationId) {
+      return;
+    }
+
+    try {
+      const oldAmount = originalTransaction.amount;
+      const oldCategoryId = originalTransaction.categoryId;
+      const oldDate = originalTransaction.date;
+
+      // Case 1: Category changed
+      if (newCategoryId !== oldCategoryId) {
+        // Decrement from old category
+        await this.decrementCategoryBudget(
+          organizationId,
+          oldCategoryId,
+          oldAmount,
+          oldDate
+        );
+        // Increment to new category
+        await this.incrementCategoryBudget(
+          organizationId,
+          newCategoryId,
+          newAmount,
+          newDate
+        );
+        return;
+      }
+
+      // Case 2: Date changed (might change budget period)
+      if (newDate.getTime() !== oldDate.getTime()) {
+        const oldPeriod = await this.budgetPeriodRepo.getByDateAndOrganization(organizationId, oldDate);
+        const newPeriod = await this.budgetPeriodRepo.getByDateAndOrganization(organizationId, newDate);
+
+        // If periods are different, move the transaction
+        if (oldPeriod?.id !== newPeriod?.id) {
+          // Decrement from old period
+          if (oldPeriod) {
+            await this.decrementCategoryBudget(organizationId, oldCategoryId, oldAmount, oldDate);
+          }
+          // Increment to new period
+          if (newPeriod) {
+            await this.incrementCategoryBudget(organizationId, newCategoryId, newAmount, newDate);
+          }
+          return;
+        }
+      }
+
+      // Case 3: Only amount changed (same category, same period)
+      if (newAmount !== oldAmount) {
+        const difference = newAmount - oldAmount;
+        const budgetPeriod = await this.budgetPeriodRepo.getByDateAndOrganization(organizationId, newDate);
+        
+        if (budgetPeriod) {
+          const categoryBudget = await this.categoryBudgetRepo.getByBudgetPeriodAndCategory(
+            budgetPeriod.id,
+            newCategoryId
+          );
+
+          if (categoryBudget) {
+            if (difference > 0) {
+              // Amount increased, increment
+              await this.categoryBudgetRepo.incrementSpentAmount(categoryBudget.id, difference);
+            } else {
+              // Amount decreased, decrement
+              await this.categoryBudgetRepo.decrementSpentAmount(categoryBudget.id, Math.abs(difference));
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error updating category budgets:', error);
+    }
+  }
+
+  /**
+   * Increments the category budget spent amount
+   */
+  private async incrementCategoryBudget(
+    organizationId: string,
+    categoryId: string,
+    amount: number,
+    transactionDate: Date
+  ): Promise<void> {
+    try {
+      const budgetPeriod = await this.budgetPeriodRepo!.getByDateAndOrganization(organizationId, transactionDate);
+      if (!budgetPeriod) return;
+
+      const categoryBudget = await this.categoryBudgetRepo!.getByBudgetPeriodAndCategory(
+        budgetPeriod.id,
+        categoryId
+      );
+      if (!categoryBudget) return;
+
+      await this.categoryBudgetRepo!.incrementSpentAmount(categoryBudget.id, amount);
+    } catch (error) {
+      console.error('Error incrementing category budget:', error);
+    }
+  }
+
+  /**
+   * Decrements the category budget spent amount
+   */
+  private async decrementCategoryBudget(
+    organizationId: string,
+    categoryId: string,
+    amount: number,
+    transactionDate: Date
+  ): Promise<void> {
+    try {
+      const budgetPeriod = await this.budgetPeriodRepo!.getByDateAndOrganization(organizationId, transactionDate);
+      if (!budgetPeriod) return;
+
+      const categoryBudget = await this.categoryBudgetRepo!.getByBudgetPeriodAndCategory(
+        budgetPeriod.id,
+        categoryId
+      );
+      if (!categoryBudget) return;
+
+      await this.categoryBudgetRepo!.decrementSpentAmount(categoryBudget.id, amount);
+    } catch (error) {
+      console.error('Error decrementing category budget:', error);
+    }
   }
 }
