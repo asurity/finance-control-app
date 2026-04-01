@@ -178,7 +178,7 @@ export function CategoryAllocationTable({
       </div>
 
       {/* Tabla de categorías */}
-      <div className="border rounded-lg">
+      <div className="border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -247,7 +247,7 @@ export function CategoryAllocationTable({
                             step="0.1"
                             value={info.percentage || ''}
                             onChange={(e) => handlePercentageChange(category.id, e.target.value)}
-                            className="w-20 text-right"
+                            className="w-16 sm:w-20 text-right"
                             disabled={isLoading}
                           />
                           <Percent className="h-4 w-4 text-muted-foreground" />

@@ -14,6 +14,7 @@ import { useCategoryBudgets } from '@/application/hooks/useCategoryBudgets';
 import { useTransactions } from '@/application/hooks/useTransactions';
 import { useCategories } from '@/application/hooks/useCategories';
 import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
+import { ResponsiveTable, MobileCard } from '@/presentation/components/shared/DataTable';
 import { formatCurrencyAbsolute } from '@/lib/utils/format';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -351,41 +352,29 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
             <CardDescription>Transacciones agrupadas con subtotales</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Categoría</TableHead>
-                    <TableHead className="text-center">Transacciones</TableHead>
-                    <TableHead className="text-right">Subtotal</TableHead>
-                    <TableHead className="text-right">% del Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {insights.categorySubtotals.map(([name, data]) => (
-                    <TableRow key={name}>
-                      <TableCell className="font-medium">{name}</TableCell>
-                      <TableCell className="text-center">{data.count}</TableCell>
-                      <TableCell className="text-right">
-                        <MoneyDisplay amount={data.amount} type="expense" size="sm" />
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground">
-                        {totalExpenses > 0 ? ((data.amount / totalExpenses) * 100).toFixed(1) : 0}%
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow className="font-bold">
-                    <TableCell>Total</TableCell>
-                    <TableCell className="text-center">
-                      {insights.categorySubtotals.reduce((sum, [, d]) => sum + d.count, 0)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <MoneyDisplay amount={totalExpenses} type="expense" size="sm" />
-                    </TableCell>
-                    <TableCell className="text-right">100%</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+            <ResponsiveTable
+              data={insights.categorySubtotals.map(([name, data]) => ({ name, amount: data.amount, count: data.count }))}
+              keyExtractor={(item) => item.name}
+              columns={[
+                { header: 'Categoría', accessor: (i) => i.name, className: 'font-medium' },
+                { header: 'Transacciones', accessor: (i) => i.count, className: 'text-center' },
+                { header: 'Subtotal', accessor: (i) => <MoneyDisplay amount={i.amount} type="expense" size="sm" />, className: 'text-right' },
+                { header: '% del Total', accessor: (i) => `${totalExpenses > 0 ? ((i.amount / totalExpenses) * 100).toFixed(1) : 0}%`, className: 'text-right text-muted-foreground' },
+              ]}
+              mobileCard={(item) => (
+                <MobileCard
+                  title={item.name}
+                  subtitle={`${item.count} transacción${item.count !== 1 ? 'es' : ''}`}
+                  fields={[
+                    { label: 'Subtotal', value: <MoneyDisplay amount={item.amount} type="expense" size="sm" /> },
+                    { label: '% del Total', value: `${totalExpenses > 0 ? ((item.amount / totalExpenses) * 100).toFixed(1) : 0}%` },
+                  ]}
+                />
+              )}
+            />
+            <div className="flex justify-between items-center px-4 py-3 bg-muted/50 rounded-b-md font-bold text-sm mt-2">
+              <span>Total: {insights.categorySubtotals.reduce((sum, [, d]) => sum + d.count, 0)} transacciones</span>
+              <MoneyDisplay amount={totalExpenses} type="expense" size="sm" />
             </div>
           </CardContent>
         </Card>
@@ -405,63 +394,49 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
               </p>
             </div>
           ) : (
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="min-w-[120px]">Categoría</TableHead>
-                    <TableHead className="text-center min-w-[100px]">% Asignado</TableHead>
-                    <TableHead className="text-right min-w-[120px]">Presupuestado</TableHead>
-                    <TableHead className="text-right min-w-[120px]">Gastado</TableHead>
-                    <TableHead className="text-right min-w-[120px]">Diferencia</TableHead>
-                    <TableHead className="text-center min-w-[100px]">Estado</TableHead>
-                    <TableHead className="min-w-[140px]">Uso</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {categoryComparison.map((item) => (
-                    <TableRow key={item.categoryId}>
-                      <TableCell className="font-medium">{item.categoryName}</TableCell>
-                      <TableCell className="text-center">{item.percentage.toFixed(1)}%</TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrencyAbsolute(item.budgeted)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <MoneyDisplay amount={item.spent} type="expense" size="sm" />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <MoneyDisplay amount={item.remaining} type="balance" size="sm" />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge
-                          variant={
-                            item.status === 'danger'
-                              ? 'destructive'
-                              : item.status === 'warning'
-                                ? 'default'
-                                : 'secondary'
-                          }
-                        >
-                          {item.status === 'danger'
-                            ? 'Excedido'
-                            : item.status === 'warning'
-                              ? 'Alerta'
-                              : 'OK'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <Progress value={Math.min(item.usagePercent, 100)} className="h-2" />
-                          <p className="text-xs text-center text-muted-foreground">
-                            {item.usagePercent.toFixed(0)}%
-                          </p>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            <ResponsiveTable
+              data={categoryComparison}
+              keyExtractor={(item) => item.categoryId}
+              columns={[
+                { header: 'Categoría', accessor: (i) => i.categoryName, className: 'font-medium min-w-[120px]' },
+                { header: '% Asignado', accessor: (i) => `${i.percentage.toFixed(1)}%`, className: 'text-center min-w-[100px]' },
+                { header: 'Presupuestado', accessor: (i) => formatCurrencyAbsolute(i.budgeted), className: 'text-right min-w-[120px]' },
+                { header: 'Gastado', accessor: (i) => <MoneyDisplay amount={i.spent} type="expense" size="sm" />, className: 'text-right min-w-[120px]' },
+                { header: 'Diferencia', accessor: (i) => <MoneyDisplay amount={i.remaining} type="balance" size="sm" />, className: 'text-right min-w-[120px]' },
+                { header: 'Estado', accessor: (i) => (
+                  <Badge variant={i.status === 'danger' ? 'destructive' : i.status === 'warning' ? 'default' : 'secondary'}>
+                    {i.status === 'danger' ? 'Excedido' : i.status === 'warning' ? 'Alerta' : 'OK'}
+                  </Badge>
+                ), className: 'text-center min-w-[100px]' },
+                { header: 'Uso', accessor: (i) => (
+                  <div className="space-y-1">
+                    <Progress value={Math.min(i.usagePercent, 100)} className="h-2" />
+                    <p className="text-xs text-center text-muted-foreground">{i.usagePercent.toFixed(0)}%</p>
+                  </div>
+                ), className: 'min-w-[140px]' },
+              ]}
+              mobileCard={(item) => (
+                <MobileCard
+                  title={item.categoryName}
+                  badge={{
+                    label: item.status === 'danger' ? 'Excedido' : item.status === 'warning' ? 'Alerta' : 'OK',
+                    variant: item.status === 'danger' ? 'destructive' : item.status === 'warning' ? 'default' : 'secondary',
+                  }}
+                  fields={[
+                    { label: '% Asignado', value: `${item.percentage.toFixed(1)}%` },
+                    { label: 'Presupuestado', value: formatCurrencyAbsolute(item.budgeted) },
+                    { label: 'Gastado', value: <MoneyDisplay amount={item.spent} type="expense" size="sm" /> },
+                    { label: 'Diferencia', value: <MoneyDisplay amount={item.remaining} type="balance" size="sm" /> },
+                    { label: 'Uso', value: (
+                      <div className="space-y-1 w-full">
+                        <Progress value={Math.min(item.usagePercent, 100)} className="h-2" />
+                        <p className="text-xs text-muted-foreground">{item.usagePercent.toFixed(0)}%</p>
+                      </div>
+                    )},
+                  ]}
+                />
+              )}
+            />
           )}
         </CardContent>
       </Card>

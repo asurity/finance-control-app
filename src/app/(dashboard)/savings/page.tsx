@@ -35,6 +35,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
+import { ResponsiveTable, MobileCard } from '@/presentation/components/shared/DataTable';
 import { SavingsGoalForm } from '@/presentation/components/features/savings-goals/SavingsGoalForm';
 import { ContributionForm } from '@/presentation/components/features/savings-goals/ContributionForm';
 import { useOrganization } from '@/hooks/useOrganization';
@@ -124,6 +125,27 @@ function SavingsGoalsContent({ orgId, userId }: SavingsGoalsContentProps) {
     if (percent >= 50) return 'text-yellow-600 dark:text-yellow-400';
     return 'text-muted-foreground';
   };
+
+  const renderGoalActions = (goal: SavingsGoal) => (
+    <div className="flex items-center justify-end gap-1">
+      {goal.status === 'ACTIVE' && (
+        <Button variant="ghost" size="icon" onClick={() => setContributingGoal(goal)} title="Contribuir">
+          <TrendingUp className="h-4 w-4 text-green-600" />
+        </Button>
+      )}
+      <Button variant="ghost" size="icon" onClick={() => setEditingGoal(goal)} title="Editar">
+        <Pencil className="h-4 w-4" />
+      </Button>
+      {goal.status === 'ACTIVE' && (
+        <Button variant="ghost" size="icon" onClick={() => setCancellingGoalId(goal.id)} title="Cancelar meta">
+          <ArrowRight className="h-4 w-4 text-orange-500" />
+        </Button>
+      )}
+      <Button variant="ghost" size="icon" onClick={() => setDeletingGoalId(goal.id)} title="Eliminar">
+        <Trash2 className="h-4 w-4 text-destructive" />
+      </Button>
+    </div>
+  );
 
   if (isLoading) {
     return (
@@ -231,116 +253,57 @@ function SavingsGoalsContent({ orgId, userId }: SavingsGoalsContentProps) {
               </Button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Meta</TableHead>
-                    <TableHead>Progreso</TableHead>
-                    <TableHead>Ahorrado</TableHead>
-                    <TableHead>Objetivo</TableHead>
-                    <TableHead>Fecha Límite</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {savingsGoals.map((goal) => {
-                    const progress = goal.targetAmount > 0
-                      ? (goal.currentAmount / goal.targetAmount) * 100
-                      : 0;
-
-                    return (
-                      <TableRow key={goal.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{goal.icon || '🎯'}</span>
-                            <div>
-                              <span className="font-medium">{goal.name}</span>
-                              {goal.description && (
-                                <p className="text-xs text-muted-foreground">{goal.description}</p>
-                              )}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="w-32 space-y-1">
-                            <div className="flex justify-between text-xs">
-                              <span className={getProgressColor(progress)}>
-                                {progress.toFixed(1)}%
-                              </span>
-                            </div>
-                            <Progress value={Math.min(progress, 100)} className="h-2" />
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <MoneyDisplay amount={goal.currentAmount} type="income" />
-                        </TableCell>
-                        <TableCell>
-                          <MoneyDisplay amount={goal.targetAmount} type="neutral" />
-                        </TableCell>
-                        <TableCell>
-                          {goal.targetDate
-                            ? format(
-                                goal.targetDate instanceof Date
-                                  ? goal.targetDate
-                                  : new Date(goal.targetDate),
-                                'dd MMM yyyy',
-                                { locale: es }
-                              )
-                            : 'Sin fecha'}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={STATUS_VARIANTS[goal.status]}>
-                            {STATUS_LABELS[goal.status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            {goal.status === 'ACTIVE' && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setContributingGoal(goal)}
-                                title="Contribuir"
-                              >
-                                <TrendingUp className="h-4 w-4 text-green-600" />
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setEditingGoal(goal)}
-                              title="Editar"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            {goal.status === 'ACTIVE' && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setCancellingGoalId(goal.id)}
-                                title="Cancelar meta"
-                              >
-                                <ArrowRight className="h-4 w-4 text-orange-500" />
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setDeletingGoalId(goal.id)}
-                              title="Eliminar"
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+            <ResponsiveTable
+              data={savingsGoals}
+              keyExtractor={(goal) => goal.id}
+              columns={[
+                { header: 'Meta', accessor: (g) => (
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{g.icon || '🎯'}</span>
+                    <div>
+                      <span className="font-medium">{g.name}</span>
+                      {g.description && <p className="text-xs text-muted-foreground">{g.description}</p>}
+                    </div>
+                  </div>
+                )},
+                { header: 'Progreso', accessor: (g) => {
+                  const p = g.targetAmount > 0 ? (g.currentAmount / g.targetAmount) * 100 : 0;
+                  return (
+                    <div className="w-32 space-y-1">
+                      <div className="flex justify-between text-xs"><span className={getProgressColor(p)}>{p.toFixed(1)}%</span></div>
+                      <Progress value={Math.min(p, 100)} className="h-2" />
+                    </div>
+                  );
+                }},
+                { header: 'Ahorrado', accessor: (g) => <MoneyDisplay amount={g.currentAmount} type="income" /> },
+                { header: 'Objetivo', accessor: (g) => <MoneyDisplay amount={g.targetAmount} type="neutral" /> },
+                { header: 'Fecha Límite', accessor: (g) => g.targetDate ? format(g.targetDate instanceof Date ? g.targetDate : new Date(g.targetDate), 'dd MMM yyyy', { locale: es }) : 'Sin fecha' },
+                { header: 'Estado', accessor: (g) => <Badge variant={STATUS_VARIANTS[g.status]}>{STATUS_LABELS[g.status]}</Badge> },
+                { header: 'Acciones', accessor: (g) => renderGoalActions(g), className: 'text-right' },
+              ]}
+              mobileCard={(goal) => {
+                const progress = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0;
+                return (
+                  <MobileCard
+                    title={`${goal.icon || '🎯'} ${goal.name}`}
+                    subtitle={goal.description}
+                    badge={{ label: STATUS_LABELS[goal.status], variant: STATUS_VARIANTS[goal.status] }}
+                    fields={[
+                      { label: 'Progreso', value: (
+                        <div className="space-y-1 w-full">
+                          <span className={getProgressColor(progress)}>{progress.toFixed(1)}%</span>
+                          <Progress value={Math.min(progress, 100)} className="h-2" />
+                        </div>
+                      )},
+                      { label: 'Ahorrado', value: <MoneyDisplay amount={goal.currentAmount} type="income" /> },
+                      { label: 'Objetivo', value: <MoneyDisplay amount={goal.targetAmount} type="neutral" /> },
+                      { label: 'Fecha Límite', value: goal.targetDate ? format(goal.targetDate instanceof Date ? goal.targetDate : new Date(goal.targetDate), 'dd MMM yyyy', { locale: es }) : 'Sin fecha' },
+                    ]}
+                    actions={renderGoalActions(goal)}
+                  />
+                );
+              }}
+            />
           )}
         </CardContent>
       </Card>

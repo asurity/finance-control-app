@@ -28,6 +28,7 @@ import type { z } from 'zod';
 import type { AccountType } from '@/types/firestore';
 import type { Account } from '@/types/firestore';
 import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
+import { ResponsiveTable, MobileCard, type ColumnDef } from '@/presentation/components/shared/DataTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -304,6 +305,33 @@ function AccountsContent({
       });
     }
   };
+
+  const renderAccountActions = (account: Account) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <MoreVertical className="h-4 w-4" />
+          <span className="sr-only">Abrir menú</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => handleEditAccount(account)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Editar
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            setDeletingAccount(account);
+            setIsDeleteDialogOpen(true);
+          }}
+          className="text-red-600 dark:text-red-400"
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          Eliminar
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
     <div className="space-y-6">
@@ -669,68 +697,34 @@ function AccountsContent({
                   </p>
                 </div>
               ) : (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nombre</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Banco</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead className="text-right">Saldo</TableHead>
-                        <TableHead className="w-[50px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {assetAccounts.map((account) => (
-                        <TableRow key={account.id}>
-                          <TableCell className="font-medium">{account.name}</TableCell>
-                          <TableCell>
-                            {accountTypeOptions.find((option) => option.value === account.type)
-                              ?.label || account.type}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {account.bankName || '-'}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={account.isActive ? 'default' : 'secondary'}>
-                              {account.isActive ? 'Activa' : 'Inactiva'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <MoneyDisplay amount={account.balance} type="balance" size="sm" />
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreVertical className="h-4 w-4" />
-                                  <span className="sr-only">Abrir menú</span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleEditAccount(account)}>
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  Editar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setDeletingAccount(account);
-                                    setIsDeleteDialogOpen(true);
-                                  }}
-                                  className="text-red-600 dark:text-red-400"
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Eliminar
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                <ResponsiveTable
+                  data={assetAccounts}
+                  keyExtractor={(account) => account.id}
+                  columns={[
+                    { header: 'Nombre', accessor: (a) => a.name, className: 'font-medium' },
+                    { header: 'Tipo', accessor: (a) => accountTypeOptions.find((o) => o.value === a.type)?.label || a.type },
+                    { header: 'Banco', accessor: (a) => a.bankName || '-', className: 'text-muted-foreground' },
+                    { header: 'Estado', accessor: (a) => (
+                      <Badge variant={a.isActive ? 'default' : 'secondary'}>
+                        {a.isActive ? 'Activa' : 'Inactiva'}
+                      </Badge>
+                    )},
+                    { header: 'Saldo', accessor: (a) => <MoneyDisplay amount={a.balance} type="balance" size="sm" />, className: 'text-right' },
+                    { header: '', accessor: (a) => renderAccountActions(a), className: 'w-[50px]' },
+                  ]}
+                  mobileCard={(account) => (
+                    <MobileCard
+                      title={account.name}
+                      subtitle={accountTypeOptions.find((o) => o.value === account.type)?.label || account.type}
+                      badge={{ label: account.isActive ? 'Activa' : 'Inactiva', variant: account.isActive ? 'default' : 'secondary' }}
+                      fields={[
+                        { label: 'Banco', value: account.bankName || '-' },
+                        { label: 'Saldo', value: <MoneyDisplay amount={account.balance} type="balance" size="sm" /> },
+                      ]}
+                      actions={renderAccountActions(account)}
+                    />
+                  )}
+                />
               )}
             </CardContent>
           </Card>
@@ -764,131 +758,83 @@ function AccountsContent({
                   </p>
                 </div>
               ) : (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nombre</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Banco</TableHead>
-                        <TableHead>Tarjeta</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead className="text-right">Saldo/Deuda</TableHead>
-                        <TableHead className="text-right">Límite</TableHead>
-                        <TableHead className="text-right">Disponible</TableHead>
-                        <TableHead className="w-[50px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {debtAccounts.map((account) => {
-                        const isCreditAccount =
-                          account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT';
-                        const creditLimit = account.creditLimit || 0;
+                <ResponsiveTable
+                  data={debtAccounts}
+                  keyExtractor={(account) => account.id}
+                  columns={[
+                    { header: 'Nombre', accessor: (a) => a.name, className: 'font-medium' },
+                    { header: 'Tipo', accessor: (a) => accountTypeOptions.find((o) => o.value === a.type)?.label || a.type },
+                    { header: 'Banco', accessor: (a) => a.bankName || '-', className: 'text-muted-foreground' },
+                    { header: 'Tarjeta', accessor: (a) => a.cardNumber ? `**** ${a.cardNumber}` : '-', className: 'text-muted-foreground' },
+                    { header: 'Estado', accessor: (a) => (
+                      <Badge variant={a.isActive ? 'default' : 'secondary'}>
+                        {a.isActive ? 'Activa' : 'Inactiva'}
+                      </Badge>
+                    )},
+                    { header: 'Saldo/Deuda', accessor: (a) => <MoneyDisplay amount={a.balance} type="balance" size="sm" />, className: 'text-right' },
+                    { header: 'Límite', accessor: (a) => {
+                      const isCred = a.type === 'CREDIT_CARD' || a.type === 'LINE_OF_CREDIT';
+                      const limit = a.creditLimit || 0;
+                      return isCred && limit > 0 ? <MoneyDisplay amount={limit} type="neutral" size="sm" /> : '-';
+                    }, className: 'text-right text-muted-foreground' },
+                    { header: 'Disponible', accessor: (a) => {
+                      const isCred = a.type === 'CREDIT_CARD' || a.type === 'LINE_OF_CREDIT';
+                      const limit = a.creditLimit || 0;
+                      if (!isCred || limit <= 0) return <MoneyDisplay amount={a.balance} type="balance" size="sm" />;
+                      const avail = a.type === 'LINE_OF_CREDIT' ? a.balance : limit + a.balance;
+                      const used = a.type === 'LINE_OF_CREDIT' ? limit - a.balance : Math.max(0, -a.balance);
+                      const util = (used / limit) * 100;
+                      return (
+                        <div className="space-y-1">
+                          <MoneyDisplay amount={avail} type="neutral" size="sm" className={util > 90 ? 'text-red-600 dark:text-red-400' : util > 70 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'} />
+                          <Progress value={util} className="h-1.5" />
+                          <p className="text-xs text-muted-foreground">{util.toFixed(0)}% usado</p>
+                        </div>
+                      );
+                    }, className: 'text-right' },
+                    { header: '', accessor: (a) => renderAccountActions(a), className: 'w-[50px]' },
+                  ]}
+                  mobileCard={(account) => {
+                    const isCreditAccount = account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT';
+                    const creditLimit = account.creditLimit || 0;
+                    let availableCredit = 0;
+                    let usedCredit = 0;
+                    if (isCreditAccount && creditLimit > 0) {
+                      if (account.type === 'LINE_OF_CREDIT') {
+                        availableCredit = account.balance;
+                        usedCredit = creditLimit - account.balance;
+                      } else {
+                        availableCredit = creditLimit + account.balance;
+                        usedCredit = Math.max(0, -account.balance);
+                      }
+                    }
+                    const creditUtilization = isCreditAccount && creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
 
-                        // Calculate used credit and available credit based on account type
-                        let usedCredit = 0;
-                        let availableCredit = 0;
-
-                        if (isCreditAccount && creditLimit > 0) {
-                          if (account.type === 'LINE_OF_CREDIT') {
-                            // LINE_OF_CREDIT: balance is available (positive), used = limit - balance
-                            availableCredit = account.balance;
-                            usedCredit = creditLimit - account.balance;
-                          } else {
-                            // CREDIT_CARD: balance negative=debt, positive=saldo a favor
-                            // available = limit + balance
-                            availableCredit = creditLimit + account.balance;
-                            usedCredit = Math.max(0, -account.balance);
-                          }
-                        }
-
-                        const creditUtilization =
-                          isCreditAccount && creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
-
-                        return (
-                          <TableRow key={account.id}>
-                            <TableCell className="font-medium">{account.name}</TableCell>
-                            <TableCell>
-                              {accountTypeOptions.find((option) => option.value === account.type)
-                                ?.label || account.type}
-                            </TableCell>
-                            <TableCell className="text-muted-foreground">
-                              {account.bankName || '-'}
-                            </TableCell>
-                            <TableCell className="text-muted-foreground">
-                              {account.cardNumber ? `**** ${account.cardNumber}` : '-'}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={account.isActive ? 'default' : 'secondary'}>
-                                {account.isActive ? 'Activa' : 'Inactiva'}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <MoneyDisplay amount={account.balance} type="balance" size="sm" />
-                            </TableCell>
-                            <TableCell className="text-right text-muted-foreground">
-                              {isCreditAccount && creditLimit > 0 ? (
-                                <MoneyDisplay amount={creditLimit} type="neutral" size="sm" />
-                              ) : (
-                                '-'
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {isCreditAccount && creditLimit > 0 ? (
-                                <div className="space-y-1">
-                                  <MoneyDisplay
-                                    amount={availableCredit}
-                                    type="neutral"
-                                    size="sm"
-                                    className={
-                                      creditUtilization > 90
-                                        ? 'text-red-600 dark:text-red-400'
-                                        : creditUtilization > 70
-                                          ? 'text-yellow-600 dark:text-yellow-400'
-                                          : 'text-green-600 dark:text-green-400'
-                                    }
-                                  />
-                                  <Progress value={creditUtilization} className="h-1.5" />
-                                  <p className="text-xs text-muted-foreground">
-                                    {creditUtilization.toFixed(0)}% usado
-                                  </p>
-                                </div>
-                              ) : (
-                                <MoneyDisplay amount={account.balance} type="balance" size="sm" />
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <MoreVertical className="h-4 w-4" />
-                                    <span className="sr-only">Abrir menú</span>
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleEditAccount(account)}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Editar
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => {
-                                      setDeletingAccount(account);
-                                      setIsDeleteDialogOpen(true);
-                                    }}
-                                    className="text-red-600 dark:text-red-400"
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Eliminar
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
+                    return (
+                      <MobileCard
+                        title={account.name}
+                        subtitle={accountTypeOptions.find((o) => o.value === account.type)?.label || account.type}
+                        badge={{ label: account.isActive ? 'Activa' : 'Inactiva', variant: account.isActive ? 'default' : 'secondary' }}
+                        fields={[
+                          { label: 'Banco', value: account.bankName || '-' },
+                          ...(account.cardNumber ? [{ label: 'Tarjeta', value: `**** ${account.cardNumber}` }] : []),
+                          { label: 'Deuda', value: <MoneyDisplay amount={account.balance} type="balance" size="sm" /> },
+                          ...(isCreditAccount && creditLimit > 0 ? [
+                            { label: 'Límite', value: <MoneyDisplay amount={creditLimit} type="neutral" size="sm" /> },
+                            { label: 'Disponible', value: (
+                              <div className="space-y-1">
+                                <MoneyDisplay amount={availableCredit} type="neutral" size="sm" className={creditUtilization > 90 ? 'text-red-600 dark:text-red-400' : creditUtilization > 70 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'} />
+                                <Progress value={creditUtilization} className="h-1.5" />
+                                <p className="text-xs text-muted-foreground">{creditUtilization.toFixed(0)}% usado</p>
+                              </div>
+                            )},
+                          ] : []),
+                        ]}
+                        actions={renderAccountActions(account)}
+                      />
+                    );
+                  }}
+                />
               )}
             </CardContent>
           </Card>
