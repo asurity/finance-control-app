@@ -519,7 +519,8 @@ export class DIContainer {
     return new SetCategoryBudgetUseCase(
       this.getCategoryBudgetRepository(),
       this.getBudgetPeriodRepository(),
-      this.getCategoryRepository()
+      this.getCategoryRepository(),
+      this.getTransactionRepository()
     );
   }
 

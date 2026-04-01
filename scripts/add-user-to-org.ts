@@ -30,7 +30,8 @@ const db = getFirestore();
 // 🔧 CONFIGURACIÓN - Modifica estos datos
 const EXISTING_USER_ID = 'Sy36q08EyiOZ1jxeHgVPZsb96mN2';
 const EXISTING_ORG_ID = 'QorVu0F4Y73evZrK6BF8';
-const ROLE = 'MEMBER';
+// Roles válidos: 'OWNER' | 'ADMIN' | 'ACCOUNTANT' | 'USER' | 'VIEWER'
+const ROLE = 'USER';
 
 async function addUserToOrganization() {
   try {

@@ -62,7 +62,6 @@ export function QuickExpenseForm({
 }: QuickExpenseFormProps) {
   const [showDescription, setShowDescription] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showAllCategories, setShowAllCategories] = useState(false);
   const amountInputRef = useRef<HTMLInputElement>(null);
 
   // Hooks
@@ -116,11 +115,6 @@ export function QuickExpenseForm({
 
   // Filtrar categorías de gastos (excluir sub-categorías del listado principal)
   const expenseCategories = allCategories.filter((cat) => cat.type === 'EXPENSE' && !cat.parentId);
-
-  // Categorías no frecuentes (para el selector completo)
-  const otherCategories = expenseCategories.filter(
-    (cat) => !smartDefaults.recentCategories.some((rc) => rc.id === cat.id)
-  );
 
   // Submit handler
   const onSubmit = async (data: QuickExpenseFormValues) => {
@@ -185,8 +179,8 @@ export function QuickExpenseForm({
     }
   }, [categorySuggestion.categoryId, categorySuggestion.confidence, watchCategoryId, form]);
 
-  const isLoading =
-    createTransaction.isPending || accountsLoading || categoriesLoading || smartDefaults.isLoading;
+  const isLoading = accountsLoading || categoriesLoading || smartDefaults.isLoading;
+  const isSubmitting = createTransaction.isPending;
 
   return (
     <Form {...form}>
@@ -267,54 +261,27 @@ export function QuickExpenseForm({
                 </div>
               )}
 
-              {/* Botón para mostrar todas las categorías */}
-              {(otherCategories.length > 0 || smartDefaults.recentCategories.length === 0) && (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => setShowAllCategories(!showAllCategories)}
-                  >
-                    {showAllCategories ? (
-                      <>
-                        <ChevronUp className="mr-2 h-4 w-4" />
-                        Ocultar otras categorías
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown className="mr-2 h-4 w-4" />
-                        {smartDefaults.recentCategories.length > 0
-                          ? 'Ver otras categorías'
-                          : 'Seleccionar categoría'}
-                      </>
-                    )}
-                  </Button>
-
-                  {showAllCategories && (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Selecciona una categoría" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {expenseCategories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: category.color }}
-                              />
-                              {category.name}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </>
-              )}
+              {/* Dropdown de todas las categorías siempre visible */}
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="O selecciona otra categoría" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {expenseCategories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: category.color }}
+                        />
+                        {category.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               <FormMessage />
             </FormItem>
@@ -337,12 +304,20 @@ export function QuickExpenseForm({
                 <SelectContent>
                   {accounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
-                      {account.name}
-                      {account.id === smartDefaults.mostUsedAccount && (
-                        <Badge variant="secondary" className="ml-2 text-xs">
-                          Frecuente
-                        </Badge>
-                      )}
+                      <div className="flex items-center justify-between gap-4 w-full">
+                        <div className="flex flex-col">
+                          <span className="font-medium">{account.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {account.cardNumber && `****${account.cardNumber.slice(-4)} • `}
+                            {account.currency} {account.balance.toFixed(2)}
+                          </span>
+                        </div>
+                        {account.id === smartDefaults.mostUsedAccount && (
+                          <Badge variant="secondary" className="text-xs">
+                            Frecuente
+                          </Badge>
+                        )}
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -455,11 +430,11 @@ export function QuickExpenseForm({
         <div className="flex flex-col gap-2 pt-2">
           <Button
             type="submit"
-            disabled={isLoading || !watchAmount || !watchCategoryId}
+            disabled={isSubmitting || !watchAmount || !watchCategoryId}
             className="w-full h-12 text-base font-semibold"
             variant="destructive"
           >
-            {isLoading ? 'Registrando...' : 'Registrar Gasto'}
+            {isSubmitting ? 'Registrando...' : 'Registrar Gasto'}
           </Button>
 
           {onAdvancedMode && (

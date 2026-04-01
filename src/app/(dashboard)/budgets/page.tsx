@@ -47,7 +47,7 @@ import type { Category } from '@/types/firestore';
 
 export default function BudgetsPage() {
   const { user } = useAuth();
-  const { currentOrgId, currentOrganization } = useOrganization();
+  const { currentOrgId, currentOrganization, hasPermission } = useOrganization();
 
   if (!user || !currentOrgId) {
     return (
@@ -62,6 +62,8 @@ export default function BudgetsPage() {
       orgId={currentOrgId}
       userId={user.id}
       organizationName={currentOrganization?.name || 'Organización actual'}
+      canWrite={hasPermission('write')}
+      canDelete={hasPermission('delete')}
     />
   );
 }
@@ -70,10 +72,14 @@ function BudgetsContent({
   orgId,
   userId,
   organizationName,
+  canWrite,
+  canDelete,
 }: {
   orgId: string;
   userId: string;
   organizationName: string;
+  canWrite: boolean;
+  canDelete: boolean;
 }) {
   // Hooks
   const budgetPeriodsHook = useBudgetPeriods(orgId);
@@ -560,6 +566,8 @@ function BudgetsContent({
                       variant="outline"
                       size="sm"
                       onClick={() => setIsCreateCategoryDialogOpen(true)}
+                      disabled={!canWrite}
+                      title={!canWrite ? 'No tienes permisos para crear categorías' : ''}
                     >
                       <Plus className="mr-2 h-4 w-4" />
                       Nueva Categoría
@@ -595,6 +603,8 @@ function BudgetsContent({
                       onDeleteCategory={handleDeleteCategory}
                       isLoading={categoryBudgetsHook.setCategoryBudget.isPending}
                       suggestions={suggestions || []}
+                      canWrite={canWrite}
+                      canDelete={canDelete}
                     />
                   )}
                 </CardContent>

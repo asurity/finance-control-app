@@ -22,6 +22,23 @@ service cloud.firestore {
         get(/databases/$(database)/documents/organizations/$(orgId)).data.ownerId == request.auth.uid;
     }
     
+    // Get user role in organization
+    function getUserRole(orgId) {
+      return get(/databases/$(database)/documents/organizationMembers/$(orgId + '_' + request.auth.uid)).data.role;
+    }
+    
+    // Check if user can write (create/update)
+    function canWrite(orgId) {
+      let role = getUserRole(orgId);
+      return role in ['OWNER', 'ADMIN', 'ACCOUNTANT', 'USER'];
+    }
+    
+    // Check if user can delete
+    function canDelete(orgId) {
+      let role = getUserRole(orgId);
+      return role in ['OWNER', 'ADMIN'];
+    }
+    
     // Users collection - users can read/write their own data
     match /users/{userId} {
       allow read: if isAuthenticated();
@@ -79,11 +96,12 @@ service cloud.firestore {
       allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
     }
     
-    // Categories collection - accessible by organization members
+    // Categories collection - role-based permissions
     match /categories/{categoryId} {
       allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
-      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
+      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId) && canWrite(request.resource.data.orgId);
+      allow update: if isAuthenticated() && isMemberOfOrg(resource.data.orgId) && canWrite(resource.data.orgId);
+      allow delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId) && canDelete(resource.data.orgId);
     }
     
     // Budgets collection - accessible by organization members

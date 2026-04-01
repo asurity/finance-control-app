@@ -38,6 +38,7 @@ export interface FinancialProjection {
  */
 export interface CalculateFinancialProjectionInput {
   userId: string;
+  organizationId: string;
   referenceDate: Date;
 }
 
@@ -58,10 +59,10 @@ export class CalculateFinancialProjectionUseCase extends BaseUseCase<
   }
 
   async execute(input: CalculateFinancialProjectionInput): Promise<FinancialProjection> {
-    const { userId, referenceDate } = input;
+    const { userId, organizationId, referenceDate } = input;
 
-    // Get active budget period for the reference date
-    const activePeriod = await this.budgetPeriodRepo.getByDate(userId, referenceDate);
+    // Get active budget period for the reference date using organization
+    const activePeriod = await this.budgetPeriodRepo.getByDateAndOrganization(organizationId, referenceDate);
 
     // No active period - return no-budget status
     if (!activePeriod) {

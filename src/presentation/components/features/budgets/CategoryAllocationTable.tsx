@@ -33,6 +33,8 @@ interface CategoryAllocationTableProps {
   onDeleteCategory?: (category: Category) => void;
   isLoading?: boolean;
   suggestions?: { categoryId: string; suggestedPercentage: number; historicalAmount: number }[];
+  canWrite?: boolean;
+  canDelete?: boolean;
 }
 
 export function CategoryAllocationTable({
@@ -45,6 +47,8 @@ export function CategoryAllocationTable({
   onDeleteCategory,
   isLoading = false,
   suggestions = [],
+  canWrite = true,
+  canDelete = true,
 }: CategoryAllocationTableProps) {
   // Separate root categories from subcategories
   const { rootCategories, subcategoryMap } = useMemo(() => {
@@ -297,8 +301,8 @@ export function CategoryAllocationTable({
                             variant="ghost"
                             size="sm"
                             onClick={() => onEditCategory(category)}
-                            disabled={isLoading}
-                            title="Editar categoría"
+                            disabled={isLoading || !canWrite}
+                            title={!canWrite ? 'No tienes permisos para editar categorías' : 'Editar categoría'}
                           >
                             <Edit2 className="h-4 w-4" />
                           </Button>
@@ -308,8 +312,8 @@ export function CategoryAllocationTable({
                             variant="ghost"
                             size="sm"
                             onClick={() => onDeleteCategory(category)}
-                            disabled={isLoading}
-                            title="Eliminar categoría"
+                            disabled={isLoading || !canDelete}
+                            title={!canDelete ? 'No tienes permisos para eliminar categorías' : 'Eliminar categoría'}
                             className="text-destructive hover:text-destructive"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -358,8 +362,8 @@ export function CategoryAllocationTable({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => onEditCategory(child)}
-                                disabled={isLoading}
-                                title="Editar sub-categoría"
+                                disabled={isLoading || !canWrite}
+                                title={!canWrite ? 'No tienes permisos para editar categorías' : 'Editar sub-categoría'}
                               >
                                 <Edit2 className="h-3 w-3" />
                               </Button>
@@ -369,8 +373,8 @@ export function CategoryAllocationTable({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => onDeleteCategory(child)}
-                                disabled={isLoading}
-                                title="Eliminar sub-categoría"
+                                disabled={isLoading || !canDelete}
+                                title={!canDelete ? 'No tienes permisos para eliminar categorías' : 'Eliminar sub-categoría'}
                                 className="text-destructive hover:text-destructive"
                               >
                                 <Trash2 className="h-3 w-3" />

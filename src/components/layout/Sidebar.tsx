@@ -67,9 +67,8 @@ function SidebarContent({ onLinkClick }: SidebarContentProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Filtrar items de debug en producción
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  const visibleMenuItems = menuItems.filter((item) => isDevelopment || !item.debug);
+  // Debug items are always hidden from the sidebar (use direct URLs if needed)
+  const visibleMenuItems = menuItems.filter((item) => !item.debug);
 
   const handleNavigation = (href: string) => {
     router.push(href);
