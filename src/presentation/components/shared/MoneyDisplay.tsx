@@ -33,12 +33,12 @@ export function MoneyDisplay({
   let formattedAmount: string;
   let colorClass: string;
 
-  // Size classes
+  // Size classes with responsive scaling
   const sizeClasses = {
-    sm: 'text-sm',
-    md: 'text-base',
-    lg: 'text-lg',
-    xl: 'text-2xl',
+    sm: 'text-xs sm:text-sm',
+    md: 'text-sm sm:text-base',
+    lg: 'text-base sm:text-lg',
+    xl: 'text-lg sm:text-xl md:text-2xl',
   };
 
   // Apply rules based on type

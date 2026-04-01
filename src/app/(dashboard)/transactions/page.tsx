@@ -101,7 +101,7 @@ function TransactionsContent({
 
   // Obtener periodo activo de la organización
   const { data: currentBudgetPeriod } = budgetPeriodsHook.useCurrentBudgetPeriod(
-    user?.uid || '',
+    user?.id || '',
     new Date()
   );
 
@@ -205,11 +205,11 @@ function TransactionsContent({
           <p className="text-sm sm:text-base text-muted-foreground">
             Gestiona todos tus ingresos y gastos
           </p>
-          {currentBudgetPeriod && (
+          {currentBudgetPeriod?.budgetPeriod && (
             <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               <span className="font-medium">Periodo activo:</span>{' '}
-              {format(currentBudgetPeriod.startDate, "dd 'de' MMMM", { locale: es })} -{' '}
-              {format(currentBudgetPeriod.endDate, "dd 'de' MMMM, yyyy", { locale: es })}
+              {format(currentBudgetPeriod.budgetPeriod.startDate, "dd 'de' MMMM", { locale: es })} -{' '}
+              {format(currentBudgetPeriod.budgetPeriod.endDate, "dd 'de' MMMM, yyyy", { locale: es })}
             </p>
           )}
         </div>
@@ -243,7 +243,7 @@ function TransactionsContent({
       {/* Totals Bar */}
       <Card className="bg-muted/50">
         <CardContent className="pt-6">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="text-center">
               <p className="text-xs text-muted-foreground mb-1">Ingresos</p>
               <MoneyDisplay amount={totals.income} type="income" size="lg" />

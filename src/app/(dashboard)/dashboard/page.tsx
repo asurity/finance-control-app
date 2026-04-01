@@ -341,7 +341,7 @@ export default function DashboardPage() {
       <FinancialProjectionWidget />
 
       {/* KPIs Grid - Primary Row */}
-      <div className="grid gap-3 grid-cols-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5">
         {/* KPI 1: Balance Total */}
         {isLoading || !stats ? (
           <KPICardSkeleton />
@@ -418,7 +418,7 @@ export default function DashboardPage() {
       </div>
 
       {/* KPIs Grid - Secondary Row */}
-      <div className="grid gap-3 grid-cols-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* KPI 5: Pagos Pendientes */}
         {isLoading || !stats ? (
           <KPICardSkeleton />

@@ -197,17 +197,17 @@ export function QuickExpenseForm({
           name="amount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base font-semibold">¿Cuánto gastaste?</FormLabel>
+              <FormLabel className="text-sm sm:text-base font-semibold">¿Cuánto gastaste?</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-3xl font-bold text-muted-foreground">
+                  <span className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-xl sm:text-2xl md:text-3xl font-bold text-muted-foreground">
                     $
                   </span>
                   <Input
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    className="text-3xl font-bold pl-12 h-16 text-red-600"
+                    className="text-xl sm:text-2xl md:text-3xl font-bold pl-9 sm:pl-12 h-12 sm:h-14 md:h-16 text-red-600"
                     {...field}
                     ref={(e) => {
                       field.ref(e);
@@ -228,18 +228,18 @@ export function QuickExpenseForm({
           name="categoryId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base font-semibold">¿En qué?</FormLabel>
+              <FormLabel className="text-sm sm:text-base font-semibold">¿En qué?</FormLabel>
 
               {/* Categorías frecuentes como chips */}
               {smartDefaults.recentCategories.length > 0 && (
-                <div className="grid grid-cols-2 gap-2 mb-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                   {smartDefaults.recentCategories.map((category) => (
                     <button
                       key={category.id}
                       type="button"
                       onClick={() => field.onChange(category.id)}
                       className={cn(
-                        'relative p-4 rounded-lg border-2 text-left transition-all',
+                        'relative p-3 sm:p-4 rounded-lg border-2 text-left transition-all',
                         'hover:border-primary hover:bg-accent',
                         'active:scale-95',
                         field.value === category.id
@@ -249,7 +249,7 @@ export function QuickExpenseForm({
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{category.name}</div>
+                          <div className="text-sm sm:text-base font-medium truncate">{category.name}</div>
                           <div className="text-xs text-muted-foreground">
                             {category.count} {category.count === 1 ? 'vez' : 'veces'}
                           </div>
