@@ -30,6 +30,12 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
 import { CreateTransactionSchema } from '@/application/validators/transactionValidator';
+
+// Helper para parsear fecha del input sin problemas de timezone
+const parseLocalDate = (dateString: string): Date => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
 import { useTransactions } from '@/application/hooks/useTransactions';
 import { useAccounts } from '@/application/hooks/useAccounts';
 import { useCategories } from '@/application/hooks/useCategories';
@@ -355,7 +361,7 @@ export function QuickExpenseForm({
                     <Input
                       type="date"
                       value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
-                      onChange={(e) => field.onChange(new Date(e.target.value))}
+                      onChange={(e) => field.onChange(parseLocalDate(e.target.value))}
                       className="mt-2"
                     />
                   </FormControl>

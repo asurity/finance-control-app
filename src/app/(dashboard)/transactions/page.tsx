@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTransactions } from '@/application/hooks/useTransactions';
 import { useAccounts } from '@/application/hooks/useAccounts';
 import { useCategories } from '@/application/hooks/useCategories';
+import { useBudgetPeriods } from '@/application/hooks/useBudgetPeriods';
 import { toast } from 'sonner';
 import type { TransactionFilterState } from '@/types/filters';
 
@@ -82,9 +83,11 @@ function TransactionsContent({
   quickSearch,
   onQuickSearchChange,
 }: TransactionsContentProps) {
+  const { user } = useAuth();
   const transactionsHook = useTransactions(orgId);
   const accountsHook = useAccounts(orgId);
   const categoriesHook = useCategories(orgId);
+  const budgetPeriodsHook = useBudgetPeriods(orgId);
 
   const { data: transactionsData = [], isLoading: transactionsLoading } =
     transactionsHook.useTransactionsByDateRange(
@@ -95,6 +98,12 @@ function TransactionsContent({
   const { data: accounts = [], isLoading: accountsLoading } = accountsHook.useAllAccounts();
 
   const { data: categories = [], isLoading: categoriesLoading } = categoriesHook.useAllCategories();
+
+  // Obtener periodo activo de la organización
+  const { data: currentBudgetPeriod } = budgetPeriodsHook.useCurrentBudgetPeriod(
+    user?.uid || '',
+    new Date()
+  );
 
   const accountsMap = useMemo(() => {
     return accounts.reduce(
@@ -196,6 +205,13 @@ function TransactionsContent({
           <p className="text-sm sm:text-base text-muted-foreground">
             Gestiona todos tus ingresos y gastos
           </p>
+          {currentBudgetPeriod && (
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+              <span className="font-medium">Periodo activo:</span>{' '}
+              {format(currentBudgetPeriod.startDate, "dd 'de' MMMM", { locale: es })} -{' '}
+              {format(currentBudgetPeriod.endDate, "dd 'de' MMMM, yyyy", { locale: es })}
+            </p>
+          )}
         </div>
 
         {/* Quick Search + Export */}
