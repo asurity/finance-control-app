@@ -5,7 +5,8 @@
 
 'use client';
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+import { ResponsiveChart } from '@/presentation/components/shared/Charts/ResponsiveChart';
 import { formatCurrencyAbsolute } from '@/lib/utils/format';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -116,7 +117,7 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveChart desktopHeight={300} mobileHeight={220}>
           <PieChart>
             <Pie
               data={chartData}
@@ -142,7 +143,7 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
               }}
             />
           </PieChart>
-        </ResponsiveContainer>
+        </ResponsiveChart>
 
         {/* All Categories Table */}
         <div className="mt-4 space-y-2">

@@ -5,7 +5,8 @@
 
 'use client';
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip } from 'recharts';
+import { ResponsiveChart } from '@/presentation/components/shared/Charts/ResponsiveChart';
 import { formatCurrencyAbsolute } from '@/lib/utils/format';
 import type { TodayCategoryExpense } from '@/domain/use-cases/dashboard/GetDailyWeeklyStatsUseCase';
 
@@ -101,7 +102,7 @@ export function TodayExpensesPieChart({ data, totalExpenses }: TodayExpensesPieC
   return (
     <div className="space-y-3">
       {/* Pie Chart */}
-      <ResponsiveContainer width="100%" height={140}>
+      <ResponsiveChart desktopHeight={140} mobileHeight={120}>
         <PieChart>
           <Pie
             data={chartData}
@@ -119,7 +120,7 @@ export function TodayExpensesPieChart({ data, totalExpenses }: TodayExpensesPieC
           </Pie>
           <Tooltip content={<CustomTooltip />} />
         </PieChart>
-      </ResponsiveContainer>
+      </ResponsiveChart>
 
       {/* Legend - Category Labels with colors from category definitions */}
       <div className="space-y-1.5">

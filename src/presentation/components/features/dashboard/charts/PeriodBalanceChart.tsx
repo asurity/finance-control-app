@@ -13,8 +13,8 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
 } from 'recharts';
+import { ResponsiveChart } from '@/presentation/components/shared/Charts/ResponsiveChart';
 import { formatCurrencyAbsolute } from '@/lib/utils/format';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -138,7 +138,7 @@ export function PeriodBalanceChart({ data, period }: PeriodBalanceChartProps) {
   };
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveChart desktopHeight={300} mobileHeight={220}>
       <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
         <XAxis
@@ -184,7 +184,7 @@ export function PeriodBalanceChart({ data, period }: PeriodBalanceChartProps) {
           name="gastos"
         />
       </LineChart>
-    </ResponsiveContainer>
+    </ResponsiveChart>
   );
 }
 

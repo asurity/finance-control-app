@@ -12,9 +12,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
   Legend,
 } from 'recharts';
+import { ResponsiveChart } from '@/presentation/components/shared/Charts/ResponsiveChart';
 import { formatCurrency, formatCurrencyAbsolute } from '@/lib/utils/format';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
@@ -114,7 +114,7 @@ export function BalanceChart({
         </div>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveChart desktopHeight={300} mobileHeight={220}>
           <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="date" tickFormatter={formatDate} className="text-xs" />
@@ -146,7 +146,7 @@ export function BalanceChart({
               strokeDasharray="5 5"
             />
           </LineChart>
-        </ResponsiveContainer>
+        </ResponsiveChart>
       </CardContent>
     </Card>
   );
