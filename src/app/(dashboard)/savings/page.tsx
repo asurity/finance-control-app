@@ -287,7 +287,7 @@ function SavingsGoalsContent({ orgId, userId }: SavingsGoalsContentProps) {
                   <MobileCard
                     title={`${goal.icon || '🎯'} ${goal.name}`}
                     subtitle={goal.description}
-                    badge={{ label: STATUS_LABELS[goal.status], variant: STATUS_VARIANTS[goal.status] }}
+                    badge={<Badge variant={STATUS_VARIANTS[goal.status]}>{STATUS_LABELS[goal.status]}</Badge>}
                     fields={[
                       { label: 'Progreso', value: (
                         <div className="space-y-1 w-full">

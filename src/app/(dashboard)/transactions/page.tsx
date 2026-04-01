@@ -42,14 +42,14 @@ export default function TransactionsPage() {
       return {
         startDate: current.startDate,
         endDate: current.endDate,
-        name: current.name,
+        name: current.name ?? '',
       };
     }
     // Si no encuentra, usar el más reciente
     return {
       startDate: periods[0].startDate,
       endDate: periods[0].endDate,
-      name: periods[0].name,
+      name: periods[0].name ?? '',
     };
   }, [activePeriodsData]);
 

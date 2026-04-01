@@ -269,7 +269,7 @@ function RecurringTransactionsContent({ orgId, userId }: RecurringTransactionsCo
               mobileCard={(rt) => (
                 <MobileCard
                   title={`${FREQUENCY_ICONS[rt.frequency]} ${rt.description}`}
-                  badge={{ label: rt.isActive ? 'Activa' : 'Pausada', variant: rt.isActive ? 'default' : 'secondary' }}
+                  badge={<Badge variant={rt.isActive ? 'default' : 'secondary'}>{rt.isActive ? 'Activa' : 'Pausada'}</Badge>}
                   fields={[
                     { label: 'Monto', value: <MoneyDisplay amount={rt.amount} type={rt.type.toLowerCase() as 'income' | 'expense'} /> },
                     { label: 'Frecuencia', value: FREQUENCY_LABELS[rt.frequency] },

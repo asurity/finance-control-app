@@ -16,9 +16,8 @@ import { cn } from '@/lib/utils';
  * Definición de columna para la vista tabla (desktop/tablet).
  */
 export interface ColumnDef<T> {
-  id: string;
   header: ReactNode;
-  cell: (item: T) => ReactNode;
+  accessor: (item: T) => ReactNode;
   className?: string;
   headerClassName?: string;
 }
@@ -82,8 +81,8 @@ export function ResponsiveTable<T>({
       <Table className={tableClassName}>
         <TableHeader>
           <TableRow>
-            {columns.map((col) => (
-              <TableHead key={col.id} className={col.headerClassName}>
+            {columns.map((col, colIdx) => (
+              <TableHead key={colIdx} className={col.headerClassName ?? col.className}>
                 {col.header}
               </TableHead>
             ))}
@@ -92,9 +91,9 @@ export function ResponsiveTable<T>({
         <TableBody>
           {data.map((item) => (
             <TableRow key={keyExtractor(item)}>
-              {columns.map((col) => (
-                <TableCell key={col.id} className={col.className}>
-                  {col.cell(item)}
+              {columns.map((col, colIdx) => (
+                <TableCell key={colIdx} className={col.className}>
+                  {col.accessor(item)}
                 </TableCell>
               ))}
             </TableRow>

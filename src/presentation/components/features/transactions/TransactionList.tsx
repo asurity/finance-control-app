@@ -111,18 +111,16 @@ export function TransactionList({
 
   const columns: ColumnDef<Transaction>[] = [
     {
-      id: 'date',
       header: 'Fecha',
-      cell: (t) => (
+      accessor: (t) => (
         <span className="font-medium">
           {format(t.date, 'dd MMM yyyy', { locale: es })}
         </span>
       ),
     },
     {
-      id: 'description',
       header: 'Descripción',
-      cell: (t) => (
+      accessor: (t) => (
         <div className="flex flex-col gap-1">
           <span className="font-medium">{t.description}</span>
           {t.tags && t.tags.length > 0 && (
@@ -141,18 +139,16 @@ export function TransactionList({
       ),
     },
     {
-      id: 'category',
       header: 'Categoría',
-      cell: (t) => (
+      accessor: (t) => (
         <Badge variant={t.type === 'INCOME' ? 'default' : 'secondary'}>
           {categories[t.categoryId] || 'Sin categoría'}
         </Badge>
       ),
     },
     {
-      id: 'account',
       header: 'Cuenta',
-      cell: (t) => (
+      accessor: (t) => (
         <div className="flex items-center gap-2">
           {t.creditCardId && <CreditCard className="h-4 w-4 text-muted-foreground" />}
           <span className="text-sm">{accounts[t.accountId] || 'Cuenta desconocida'}</span>
@@ -160,11 +156,10 @@ export function TransactionList({
       ),
     },
     {
-      id: 'amount',
       header: 'Monto',
       headerClassName: 'text-right',
       className: 'text-right',
-      cell: (t) => (
+      accessor: (t) => (
         <MoneyDisplay
           amount={t.amount}
           type={t.type === 'INCOME' ? 'income' : 'expense'}
@@ -174,11 +169,10 @@ export function TransactionList({
       ),
     },
     {
-      id: 'actions',
       header: 'Acciones',
       headerClassName: 'text-right',
       className: 'text-right',
-      cell: (t) => renderActions(t),
+      accessor: (t) => renderActions(t),
     },
   ];
 

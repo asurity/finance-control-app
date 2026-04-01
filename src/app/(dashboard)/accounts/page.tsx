@@ -716,7 +716,7 @@ function AccountsContent({
                     <MobileCard
                       title={account.name}
                       subtitle={accountTypeOptions.find((o) => o.value === account.type)?.label || account.type}
-                      badge={{ label: account.isActive ? 'Activa' : 'Inactiva', variant: account.isActive ? 'default' : 'secondary' }}
+                      badge={<Badge variant={account.isActive ? 'default' : 'secondary'}>{account.isActive ? 'Activa' : 'Inactiva'}</Badge>}
                       fields={[
                         { label: 'Banco', value: account.bankName || '-' },
                         { label: 'Saldo', value: <MoneyDisplay amount={account.balance} type="balance" size="sm" /> },
@@ -814,7 +814,7 @@ function AccountsContent({
                       <MobileCard
                         title={account.name}
                         subtitle={accountTypeOptions.find((o) => o.value === account.type)?.label || account.type}
-                        badge={{ label: account.isActive ? 'Activa' : 'Inactiva', variant: account.isActive ? 'default' : 'secondary' }}
+                        badge={<Badge variant={account.isActive ? 'default' : 'secondary'}>{account.isActive ? 'Activa' : 'Inactiva'}</Badge>}
                         fields={[
                           { label: 'Banco', value: account.bankName || '-' },
                           ...(account.cardNumber ? [{ label: 'Tarjeta', value: `**** ${account.cardNumber}` }] : []),

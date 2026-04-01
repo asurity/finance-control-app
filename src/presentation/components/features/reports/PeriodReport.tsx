@@ -418,10 +418,7 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
               mobileCard={(item) => (
                 <MobileCard
                   title={item.categoryName}
-                  badge={{
-                    label: item.status === 'danger' ? 'Excedido' : item.status === 'warning' ? 'Alerta' : 'OK',
-                    variant: item.status === 'danger' ? 'destructive' : item.status === 'warning' ? 'default' : 'secondary',
-                  }}
+                  badge={<Badge variant={item.status === 'danger' ? 'destructive' : item.status === 'warning' ? 'default' : 'secondary'}>{item.status === 'danger' ? 'Excedido' : item.status === 'warning' ? 'Alerta' : 'OK'}</Badge>}
                   fields={[
                     { label: '% Asignado', value: `${item.percentage.toFixed(1)}%` },
                     { label: 'Presupuestado', value: formatCurrencyAbsolute(item.budgeted) },
