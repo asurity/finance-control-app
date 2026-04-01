@@ -126,7 +126,7 @@ export function Header({ title = 'Dashboard' }: HeaderProps) {
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
+            <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-80 max-h-[70vh] overflow-y-auto">
               <DropdownMenuLabel className="flex items-center justify-between">
                 <span>Notificaciones</span>
                 {unreadCount > 0 && (
@@ -194,7 +194,7 @@ export function Header({ title = 'Dashboard' }: HeaderProps) {
                 <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-56">
               <DropdownMenuLabel>Mis Organizaciones</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {organizations.map((organization) => (
