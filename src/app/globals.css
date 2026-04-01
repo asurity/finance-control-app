@@ -146,3 +146,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Mobile touch targets - min 44px for interactive elements */
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+  }
+}

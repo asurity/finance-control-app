@@ -276,7 +276,7 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-3">
           <Select value={period} onValueChange={(value) => setPeriod(value as DashboardPeriod)}>
-            <SelectTrigger className="w-[160px] sm:w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Seleccionar período" />
             </SelectTrigger>
             <SelectContent>
