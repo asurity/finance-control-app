@@ -4,7 +4,7 @@
  * Supports hierarchical categories with expandable parent/sub-category tree
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Fragment } from 'react';
 import { Percent, AlertCircle, CheckCircle2, Edit2, Trash2, ChevronRight, ChevronDown } from 'lucide-react';
 import { Category } from '@/types/firestore';
 import { CategoryBudget } from '@/domain/entities/CategoryBudget';
@@ -202,8 +202,8 @@ export function CategoryAllocationTable({
               }, 0);
 
               return (
-                <> 
-                  <TableRow key={category.id}>
+                <Fragment key={category.id}>
+                  <TableRow>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {hasChildren ? (
@@ -381,7 +381,7 @@ export function CategoryAllocationTable({
                       </TableRow>
                     );
                   })}
-                </>
+                </Fragment>
               );
             })}
           </TableBody>

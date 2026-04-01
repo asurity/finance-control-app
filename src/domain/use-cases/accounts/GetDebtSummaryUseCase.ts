@@ -82,8 +82,8 @@ export class GetDebtSummaryUseCase extends BaseUseCase<GetDebtSummaryInput, Debt
       const creditLimit = acc.creditLimit || 0;
       const availableCredit = acc.availableCredit || 0;
 
-      // For credit cards: balance is negative (debt), so used credit = |balance|
-      const usedCredit = Math.abs(acc.balance);
+      // For credit cards: balance negative = debt, positive = saldo a favor
+      const usedCredit = Math.max(0, -acc.balance);
       const utilizationPercent = creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
 
       // Calculate days until next payment

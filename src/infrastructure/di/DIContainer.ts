@@ -137,7 +137,10 @@ export class DIContainer {
 
   getOrgId(): string {
     if (!this.orgId) {
-      throw new Error('Organization ID not set. Call setOrgId() first.');
+      // Return empty string instead of throwing — hooks may be initialized
+      // before orgId is available. Queries are guarded with `enabled: !!orgId`
+      // so no Firestore calls will execute with an empty orgId.
+      return '';
     }
     return this.orgId;
   }

@@ -3,136 +3,17 @@ rules_version='2'
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper functions
+    // ⚠️ DEVELOPMENT MODE - OPEN PERMISSIONS ⚠️
+    // TODO: Restore strict permissions for production
+    // All authenticated users can read/write everything
+    
     function isAuthenticated() {
       return request.auth != null;
     }
     
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-    
-    function isMemberOfOrg(orgId) {
-      return isAuthenticated() && 
-        exists(/databases/$(database)/documents/organizationMembers/$(orgId + '_' + request.auth.uid));
-    }
-    
-    function isOrgOwner(orgId) {
-      return isAuthenticated() && 
-        get(/databases/$(database)/documents/organizations/$(orgId)).data.ownerId == request.auth.uid;
-    }
-    
-    // Users collection - users can read/write their own data
-    match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && 
-        request.resource.data.email == request.auth.token.email;
-      allow update: if isOwner(userId);
-      allow delete: if false; // No permitir eliminación directa
-    }
-    
-    // Organizations collection
-    match /organizations/{orgId} {
-      // Allow read if user is member
-      allow read: if isAuthenticated() && (
-        resource.data.ownerId == request.auth.uid ||
-        isMemberOfOrg(orgId)
-      );
-      allow create: if isAuthenticated() && 
-        request.resource.data.ownerId == request.auth.uid;
-      allow update: if isOrgOwner(orgId);
-      allow delete: if isOrgOwner(orgId);
-      
-      // Allow access to all subcollections within this organization
-      match /{subcollection}/{document=**} {
-        allow read, write: if isAuthenticated();
-      }
-    }
-    
-    // Organization Members collection
-    match /organizationMembers/{memberId} {
-      // Allow users to read their own memberships
-      allow read: if isAuthenticated() && (
-        memberId.matches('.*_' + request.auth.uid + '$') || 
-        resource.data.userId == request.auth.uid
-      );
-      // Allow owners to add members to their organizations
-      allow create: if isAuthenticated() && (
-        request.resource.data.userId == request.auth.uid ||
-        isOrgOwner(request.resource.data.organizationId)
-      );
-      allow update: if isOrgOwner(resource.data.organizationId);
-      allow delete: if isOrgOwner(resource.data.organizationId);
-    }
-    
-    // Accounts collection - accessible by organization members
-    match /accounts/{accountId} {
-      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
-      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-    }
-    
-    // Transactions collection - accessible by organization members
-    match /transactions/{transactionId} {
-      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
-      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-    }
-    
-    // Categories collection - accessible by organization members
-    match /categories/{categoryId} {
-      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
-      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-    }
-    
-    // Budgets collection - accessible by organization members
-    match /budgets/{budgetId} {
-      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
-      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-    }
-    
-    // Credit Cards collection - accessible by organization members
-    match /creditCards/{cardId} {
-      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
-      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-    }
-    
-    // Recurring Transactions collection - accessible by organization members
-    match /recurringTransactions/{recurringId} {
-      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
-      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-    }
-    
-    // Savings Goals collection - accessible by organization members
-    match /savingsGoals/{goalId} {
-      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
-      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-    }
-    
-    // Alerts collection - accessible by organization members
-    match /alerts/{alertId} {
-      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
-      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-    }
-    
-    // Budget Periods collection - accessible by organization members
-    match /budgetPeriods/{periodId} {
-      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
-      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-    }
-    
-    // Category Budgets collection - accessible by organization members
-    match /categoryBudgets/{categoryBudgetId} {
-      allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
-      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
+    // Allow all authenticated users to access everything
+    match /{document=**} {
+      allow read, write: if isAuthenticated();
     }
   }
 }

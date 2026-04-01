@@ -54,4 +54,34 @@ export interface IBudgetPeriodRepository extends IRepository<BudgetPeriod> {
    * @returns Promise resolving to true if overlap exists
    */
   hasOverlap(userId: string, startDate: Date, endDate: Date, excludeId?: string): Promise<boolean>;
+
+  /**
+   * Gets active budget periods for an organization (shared budgets)
+   * @param organizationId - Organization ID
+   * @returns Promise resolving to array of active budget periods
+   */
+  getActiveByOrganizationId(organizationId: string): Promise<BudgetPeriod[]>;
+
+  /**
+   * Gets budget period that contains a specific date for an organization
+   * @param organizationId - Organization ID
+   * @param date - Date to check
+   * @returns Promise resolving to budget period or null if not found
+   */
+  getByDateAndOrganization(organizationId: string, date: Date): Promise<BudgetPeriod | null>;
+
+  /**
+   * Checks if a budget period overlaps with existing periods in an organization
+   * @param organizationId - Organization ID
+   * @param startDate - Start date
+   * @param endDate - End date
+   * @param excludeId - Budget period ID to exclude from check (for updates)
+   * @returns Promise resolving to true if overlap exists
+   */
+  hasOverlapInOrganization(
+    organizationId: string,
+    startDate: Date,
+    endDate: Date,
+    excludeId?: string
+  ): Promise<boolean>;
 }

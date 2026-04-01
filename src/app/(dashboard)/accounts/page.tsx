@@ -274,7 +274,7 @@ function AccountsContent({
           isCreditAccount && values.creditLimit && values.balance !== undefined
             ? values.type === 'LINE_OF_CREDIT'
               ? values.balance
-              : values.creditLimit - Math.abs(values.balance)
+              : values.creditLimit + values.balance
             : undefined,
       });
 
@@ -795,9 +795,10 @@ function AccountsContent({
                             availableCredit = account.balance;
                             usedCredit = creditLimit - account.balance;
                           } else {
-                            // CREDIT_CARD: balance is debt (negative), used = |balance|
-                            usedCredit = Math.abs(account.balance);
-                            availableCredit = creditLimit - usedCredit;
+                            // CREDIT_CARD: balance negative=debt, positive=saldo a favor
+                            // available = limit + balance
+                            availableCredit = creditLimit + account.balance;
+                            usedCredit = Math.max(0, -account.balance);
                           }
                         }
 

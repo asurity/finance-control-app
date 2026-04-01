@@ -42,12 +42,14 @@ export class CloneBudgetPeriodUseCase extends BaseUseCase<
       throw new Error('Unauthorized to clone this budget period');
     }
 
-    // Check for overlap
-    const hasOverlap = await this.budgetPeriodRepo.hasOverlap(
-      input.userId,
-      input.newStartDate,
-      input.newEndDate
-    );
+    // Check for overlap using organization-based check if organizationId exists
+    const hasOverlap = sourcePeriod.organizationId
+      ? await this.budgetPeriodRepo.hasOverlapInOrganization(
+          sourcePeriod.organizationId,
+          input.newStartDate,
+          input.newEndDate
+        )
+      : await this.budgetPeriodRepo.hasOverlap(input.userId, input.newStartDate, input.newEndDate);
 
     if (hasOverlap) {
       throw new Error('New budget period overlaps with an existing period');

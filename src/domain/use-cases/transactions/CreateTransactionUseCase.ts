@@ -180,7 +180,8 @@ export class CreateTransactionUseCase extends BaseUseCase<
     // Update available credit for credit accounts
     if (account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT') {
       if (account.creditLimit !== undefined) {
-        const newAvailableCredit = Math.max(0, account.creditLimit - Math.abs(newBalance));
+        // available = limit + balance (balance negative=debt, positive=saldo a favor)
+        const newAvailableCredit = account.creditLimit + newBalance;
         // Update availableCredit if the account repository supports it
         try {
           await this.accountRepo.update(accountId, {

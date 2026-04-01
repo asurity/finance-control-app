@@ -149,6 +149,9 @@ export function Sidebar() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-64 p-0">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Menú de navegación</SheetTitle>
+          </SheetHeader>
           <div className="flex flex-col h-full">
             <SidebarContent onLinkClick={() => setMobileMenuOpen(false)} />
           </div>

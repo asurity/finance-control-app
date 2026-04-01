@@ -186,8 +186,9 @@ export class Account {
       if (this.type === 'LINE_OF_CREDIT') {
         return Math.max(0, this.balance);
       }
-      // CREDIT_CARD: balance is debt (negative), available = limit - debt
-      return Math.max(0, this.creditLimit - Math.abs(this.balance));
+      // CREDIT_CARD: balance is negative (debt) or positive (saldo a favor)
+      // available = limit + balance (balance is negative when debt, positive when credit)
+      return this.creditLimit + this.balance;
     }
 
     return undefined;
@@ -221,8 +222,8 @@ export class Account {
       // LINE_OF_CREDIT: used = limit - available
       used = this.creditLimit - this.balance;
     } else {
-      // CREDIT_CARD: used = absolute value of negative balance
-      used = Math.abs(this.balance);
+      // CREDIT_CARD: used = limit - available. Negative balance = debt, positive = saldo a favor
+      used = Math.max(0, -this.balance);
     }
     return (used / this.creditLimit) * 100;
   }

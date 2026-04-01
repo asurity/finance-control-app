@@ -116,8 +116,8 @@ export class FirestoreAccountRepository implements IAccountRepository {
         // LINE_OF_CREDIT: balance is available credit
         updates.availableCredit = newBalance;
       } else if (account.type === 'CREDIT_CARD') {
-        // CREDIT_CARD: available = limit - |balance|
-        updates.availableCredit = account.creditLimit - Math.abs(newBalance);
+        // CREDIT_CARD: available = limit + balance (balance negative=debt, positive=saldo a favor)
+        updates.availableCredit = account.creditLimit + newBalance;
       }
     }
 

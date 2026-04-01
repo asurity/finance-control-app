@@ -176,6 +176,7 @@ function BudgetsContent({
         startDate: newPeriodStartDate,
         endDate: newPeriodEndDate,
         userId,
+        organizationId: orgId, // Include organizationId for shared budgets
       });
 
       toast.success('Período de presupuesto creado');
@@ -278,14 +279,52 @@ function BudgetsContent({
     if (!selectedPeriod) return;
 
     try {
-      // Save each category budget
+      // Build a map of allocations for easy lookup
+      const allocationMap = new Map(allocations.map((a) => [a.categoryId, a.percentage]));
+
+      // 1. Update or delete existing category budgets
+      for (const cb of categoryBudgets) {
+        if (!cb.id || cb.id.trim() === '') continue;
+
+        const newPercentage = allocationMap.get(cb.categoryId);
+
+        if (newPercentage === undefined || newPercentage === 0) {
+          // Delete if no longer in allocations or percentage is 0
+          try {
+            await categoryBudgetsHook.deleteCategoryBudget.mutateAsync({
+              id: cb.id,
+              userId,
+            });
+          } catch (deleteError: any) {
+            console.warn(`Could not delete category budget ${cb.id}:`, deleteError.message);
+          }
+        } else if (newPercentage !== cb.percentage) {
+          // Update if percentage changed
+          try {
+            await categoryBudgetsHook.updateCategoryBudgetPercentage.mutateAsync({
+              id: cb.id,
+              percentage: newPercentage,
+              userId,
+            });
+          } catch (updateError: any) {
+            console.warn(`Could not update category budget ${cb.id}:`, updateError.message);
+          }
+        }
+        // If percentage is the same, do nothing (preserve spentAmount)
+      }
+
+      // 2. Create new category budgets for categories that don't exist yet
+      const existingCategoryIds = new Set(categoryBudgets.map((cb) => cb.categoryId));
       for (const alloc of allocations) {
-        await categoryBudgetsHook.setCategoryBudget.mutateAsync({
-          budgetPeriodId: selectedPeriod.id,
-          categoryId: alloc.categoryId,
-          percentage: alloc.percentage,
-          userId,
-        });
+        if (alloc.percentage > 0 && !existingCategoryIds.has(alloc.categoryId)) {
+          await categoryBudgetsHook.setCategoryBudget.mutateAsync({
+            budgetPeriodId: selectedPeriod.id,
+            categoryId: alloc.categoryId,
+            percentage: alloc.percentage,
+            userId,
+            organizationId: orgId, // Include organizationId for shared budgets
+          });
+        }
       }
 
       toast.success('Asignaciones guardadas exitosamente');

@@ -23,8 +23,10 @@ export function useCategories(orgId: string) {
   const queryClient = useQueryClient();
   const container = DIContainer.getInstance();
 
-  // Set organization ID in DI container
-  container.setOrgId(orgId);
+  // Set organization ID in DI container (only if valid)
+  if (orgId) {
+    container.setOrgId(orgId);
+  }
 
   // Get repository
   const categoryRepo = container.getCategoryRepository();

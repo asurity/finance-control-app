@@ -6,7 +6,8 @@ import { BudgetPeriod } from '@/domain/entities/BudgetPeriod';
  * Input DTO for getting current budget period
  */
 export interface GetCurrentBudgetPeriodInput {
-  userId: string;
+  userId?: string;
+  organizationId?: string;
   date?: Date;
 }
 
@@ -31,7 +32,22 @@ export class GetCurrentBudgetPeriodUseCase extends BaseUseCase<
 
   async execute(input: GetCurrentBudgetPeriodInput): Promise<GetCurrentBudgetPeriodOutput> {
     const date = input.date ?? new Date();
-    const budgetPeriod = await this.budgetPeriodRepo.getByDate(input.userId, date);
+
+    let budgetPeriod: BudgetPeriod | null;
+
+    // Prioritize organizationId for shared budgets
+    if (input.organizationId) {
+      budgetPeriod = await this.budgetPeriodRepo.getByDateAndOrganization(
+        input.organizationId,
+        date
+      );
+    }
+    // Fallback to userId-based query (legacy or personal budgets)
+    else if (input.userId) {
+      budgetPeriod = await this.budgetPeriodRepo.getByDate(input.userId, date);
+    } else {
+      throw new Error('Either userId or organizationId must be provided');
+    }
 
     return {
       budgetPeriod,

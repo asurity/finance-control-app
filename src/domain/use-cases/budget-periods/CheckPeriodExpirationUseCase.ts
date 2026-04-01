@@ -4,6 +4,7 @@ import { BudgetPeriod } from '@/domain/entities/BudgetPeriod';
 
 export interface CheckPeriodExpirationInput {
   userId: string;
+  organizationId?: string;
 }
 
 export interface PeriodExpirationStatus {
@@ -24,7 +25,10 @@ export class CheckPeriodExpirationUseCase extends BaseUseCase<
   }
 
   async execute(input: CheckPeriodExpirationInput): Promise<PeriodExpirationStatus> {
-    const allPeriods = await this.budgetPeriodRepo.getByUserId(input.userId);
+    // Prioritize organizationId for shared budgets
+    const allPeriods = input.organizationId
+      ? await this.budgetPeriodRepo.getByOrganizationId(input.organizationId)
+      : await this.budgetPeriodRepo.getByUserId(input.userId);
 
     // Sort by end date descending
     allPeriods.sort((a, b) => b.endDate.getTime() - a.endDate.getTime());
