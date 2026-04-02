@@ -252,7 +252,7 @@ export function QuickIncomeForm({
                     <SelectValue placeholder="O busca en todas las categorías" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>
+                <SelectContent position="popper" className="w-[var(--radix-select-trigger-width)]">
                   {smartDefaults.recentCategories.length > 0 && (
                     <>
                       <SelectGroup>
@@ -310,22 +310,22 @@ export function QuickIncomeForm({
                     <SelectValue placeholder="Selecciona una cuenta" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>
+                <SelectContent position="popper" className="w-[var(--radix-select-trigger-width)]">
                   {accounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
-                      <div className="flex items-center justify-between gap-4 w-full">
-                        <div className="flex flex-col">
+                      <div className="flex flex-col gap-0.5 py-1">
+                        <div className="flex items-center gap-2">
                           <span className="font-medium">{account.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {account.cardNumber && `****${account.cardNumber.slice(-4)} • `}
-                            {account.currency} {account.balance.toFixed(2)}
-                          </span>
+                          {account.id === smartDefaults.mostUsedAccount && (
+                            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
+                              ★
+                            </Badge>
+                          )}
                         </div>
-                        {account.id === smartDefaults.mostUsedAccount && (
-                          <Badge variant="secondary" className="text-xs">
-                            Frecuente
-                          </Badge>
-                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {account.cardNumber && `****${account.cardNumber.slice(-4)} • `}
+                          {account.currency} {account.balance.toFixed(2)}
+                        </span>
                       </div>
                     </SelectItem>
                   ))}
