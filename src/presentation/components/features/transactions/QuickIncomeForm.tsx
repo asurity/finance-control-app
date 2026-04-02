@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronDown, ChevronUp, Calendar, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,10 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -65,8 +68,6 @@ export function QuickIncomeForm({
   onSuccess,
   onAdvancedMode,
 }: QuickIncomeFormProps) {
-  const [showDescription, setShowDescription] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const amountInputRef = useRef<HTMLInputElement>(null);
 
   // Hooks
@@ -207,10 +208,10 @@ export function QuickIncomeForm({
             <FormItem>
               <FormLabel className="text-sm sm:text-base font-semibold">¿Por qué concepto?</FormLabel>
 
-              {/* Categorías frecuentes como chips */}
+              {/* Categorías frecuentes como chips - máximo 4 para no saturar */}
               {smartDefaults.recentCategories.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
-                  {smartDefaults.recentCategories.map((category) => (
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  {smartDefaults.recentCategories.slice(0, 4).map((category) => (
                     <button
                       key={category.id}
                       type="button"
@@ -244,25 +245,50 @@ export function QuickIncomeForm({
                 </div>
               )}
 
-              {/* Dropdown de todas las categorías siempre visible */}
+              {/* Dropdown con categorías agrupadas: frecuentes primero, luego todas */}
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="O selecciona otra categoría" />
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="O busca en todas las categorías" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {incomeCategories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: category.color }}
-                        />
-                        {category.name}
-                      </div>
-                    </SelectItem>
-                  ))}
+                  {smartDefaults.recentCategories.length > 0 && (
+                    <>
+                      <SelectGroup>
+                        <SelectLabel>⭐ Frecuentes</SelectLabel>
+                        {smartDefaults.recentCategories.slice(0, 6).map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: category.color }}
+                              />
+                              <span>{category.name}</span>
+                              <span className="text-xs text-muted-foreground ml-auto">
+                                {category.count}x
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                      <SelectSeparator />
+                    </>
+                  )}
+                  <SelectGroup>
+                    <SelectLabel>Todas las categorías</SelectLabel>
+                    {incomeCategories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: category.color }}
+                          />
+                          {category.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
                 </SelectContent>
               </Select>
 
@@ -310,92 +336,44 @@ export function QuickIncomeForm({
           )}
         />
 
-        {/* Optional: Date Picker (collapsed by default) */}
-        <div className="space-y-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-auto p-0 font-normal text-muted-foreground"
-            onClick={() => setShowDatePicker(!showDatePicker)}
-          >
-            <Calendar className="mr-2 h-4 w-4" />
-            {format(watchDate, "d 'de' MMMM, yyyy", { locale: es })}
-            {showDatePicker ? (
-              <ChevronUp className="ml-2 h-4 w-4" />
-            ) : (
-              <ChevronDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-
-          {showDatePicker && (
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
-                      onChange={(e) => field.onChange(parseLocalDate(e.target.value))}
-                      className="mt-2"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        {/* Date Picker - Siempre visible pero compacto */}
+        <FormField
+          control={form.control}
+          name="date"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-xs text-muted-foreground">Fecha</FormLabel>
+              <FormControl>
+                <Input
+                  type="date"
+                  value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => field.onChange(parseLocalDate(e.target.value))}
+                  className="h-9 text-sm"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
-        </div>
+        />
 
-        {/* Optional: Description (collapsed by default) */}
-        <div className="space-y-2">
-          {!showDescription && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-auto p-0 font-normal text-muted-foreground"
-              onClick={() => setShowDescription(true)}
-            >
-              <ChevronDown className="mr-2 h-4 w-4" />
-              Agregar descripción (opcional)
-            </Button>
+        {/* Description - Siempre visible pero compacto */}
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-xs text-muted-foreground">Descripción (opcional)</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Ej: Pago de nómina"
+                  className="h-9 text-sm"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
-
-          {showDescription && (
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center justify-between">
-                    <FormLabel className="text-sm">Descripción</FormLabel>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-auto p-0 font-normal text-muted-foreground"
-                      onClick={() => setShowDescription(false)}
-                    >
-                      <ChevronUp className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Ej: Pago de nómina"
-                      className="resize-none"
-                      rows={2}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-        </div>
+        />
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-2 pt-2">
