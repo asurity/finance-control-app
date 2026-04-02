@@ -65,10 +65,12 @@ export function useSmartDefaults({
     // Fecha por defecto: siempre hoy
     const defaultDate = new Date();
 
-    // Filtrar transacciones por tipo
-    const transactionsByType = recentTransactions.filter((t) => t.type === transactionType);
+    // Filtrar transacciones por tipo Y por usuario (personalización individual)
+    const transactionsByType = recentTransactions.filter(
+      (t) => t.type === transactionType && t.userId === userId
+    );
 
-    // Calcular cuenta más usada en el último mes para este tipo de transacción
+    // Calcular cuenta más usada en el último mes para este tipo de transacción (del usuario actual)
     const accountFrequency = new Map<string, number>();
     transactionsByType.forEach((transaction) => {
       const count = accountFrequency.get(transaction.accountId) || 0;
