@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Check } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -70,6 +70,7 @@ export function QuickExpenseForm({
   onAdvancedMode,
 }: QuickExpenseFormProps) {
   const amountInputRef = useRef<HTMLInputElement>(null);
+  const [showAllAccounts, setShowAllAccounts] = useState(false);
 
   // Hooks
   const { createTransaction } = useTransactions(orgId);
@@ -320,43 +321,128 @@ export function QuickExpenseForm({
           )}
         />
 
-        {/* Account Selection - Pre-seleccionada pero modificable */}
+        {/* Account Selection - Expandible sin dropdown */}
         <FormField
           control={form.control}
           name="accountId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-sm">Cuenta</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona una cuenta" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent position="popper" className="w-[var(--radix-select-trigger-width)]">
-                  {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      <div className="flex flex-col gap-0.5 py-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{account.name}</span>
-                          {account.id === smartDefaults.mostUsedAccount && (
-                            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
-                              ★
-                            </Badge>
-                          )}
+          render={({ field }) => {
+            // Ordenar cuentas: más usada primero, luego por nombre
+            const sortedAccounts = [...accounts].sort((a, b) => {
+              if (a.id === smartDefaults.mostUsedAccount) return -1;
+              if (b.id === smartDefaults.mostUsedAccount) return 1;
+              return a.name.localeCompare(b.name);
+            });
+
+            const topAccounts = sortedAccounts.slice(0, 3);
+            const remainingAccounts = sortedAccounts.slice(3);
+            const selectedAccount = accounts.find(acc => acc.id === field.value);
+
+            return (
+              <FormItem>
+                <FormLabel className="text-sm">Cuenta</FormLabel>
+                
+                {/* Cuentas principales */}
+                <div className="space-y-2">
+                  {topAccounts.map((account) => (
+                    <button
+                      key={account.id}
+                      type="button"
+                      onClick={() => field.onChange(account.id)}
+                      className={cn(
+                        'w-full p-3 rounded-lg border-2 text-left transition-all',
+                        'hover:border-primary hover:bg-accent',
+                        'active:scale-[0.98]',
+                        field.value === account.id
+                          ? 'border-primary bg-accent shadow-sm'
+                          : 'border-border'
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">{account.name}</span>
+                            {account.id === smartDefaults.mostUsedAccount && (
+                              <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
+                                ★
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {account.cardNumber && `****${account.cardNumber.slice(-4)} • `}
+                            {account.currency} {account.balance.toFixed(2)}
+                          </div>
                         </div>
-                        <span className="text-xs text-muted-foreground">
-                          {account.cardNumber && `****${account.cardNumber.slice(-4)} • `}
-                          {account.currency} {account.balance.toFixed(2)}
-                        </span>
+                        {field.value === account.id && (
+                          <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                        )}
                       </div>
-                    </SelectItem>
+                    </button>
                   ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+                </div>
+
+                {/* Botón Ver todas + Lista expandible */}
+                {remainingAccounts.length > 0 && (
+                  <div className="mt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowAllAccounts(!showAllAccounts)}
+                      className="w-full justify-between"
+                    >
+                      <span className="text-xs">
+                        {showAllAccounts ? 'Ocultar' : `Ver todas (${remainingAccounts.length} más)`}
+                      </span>
+                      {showAllAccounts ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+
+                    {/* Lista expandible con scroll nativo */}
+                    {showAllAccounts && (
+                      <div className="mt-2 space-y-2 max-h-[200px] overflow-y-auto overscroll-contain pr-1">
+                        {remainingAccounts.map((account) => (
+                          <button
+                            key={account.id}
+                            type="button"
+                            onClick={() => {
+                              field.onChange(account.id);
+                              setShowAllAccounts(false);
+                            }}
+                            className={cn(
+                              'w-full p-3 rounded-lg border-2 text-left transition-all',
+                              'hover:border-primary hover:bg-accent',
+                              'active:scale-[0.98]',
+                              field.value === account.id
+                                ? 'border-primary bg-accent shadow-sm'
+                                : 'border-border'
+                            )}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-sm">{account.name}</div>
+                                <div className="text-xs text-muted-foreground mt-0.5">
+                                  {account.cardNumber && `****${account.cardNumber.slice(-4)} • `}
+                                  {account.currency} {account.balance.toFixed(2)}
+                                </div>
+                              </div>
+                              {field.value === account.id && (
+                                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
         {/* Date Picker - Siempre visible pero compacto */}
