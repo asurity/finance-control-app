@@ -322,6 +322,7 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
         }
         break;
 
+      // --- Respuestas de texto (modalities: ['text'] sin audio) ---
       case 'response.text.delta':
         if (this.onTextResponseCallback) {
           this.onTextResponseCallback(event.delta, false);
@@ -332,22 +333,31 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
         if (this.onTextResponseCallback) {
           this.onTextResponseCallback(event.text, true);
         }
-        // Después de respuesta completa de texto, volver a ready para siguiente turno
-        if (this.state === 'processing') {
-          this.setState('ready');
+        this.transitionToReadyIfDone();
+        break;
+
+      // --- Respuestas de audio+texto (modalities: ['text', 'audio']) ---
+      // Cuando TTS está habilitado, el texto viene como audio_transcript
+      case 'response.audio_transcript.delta':
+        if (this.onTextResponseCallback) {
+          this.onTextResponseCallback(event.delta, false);
         }
         break;
 
+      case 'response.audio_transcript.done':
+        if (this.onTextResponseCallback) {
+          this.onTextResponseCallback(event.transcript, true);
+        }
+        // No transicionar aquí — response.done se encarga
+        break;
+
       case 'response.audio.delta':
-        // Audio incremental del modelo - manejado via ontrack
+        // Audio incremental del modelo - manejado via ontrack (WebRTC)
         break;
 
       case 'response.done':
         // Respuesta completa (puede incluir texto + audio + function calls)
-        // Si estamos en processing, transicionar a ready para siguiente turno
-        if (this.state === 'processing') {
-          this.setState('ready');
-        }
+        this.transitionToReadyIfDone();
         break;
 
       case 'error':
@@ -356,6 +366,16 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
 
       default:
         console.log('[OpenAIRealtimeProvider] Event:', event.type);
+    }
+  }
+
+  /**
+   * Transiciona a 'ready' si estamos en un estado post-procesamiento.
+   * Permite al usuario hacer otro push-to-talk.
+   */
+  private transitionToReadyIfDone(): void {
+    if (this.state === 'processing' || this.state === 'executing') {
+      this.setState('ready');
     }
   }
 
