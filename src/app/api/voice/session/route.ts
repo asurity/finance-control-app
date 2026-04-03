@@ -1,13 +1,16 @@
 /**
- * API Route para crear sesiones efímeras con OpenAI Realtime API
+ * API Route para crear sesiones efímeras con AI Realtime API
  * Fase 1: Implementación completa con autenticación y rate limiting
  * Fase 7: Rate limiting persistente en Firestore con caché híbrido
+ * Voice-Conversational: Soporte multi-proveedor (OpenAI / Gemini / Claude)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase/admin';
 import { VOICE_AGENT_CONFIG, VOICE_LIMITS, buildSystemInstructions } from '@/infrastructure/voice-agent/config';
 import { AdminVoiceUsageRepository } from '@/infrastructure/repositories/AdminVoiceUsageRepository';
+import { APP_CONFIG } from '@/lib/constants/config';
+import type { AIProviderType } from '@/domain/ports';
 
 /**
  * Repositorio de uso de voz (persistente en Firestore)
@@ -164,53 +167,80 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Verificar que exista la API key de OpenAI
-    const openaiApiKey = process.env.OPENAI_API_KEY;
-    if (!openaiApiKey) {
-      console.error('OPENAI_API_KEY no está configurada');
-      return NextResponse.json(
-        { error: 'SERVICE_UNAVAILABLE', message: 'Servicio de voz no disponible' },
-        { status: 503 }
-      );
+    // 3. Determinar proveedor de AI
+    let provider: AIProviderType = APP_CONFIG.aiProvider;
+    try {
+      const body = await request.json().catch(() => ({}));
+      if (body.provider && ['openai', 'gemini', 'claude'].includes(body.provider)) {
+        provider = body.provider as AIProviderType;
+      }
+    } catch {
+      // Sin body o body inválido, usar provider por defecto
     }
 
-    // 4. Generar ephemeral token con OpenAI Realtime API
-    const openaiResponse = await fetch('https://api.openai.com/v1/realtime/sessions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: VOICE_AGENT_CONFIG.model,
-        modalities: VOICE_AGENT_CONFIG.modalities,
-        voice: VOICE_AGENT_CONFIG.voice,
-        instructions: buildSystemInstructions(),
-        temperature: VOICE_AGENT_CONFIG.temperature,
-        max_response_output_tokens: VOICE_AGENT_CONFIG.maxTokens,
-        turn_detection: VOICE_AGENT_CONFIG.turnDetection,
-      }),
-    });
+    // 4. Generar token según el proveedor
+    switch (provider) {
+      case 'openai': {
+        const openaiApiKey = process.env.OPENAI_API_KEY;
+        if (!openaiApiKey) {
+          console.error('OPENAI_API_KEY no está configurada');
+          return NextResponse.json(
+            { error: 'SERVICE_UNAVAILABLE', message: 'Servicio de voz no disponible' },
+            { status: 503 }
+          );
+        }
 
-    if (!openaiResponse.ok) {
-      const errorData = await openaiResponse.json().catch(() => ({}));
-      console.error('Error al generar token de OpenAI:', errorData);
-      return NextResponse.json(
-        { error: 'OPENAI_ERROR', message: 'Error al inicializar sesión de voz' },
-        { status: 500 }
-      );
+        const openaiResponse = await fetch('https://api.openai.com/v1/realtime/sessions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: VOICE_AGENT_CONFIG.model,
+            modalities: VOICE_AGENT_CONFIG.modalities,
+            voice: VOICE_AGENT_CONFIG.voice,
+            instructions: buildSystemInstructions(),
+            temperature: VOICE_AGENT_CONFIG.temperature,
+            max_response_output_tokens: VOICE_AGENT_CONFIG.maxTokens,
+            turn_detection: VOICE_AGENT_CONFIG.turnDetection,
+          }),
+        });
+
+        if (!openaiResponse.ok) {
+          const errorData = await openaiResponse.json().catch(() => ({}));
+          console.error('Error al generar token de OpenAI:', errorData);
+          return NextResponse.json(
+            { error: 'OPENAI_ERROR', message: 'Error al inicializar sesión de voz' },
+            { status: 500 }
+          );
+        }
+
+        const sessionData = await openaiResponse.json();
+
+        return NextResponse.json({
+          ephemeralToken: sessionData.client_secret?.value || sessionData.client_secret,
+          expiresAt: sessionData.expires_at,
+          commandsRemaining: rateLimitCheck.remaining,
+          maxDuration: VOICE_LIMITS.maxInputDurationSeconds,
+          provider,
+          userId,
+        });
+      }
+
+      case 'gemini':
+      case 'claude':
+        return NextResponse.json(
+          { error: 'PROVIDER_NOT_IMPLEMENTED', message: `Proveedor '${provider}' aún no está implementado` },
+          { status: 501 }
+        );
+
+      default:
+        return NextResponse.json(
+          { error: 'INVALID_PROVIDER', message: `Proveedor '${provider}' no es válido` },
+          { status: 400 }
+        );
     }
-
-    const sessionData = await openaiResponse.json();
-
-    // 5. Retornar token efímero y metadata al cliente
-    return NextResponse.json({
-      ephemeralToken: sessionData.client_secret?.value || sessionData.client_secret,
-      expiresAt: sessionData.expires_at,
-      commandsRemaining: rateLimitCheck.remaining,
-      maxDuration: VOICE_LIMITS.maxInputDurationSeconds,
-      userId,
-    });
 
   } catch (error) {
     console.error('[API /voice/session] Error NO CAPTURADO en POST:', error);

@@ -31,6 +31,7 @@ export const APP_CONFIG = {
   enableAnalytics: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true',
   enableDebug: process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true',
   enableVoiceAgent: process.env.NEXT_PUBLIC_ENABLE_VOICE_AGENT === 'true',
+  aiProvider: (process.env.NEXT_PUBLIC_AI_PROVIDER || 'openai') as 'openai' | 'gemini' | 'claude',
 
   // Límites de datos
   maxTransactionsPerImport: 1000,

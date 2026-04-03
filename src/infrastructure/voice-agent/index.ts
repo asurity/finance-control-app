@@ -1,10 +1,9 @@
 /**
  * Voice Agent Infrastructure Module
  * Punto de entrada para el módulo del Agente de Voz
- * Fase 2: Tool Declarations
  */
 
-// Tipos principales
+// Tipos principales (legacy + agnósticos)
 export type {
   VoiceAgentState,
   VoiceTool,
@@ -13,6 +12,24 @@ export type {
   OpenAIToolDeclaration,
   OpenAIParameterSchema,
 } from './types';
+
+// Tipos agnósticos (domain ports)
+export type {
+  IAIRealtimeProvider,
+  AIProviderState,
+  AIFunctionCall,
+  AIToolDeclaration,
+  AISessionConfig,
+  AIProviderType,
+} from '@/domain/ports/IAIRealtimeProvider';
+
+// Proveedores
+export { OpenAIRealtimeProvider } from './OpenAIRealtimeProvider';
+export { AIProviderFactory } from './AIProviderFactory';
+export { ToolDeclarationMapper } from './ToolDeclarationMapper';
+
+// Backward compat
+export { RealtimeClient } from './RealtimeClient';
 
 // Configuración
 export {
