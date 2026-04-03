@@ -187,7 +187,7 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
 ### FASE 2: Tool Declarations — Registro de Herramientas
 **Tag**: `v2.0.0-ia-fase-2-tool-declarations`
 
-- [ ] Implementar `src/infrastructure/voice-agent/types.ts`:
+- [x] Implementar `src/infrastructure/voice-agent/types.ts`:
   ```typescript
   export interface VoiceTool {
     declaration: OpenAIToolDeclaration;  // Schema para OpenAI
@@ -206,11 +206,11 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
     message: string;  // Mensaje que OpenAI usará para generar la respuesta de voz
   }
   ```
-- [ ] Implementar `src/infrastructure/voice-agent/VoiceToolRegistry.ts`:
+- [x] Implementar `src/infrastructure/voice-agent/VoiceToolRegistry.ts`:
   - Patrón Registry: `register(tool: VoiceTool)`, `getAll()`, `getByName(name: string)`
   - Singleton thread-safe
   - Método `getDeclarations()` que retorna solo los schemas para enviar a OpenAI
-- [ ] Implementar tools iniciales en `src/infrastructure/voice-agent/tools/`:
+- [x] Implementar tools iniciales en `src/infrastructure/voice-agent/tools/`:
   - `createExpenseTool.ts` — Crear gasto (invoca `CreateTransactionUseCase`)
   - `createIncomeTool.ts` — Crear ingreso (invoca `CreateTransactionUseCase`)
   - `getBalanceTool.ts` — Consultar saldo de una cuenta (invoca `GetAccountByIdUseCase` o listing)
@@ -218,23 +218,23 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
   - `listAccountsTool.ts` — Listar cuentas disponibles
   - `listCategoriesTool.ts` — Listar categorías (para que el agente sepa cuáles existen)
   - `navigateToTool.ts` — Navegar a una sección de la app (usa `router.push`)
-- [ ] Cada tool:
+- [x] Cada tool:
   - Define su `declaration` con descripción clara para que el modelo entienda cuándo usarla
   - Valida argumentos con Zod antes de ejecutar
   - Invoca el Use Case correspondiente vía `DIContainer`
   - Retorna un `VoiceToolResult` con mensaje descriptivo
-- [ ] Implementar `src/infrastructure/voice-agent/tools/index.ts` que registra todos los tools
-- [ ] Tests unitarios para cada tool (mock del DIContainer y Use Cases)
-- [ ] Verificar que `npm run build` sigue pasando
-- [ ] **Commit**: `feat(voice): fase 2 — declaración y registro de herramientas del agente de voz`
-- [ ] **Tag**: `v2.0.0-ia-fase-2-tool-declarations`
+- [x] Implementar `src/infrastructure/voice-agent/tools/index.ts` que registra todos los tools
+- [x] Tests unitarios para cada tool (mock del DIContainer y Use Cases)
+- [x] Verificar que `npm run build` sigue pasando
+- [x] **Commit**: `feat(voice): fase 2 — declaración y registro de herramientas del agente de voz`
+- [x] **Tag**: `v2.0.0-ia-fase-2-tool-declarations`
 
 ---
 
 ### FASE 3: Cliente WebRTC — Conexión con OpenAI Realtime
 **Tag**: `v2.0.0-ia-fase-3-webrtc-client`
 
-- [ ] Implementar `src/infrastructure/voice-agent/RealtimeClient.ts`:
+- [x] Implementar `src/infrastructure/voice-agent/RealtimeClient.ts`:
   - Clase que encapsula toda la lógica WebRTC:
     - `connect(ephemeralToken: string)`: Establece la conexión con OpenAI Realtime
     - `disconnect()`: Cierra la conexión limpiamente
@@ -251,7 +251,7 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
     - Permitir terminar antes si detecta silencio (VAD 500ms)
     - Al llegar a 15s, detener grabación y procesar
   - Cleanup completo al desmontar (cierre de RTCPeerConnection, DataChannel, MediaStream)
-- [ ] La conexión WebRTC debe:
+- [x] La conexión WebRTC debe:
   1. Obtener ephemeral token del API Route `/api/voice/session`
   2. Crear `RTCPeerConnection` con el SDP offer
   3. Capturar audio del micrófono con `getUserMedia({ audio: true })`
@@ -270,11 +270,11 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
      }
      ```
      > Esto permite que OpenAI detecte automáticamente cuando el usuario termina de hablar
-- [ ] Implementar protocolo de eventos del DataChannel:
+- [x] Implementar protocolo de eventos del DataChannel:
   - Envío: `session.update`, `response.create`, `conversation.item.create`
   - Recepción: `response.function_call_arguments.done`, `response.text.delta`, `response.text.done`, `error`
   - **NO** recibir `audio.delta` (sin TTS)
-- [ ] **Implementar timer de grabación de 15 segundos**:
+- [x] **Implementar timer de grabación de 15 segundos**:
   - Iniciar contador al comenzar grabación: `recordingStartTime = Date.now()`
   - Timeout automático a los 15 segundos:
     ```typescript
@@ -296,10 +296,10 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
       }
     }
     ```
-- [ ] Tests unitarios con mocks de RTCPeerConnection y MediaStream
-- [ ] Verificar que `npm run build` sigue pasando
-- [ ] **Commit**: `feat(voice): fase 3 — cliente WebRTC para conexión con OpenAI Realtime API`
-- [ ] **Tag**: `v2.0.0-ia-fase-3-webrtc-client`
+- [x] Tests unitarios con mocks de RTCPeerConnection y MediaStream
+- [x] Verificar que `npm run build` sigue pasando
+- [x] **Commit**: `feat(voice): fase 3 — cliente WebRTC para conexión con OpenAI Realtime API`
+- [x] **Tag**: `v2.0.0-ia-fase-3-webrtc-client`
 
 ---
 
