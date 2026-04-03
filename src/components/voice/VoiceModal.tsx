@@ -34,6 +34,7 @@ export function VoiceModal({ isOpen, onClose }: VoiceModalProps) {
     isSessionActive,
     isRecording,
     conversationHistory,
+    audioStream,
     startRecording,
     stopRecording,
     endSession,
@@ -43,6 +44,23 @@ export function VoiceModal({ isOpen, onClose }: VoiceModalProps) {
 
   // Audio element para TTS
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Conectar audio stream remoto al elemento <audio> para TTS
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !audioStream) return;
+
+    audio.srcObject = audioStream;
+    audio.play().catch((err) => {
+      // Fallback: autoplay bloqueado en algunos navegadores móviles
+      // El texto se sigue mostrando en el historial de conversación
+      console.warn('[VoiceModal] Autoplay bloqueado, fallback a texto:', err.message);
+    });
+
+    return () => {
+      audio.srcObject = null;
+    };
+  }, [audioStream]);
 
   // Push-to-talk: iniciar grabación (conecta sesión automáticamente)
   const handleStartRecording = useCallback(async () => {

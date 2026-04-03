@@ -31,6 +31,7 @@ export interface UseVoiceAgent {
   commandsRemainingToday: number;
   recordingTimeLeft: number;
   conversationHistory: ConversationMessage[];
+  audioStream: MediaStream | null;
 
   // Flags derivados
   isActive: boolean;
@@ -82,6 +83,7 @@ export function useVoiceAgent(): UseVoiceAgent {
     commandsRemainingToday: context.commandsRemainingToday,
     recordingTimeLeft: context.recordingTimeLeft,
     conversationHistory: context.conversationHistory,
+    audioStream: context.audioStream,
 
     // Flags derivados
     isActive,

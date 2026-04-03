@@ -64,6 +64,7 @@ interface VoiceContextType {
   commandsRemainingToday: number;
   recordingTimeLeft: number;
   conversationHistory: ConversationMessage[];
+  audioStream: MediaStream | null;
 
   // Backward compat (deprecados)
   startCommand: () => Promise<void>;
@@ -110,6 +111,7 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
+  const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
 
   // Ref para ID de mensajes
   const messageIdRef = useRef(0);
@@ -174,6 +176,11 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
 
     provider.onFunctionCall(async (functionCall: AIFunctionCall) => {
       await handleFunctionCall(functionCall);
+    });
+
+    provider.onAudioResponse((audioTrack: MediaStreamTrack) => {
+      const stream = new MediaStream([audioTrack]);
+      setAudioStream(stream);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addMessage]);
@@ -433,6 +440,7 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     setError(null);
     setRecordingTimeLeft(15);
     setConversationHistory([]);
+    setAudioStream(null);
     messageIdRef.current = 0;
   }, []);
 
@@ -489,6 +497,7 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     commandsRemainingToday,
     recordingTimeLeft,
     conversationHistory,
+    audioStream,
     // Backward compat
     startCommand,
     cancelCommand,
