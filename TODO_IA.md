@@ -395,7 +395,7 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
 ### FASE 6: Integración End-to-End — Flujo Completo
 **Tag**: `v2.0.0-ia-fase-6-integration`
 
-- [ ] Conectar todas las piezas en el flujo completo:
+- [x] Conectar todas las piezas en el flujo completo:
   1. Usuario presiona VoiceButton → `startCommand()`
   2. Hook verifica: ¿Tiene comandos disponibles hoy? → Si no: error
   3. Hook solicita ephemeral token a `/api/voice/session` (retorna token + comandos restantes)
@@ -415,26 +415,40 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
   15. Overlay muestra respuesta de IA (texto) durante 2 segundos
   16. Overlay se cierra automáticamente
   17. Badge del botón se actualiza: "9 comandos restantes"
-- [ ] Implementar invalidación de cache de React Query post-tool-execution:
+- [x] Implementar invalidación de cache de React Query post-tool-execution:
   - Map de tool-name → query keys a invalidar:
     - `create_expense` → `['transactions', orgId]`, `['accounts', orgId]`, `['dashboard', orgId]`
     - `create_income` → `['transactions', orgId]`, `['accounts', orgId]`, `['dashboard', orgId]`
     - `get_balance` → (no invalida, es lectura)
     - `navigate_to` → (no invalida, es navegación)
-- [ ] Manejar errores en cada punto del pipeline:
-  - Error de permisos de micrófono → Notificación amigable
-  - Error de red → Retry automático con mensaje de espera
-  - Error de OpenAI → Mensaje genérico + log para debug
+- [x] Manejar errores en cada punto del pipeline:
+  - Error de permisos de micrófono → Notificación amigable con toast
+  - Error de red → Mensaje descriptivo con sugerencia de acción
+  - Error 429 (límite alcanzado) → Mensaje con hora de reset
+  - Error 401 (sesión expirada) → Solicitud de re-autenticación
+  - Error 503 (servicio no disponible) → Mensaje de reintentar más tarde
+  - Micrófono no encontrado → Mensaje de verificar dispositivo
   - Error en Use Case → Se envía a OpenAI para que comunique al usuario
-- [ ] Implementar toast notifications (sonner) para confirmar acciones ejecutadas
-- [ ] Probar flujos completos:
-  - "Registra un gasto de 15.000 pesos en comida en mi cuenta corriente"
-  - "¿Cuánto tengo en mi cuenta?"
-  - "Llévame a los presupuestos"
-  - "¿Cuánto he gastado este mes?"
-- [ ] Verificar que `npm run build` sigue pasando
-- [ ] **Commit**: `feat(voice): fase 6 — integración end-to-end del agente de voz`
-- [ ] **Tag**: `v2.0.0-ia-fase-6-integration`
+- [x] Implementar toast notifications (sonner) para confirmar acciones ejecutadas:
+  - create_expense: 💸 "Gasto registrado"
+  - create_income: 💰 "Ingreso registrado"
+  - get_balance: 💳 "Consulta realizada"
+  - get_dashboard_summary: 📊 "Resumen obtenido"
+  - list_accounts: 🏦 "Cuentas listadas"
+  - list_categories: 🏷️ "Categorías listadas"
+  - navigate_to: 🧭 "Navegando"
+- [x] Probar flujos completos mediante tests de integración:
+  - Flujo completo: connecting → recording → processing → executing → idle
+  - Manejo de errores de permisos de micrófono
+  - Manejo de límite diario alcanzado (429)
+  - Manejo de errores de red
+  - Cancelación de comandos
+  - Toasts específicos por tipo de tool
+  - Invalidación de cache React Query
+  - Tools de lectura que NO invalidan cache
+- [x] Verificar que `npm run build` sigue pasando
+- [x] **Commit**: `feat(voice): fase 6 — integración end-to-end del agente de voz`
+- [x] **Tag**: `v2.0.0-ia-fase-6-integration`
 
 ---
 

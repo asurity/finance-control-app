@@ -16,6 +16,7 @@ import { createContext, useContext, useCallback, useState, useRef, useEffect, Re
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
 import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { 
   RealtimeClient,
   type RealtimeClientState,
@@ -181,23 +182,58 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
       // Invalidar React Query cache si el tool modificó datos
       invalidateCacheForTool(functionCall.name, currentOrgId);
 
+      // Mostrar toast de confirmación para acciones exitosas
+      if (result.success) {
+        showSuccessToast(functionCall.name, result.message);
+      }
+
       console.log('[VoiceProvider] Tool ejecutado:', functionCall.name, result);
 
     } catch (err) {
       console.error('[VoiceProvider] Error ejecutando tool:', err);
       
+      const errorMessage = err instanceof Error ? err.message : 'Error al ejecutar la acción';
+      
       // Enviar error a OpenAI
       if (clientRef.current) {
         clientRef.current.sendFunctionResult(functionCall.callId, {
           success: false,
-          message: err instanceof Error ? err.message : 'Error al ejecutar la acción',
+          message: errorMessage,
         });
       }
 
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      // Mostrar toast de error
+      toast.error('Error al ejecutar acción', {
+        description: errorMessage,
+      });
+
+      setError(errorMessage);
       setState('error');
     }
   }, [user, currentOrgId]);
+
+  /**
+   * Muestra toast de confirmación según el tipo de acción
+   */
+  const showSuccessToast = useCallback((toolName: string, message: string) => {
+    const toastConfig: Record<string, { icon: string; title: string }> = {
+      'create_expense': { icon: '💸', title: 'Gasto registrado' },
+      'create_income': { icon: '💰', title: 'Ingreso registrado' },
+      'get_balance': { icon: '💳', title: 'Consulta realizada' },
+      'get_dashboard_summary': { icon: '📊', title: 'Resumen obtenido' },
+      'list_accounts': { icon: '🏦', title: 'Cuentas listadas' },
+      'list_categories': { icon: '🏷️', title: 'Categorías listadas' },
+      'navigate_to': { icon: '🧭', title: 'Navegando' },
+    };
+
+    const config = toastConfig[toolName] || { icon: '✅', title: 'Acción completada' };
+
+    toast.success(config.title, {
+      description: message,
+      icon: config.icon,
+      duration: 3000,
+    });
+  }, []);
 
   /**
    * Invalida cache de React Query según el tool ejecutado
@@ -238,7 +274,9 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
    */
   const startCommand = useCallback(async () => {
     if (!user || !firebaseUser || !currentOrgId || !clientRef.current) {
-      setError('Usuario no autenticado o organización no seleccionada');
+      const errorMsg = 'Usuario no autenticado o organización no seleccionada';
+      setError(errorMsg);
+      toast.error('No disponible', { description: errorMsg });
       return;
     }
 
@@ -261,6 +299,23 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
       });
 
       if (!response.ok) {
+        // Manejar errores específicos del servidor
+        if (response.status === 429) {
+          const errorData = await response.json();
+          const resetDate = errorData.resetAt ? new Date(errorData.resetAt) : null;
+          const resetTime = resetDate ? resetDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : 'mañana';
+          
+          throw new Error(`Límite diario alcanzado (10 comandos/día). Disponible nuevamente a las ${resetTime}.`);
+        }
+        
+        if (response.status === 401) {
+          throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+        }
+        
+        if (response.status === 503) {
+          throw new Error('Servicio de voz temporalmente no disponible. Intenta nuevamente en unos minutos.');
+        }
+
         const errorData = await response.json();
         throw new Error(errorData.message || 'Error al iniciar sesión de voz');
       }
@@ -284,8 +339,41 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
 
     } catch (err) {
       console.error('[VoiceProvider] Error iniciando comando:', err);
-      setError(err instanceof Error ? err.message : 'Error al iniciar comando de voz');
+      
+      let errorMessage = 'Error al iniciar comando de voz';
+      let errorDescription = '';
+
+      if (err instanceof Error) {
+        // Errores específicos de permisos de micrófono
+        if (err.name === 'NotAllowedError' || err.message.includes('Permission denied')) {
+          errorMessage = 'Permisos de micrófono denegados';
+          errorDescription = 'Por favor, permite el acceso al micrófono en la configuración de tu navegador.';
+        }
+        // Errores de dispositivo no disponible
+        else if (err.name === 'NotFoundError' || err.message.includes('not found')) {
+          errorMessage = 'Micrófono no encontrado';
+          errorDescription = 'No se detectó ningún micrófono en tu dispositivo.';
+        }
+        // Errores de red
+        else if (err.message.includes('Failed to fetch') || err.message.includes('Network')) {
+          errorMessage = 'Error de conexión';
+          errorDescription = 'Verifica tu conexión a internet e intenta nuevamente.';
+        }
+        // Errores personalizados del servidor
+        else if (err.message.includes('Límite diario') || err.message.includes('Sesión expirada') || err.message.includes('no disponible')) {
+          errorMessage = err.message;
+        }
+        // Otros errores con mensaje descriptivo
+        else {
+          errorMessage = err.message;
+        }
+      }
+
+      setError(errorMessage);
       setState('error');
+
+      // Mostrar toast de error
+      toast.error(errorMessage, errorDescription ? { description: errorDescription } : undefined);
     }
   }, [user, firebaseUser, currentOrgId]);
 
