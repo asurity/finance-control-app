@@ -85,7 +85,7 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
 ### FASE 0: Setup Inicial y Commit Base
 **Tag**: `v2.0.0-ia-fase-0-setup`
 
-- [ ] Crear la estructura de carpetas para el módulo de IA sin tocar archivos existentes:
+- [x] Crear la estructura de carpetas para el módulo de IA sin tocar archivos existentes:
   ```
   src/
     infrastructure/
@@ -104,21 +104,21 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
         VoiceOverlay.tsx      # Overlay visual durante la conversación
         VoiceProvider.tsx     # Context provider del agente de voz
   ```
-- [ ] Agregar variable de entorno `OPENAI_API_KEY` al `.env.local` (solo server-side, NO `NEXT_PUBLIC_`)
-- [ ] Agregar variable de entorno `NEXT_PUBLIC_ENABLE_VOICE_AGENT=false` como feature flag
-- [ ] Agregar al `APP_CONFIG` en `config.ts` el flag: `enableVoiceAgent`
-- [ ] Agregar dependencia: `npm install openai` (SDK para generar ephemeral tokens en el server)
-- [ ] Crear API Route `src/app/api/voice/session/route.ts` como stub (retorna 501)
-- [ ] Verificar que `npm run build` y `npm run test` siguen pasando sin errores
-- [ ] **Commit**: `feat(voice): fase 0 — estructura base del módulo de agente de voz IA`
-- [ ] **Tag**: `v2.0.0-ia-fase-0-setup`
+- [x] Agregar variable de entorno `OPENAI_API_KEY` al `.env.local` (solo server-side, NO `NEXT_PUBLIC_`)
+- [x] Agregar variable de entorno `NEXT_PUBLIC_ENABLE_VOICE_AGENT=false` como feature flag
+- [x] Agregar al `APP_CONFIG` en `config.ts` el flag: `enableVoiceAgent`
+- [x] Agregar dependencia: `npm install openai` (SDK para generar ephemeral tokens en el server)
+- [x] Crear API Route `src/app/api/voice/session/route.ts` como stub (retorna 501)
+- [x] Verificar que `npm run build` y `npm run test` siguen pasando sin errores
+- [x] **Commit**: `feat(voice): fase 0 — estructura base del módulo de agente de voz IA`
+- [x] **Tag**: `v2.0.0-ia-fase-0-setup`
 
 ---
 
 ### FASE 1: API Route — Sesión Efímera WebRTC
 **Tag**: `v2.0.0-ia-fase-1-api-session`
 
-- [ ] Implementar `src/app/api/voice/session/route.ts`:
+- [x] Implementar `src/app/api/voice/session/route.ts`:
   - Método POST que recibe `{ userId, orgId }` (del token de Firebase)
   - Valida que el request venga de un usuario autenticado (verificar ID token de Firebase)
   - **Verifica rate limiting**: Máximo 10 comandos por usuario por día (no por hora)
@@ -127,7 +127,7 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
   - Configura sesión con `modalities: ['text']` (SOLO texto, sin audio de salida)
   - Retorna el token efímero al cliente (NUNCA exponer `OPENAI_API_KEY` al frontend)
   - Retorna también: comandos restantes hoy
-- [ ] Implementar `src/infrastructure/voice-agent/config.ts`:
+- [x] Implementar `src/infrastructure/voice-agent/config.ts`:
   - Modelo: `gpt-4o-realtime-preview` (o el que esté GA al momento de implementar)
   - **Modalidades: `['text']`** (SOLO texto de salida, sin TTS)
   - Voz: `null` (no se necesita voz de salida)
@@ -143,7 +143,7 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
       silenceDurationMs: 500,             // 500ms de silencio = fin de comando
     };
     ```
-- [ ] **Pre-cargar contexto del usuario en System Instructions**:
+- [x] **Pre-cargar contexto del usuario en System Instructions**:
   - Al generar el token en `/api/voice/session`, obtener:
     - Lista de cuentas del usuario (nombre, tipo, saldo actual)
     - Lista de categorías disponibles (nombre, tipo: ingreso/gasto)
@@ -152,7 +152,7 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
     - Qué cuentas existen sin tener que consultarlas cada vez
     - Qué categorías puede usar al crear transacciones
     - Contexto financiero general del usuario
-- [ ] Escribir las **System Instructions** del agente:
+- [x] Escribir las **System Instructions** del agente:
   ```
   Eres un asistente financiero de voz para la aplicación "Control Financiero".
   Tu rol es ayudar al usuario a gestionar sus finanzas mediante comandos de voz.
@@ -177,10 +177,10 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
   - NO hagas preguntas de confirmación, ejecuta directamente (salvo eliminaciones)
   ```
   > Nota: `{{USER_ACCOUNTS}}` y `{{USER_CATEGORIES}}` se reemplazan dinámicamente al crear la sesión
-- [ ] Test unitario para la API Route (mock de OpenAI)
-- [ ] Verificar que `npm run build` sigue pasando
-- [ ] **Commit**: `feat(voice): fase 1 — API route para sesión efímera WebRTC con OpenAI`
-- [ ] **Tag**: `v2.0.0-ia-fase-1-api-session`
+- [x] Test unitario para la API Route (mock de OpenAI)
+- [x] Verificar que `npm run build` sigue pasando
+- [x] **Commit**: `feat(voice): fase 1 — API route para sesión efímera WebRTC con OpenAI`
+- [x] **Tag**: `v2.0.0-ia-fase-1-api-session`
 
 ---
 
