@@ -1,24 +1,68 @@
 /**
  * Tipos e interfaces del módulo de Voice Agent
- * Fase 1: Tipos actualizados para modelo de comandos
+ * Fase 2: Tipos completos para herramientas y OpenAI Function Calling
  */
 
-// TODO: Implementar en Fase 2
-export interface VoiceTool {
-  declaration: unknown; // OpenAIToolDeclaration
-  execute: (args: Record<string, unknown>, context: VoiceToolContext) => Promise<VoiceToolResult>;
+import { DIContainer } from '@/infrastructure/di/DIContainer';
+
+/**
+ * Schema de declaración de herramienta para OpenAI Function Calling
+ * Basado en la especificación de OpenAI function tools
+ */
+export interface OpenAIToolDeclaration {
+  type: 'function';
+  name: string;
+  description: string;
+  parameters: {
+    type: 'object';
+    properties: Record<string, OpenAIParameterSchema>;
+    required?: string[];
+  };
 }
 
+/**
+ * Schema de parámetro individual
+ */
+export interface OpenAIParameterSchema {
+  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
+  description: string;
+  enum?: string[];
+  items?: OpenAIParameterSchema;
+  properties?: Record<string, OpenAIParameterSchema>;
+}
+
+/**
+ * Contexto que se pasa a cada tool al ejecutarse
+ */
 export interface VoiceToolContext {
+  /** ID de la organización del usuario */
   orgId: string;
+  /** ID del usuario que ejecuta el comando */
   userId: string;
-  container: unknown; // DIContainer
+  /** DIContainer para acceder a Use Cases */
+  container: DIContainer;
 }
 
+/**
+ * Resultado de la ejecución de un tool
+ */
 export interface VoiceToolResult {
+  /** Indica si la ejecución fue exitosa */
   success: boolean;
+  /** Datos resultantes (opcional) */
   data?: unknown;
+  /** Mensaje descriptivo para que OpenAI genere respuesta al usuario */
   message: string;
+}
+
+/**
+ * Definición completa de una herramienta de voz
+ */
+export interface VoiceTool {
+  /** Declaración del tool para OpenAI (schema de function calling) */
+  declaration: OpenAIToolDeclaration;
+  /** Función que ejecuta la lógica del tool */
+  execute: (args: Record<string, unknown>, context: VoiceToolContext) => Promise<VoiceToolResult>;
 }
 
 /**
