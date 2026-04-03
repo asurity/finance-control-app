@@ -1,4 +1,8 @@
 /**
+ * @deprecated Reemplazado por VoiceModal en FASE 3 del refactor conversacional.
+ * Se mantiene temporalmente por backward compatibility.
+ * Eliminar en FASE 8 (limpieza final).
+ * 
  * VoiceOverlay - Overlay visual durante comandos de voz
  * Fase 5: Componentes UI
  * 

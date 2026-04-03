@@ -12,12 +12,12 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Mic, MicOff, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useVoiceAgent } from '@/application/hooks/useVoiceAgent';
 import { APP_CONFIG } from '@/lib/constants/config';
-import { VoiceOverlay } from './VoiceOverlay';
+import { VoiceModal } from './VoiceModal';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -34,39 +34,24 @@ export function VoiceButton({ variant = 'mobile' }: VoiceButtonProps) {
   const {
     state,
     isAvailable,
-    startCommand,
-    cancelCommand,
     commandsRemainingToday,
     isActive,
   } = useVoiceAgent();
 
-  const [showOverlay, setShowOverlay] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   // Feature flag check
   if (!APP_CONFIG.enableVoiceAgent) {
     return null;
   }
 
-  // Mostrar overlay cuando el agente está activo
-  useEffect(() => {
-    setShowOverlay(isActive);
-  }, [isActive]);
-
-  const handleClick = async () => {
-    if (!isAvailable || isActive) return;
-
-    try {
-      await startCommand();
-    } catch (error) {
-      console.error('[VoiceButton] Error al iniciar comando:', error);
-    }
+  const handleClick = () => {
+    if (!isAvailable) return;
+    setShowModal(true);
   };
 
-  const handleOverlayClose = () => {
-    if (isActive) {
-      cancelCommand();
-    }
-    setShowOverlay(false);
+  const handleModalClose = () => {
+    setShowModal(false);
   };
 
   // Determinar icono según estado (tamaño ajustable)
@@ -141,8 +126,8 @@ export function VoiceButton({ variant = 'mobile' }: VoiceButtonProps) {
             <TooltipTrigger asChild>
               <Button
                 onClick={handleClick}
-                disabled={!isAvailable || isActive}
-                variant={state === 'idle' ? 'outline' : 'default'}
+                disabled={!isAvailable}
+                variant={state === 'idle' && !showModal ? 'outline' : 'default'}
                 size="sm"
                 className={cn(
                   'gap-2 relative',
@@ -175,8 +160,8 @@ export function VoiceButton({ variant = 'mobile' }: VoiceButtonProps) {
           </Tooltip>
         </TooltipProvider>
 
-        {/* Overlay de voz */}
-        {showOverlay && <VoiceOverlay onClose={handleOverlayClose} />}
+        {/* Modal de voz */}
+        <VoiceModal isOpen={showModal} onClose={handleModalClose} />
       </>
     );
   }
@@ -198,7 +183,7 @@ export function VoiceButton({ variant = 'mobile' }: VoiceButtonProps) {
               {/* Botón principal */}
               <button
                 onClick={handleClick}
-                disabled={!isAvailable || isActive}
+                disabled={!isAvailable}
                 className={cn(
                   'w-14 h-14 rounded-full transition-all duration-300 flex items-center justify-center',
                   getButtonClasses()
@@ -227,8 +212,8 @@ export function VoiceButton({ variant = 'mobile' }: VoiceButtonProps) {
         </Tooltip>
       </TooltipProvider>
 
-      {/* Overlay de voz */}
-      {showOverlay && <VoiceOverlay onClose={handleOverlayClose} />}
+      {/* Modal de voz */}
+      <VoiceModal isOpen={showModal} onClose={handleModalClose} />
     </>
   );
 }
