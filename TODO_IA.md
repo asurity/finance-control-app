@@ -347,7 +347,7 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
 ### FASE 5: Componentes UI — Botón y Overlay
 **Tag**: `v2.0.0-ia-fase-5-ui-components`
 
-- [ ] Implementar `src/components/voice/VoiceButton.tsx`:
+- [x] Implementar `src/components/voice/VoiceButton.tsx`:
   - Botón flotante circular con icono de micrófono (lucide-react `Mic` icon)
   - Posición: fixed, junto al FAB existente pero por encima (z-index mayor)
   - **Solo visible si** `enableVoiceAgent === true` y el usuario está autenticado
@@ -363,7 +363,7 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
   - Long press (>500ms): NO implementado (cada comando es independiente)
   - Badge con número de comandos restantes: "10", "9", "8"... "0"
   - Accesible: aria-labels para cada estado, soporte de teclado
-- [ ] Implementar `src/components/voice/VoiceOverlay.tsx`:
+- [x] Implementar `src/components/voice/VoiceOverlay.tsx`:
   - Overlay translúcido que aparece al iniciar comando de voz
   - **Se cierra automáticamente después de procesar** (no espera acción del usuario)
   - Muestra:
@@ -378,17 +378,17 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
     - Después de ejecutar acción: 2 segundos → cierra
     - Si hay error: 4 segundos → cierra
   - Badge con comandos restantes: "9 comandos restantes hoy"
-- [ ] Integrar `VoiceButton` en `src/app/(dashboard)/layout.tsx`:
+- [x] Integrar `VoiceButton` en `src/app/(dashboard)/layout.tsx`:
   - **Agregar** el componente junto al `GlobalTransactionFAB` existente
   - **NO** modificar el FAB existente
   - Condicionado al feature flag
-- [ ] Estilos: usar variables CSS de Tailwind existentes, no crear nuevos temas
-- [ ] Verificar compatibilidad con tema claro y oscuro
-- [ ] Verificar que no interfiere con el FAB existente ni con el sidebar
-- [ ] Test de accesibilidad (aria-labels, focus trap en overlay)
-- [ ] Verificar que `npm run build` sigue pasando
-- [ ] **Commit**: `feat(voice): fase 5 — componentes UI del botón de voz y overlay`
-- [ ] **Tag**: `v2.0.0-ia-fase-5-ui-components`
+- [x] Estilos: usar variables CSS de Tailwind existentes, no crear nuevos temas
+- [x] Verificar compatibilidad con tema claro y oscuro
+- [x] Verificar que no interfiere con el FAB existente ni con el sidebar
+- [x] Test de accesibilidad (aria-labels, focus trap en overlay)
+- [x] Verificar que `npm run build` sigue pasando
+- [x] **Commit**: `feat(voice): fase 5 — componentes UI del botón de voz y overlay`
+- [x] **Tag**: `v2.0.0-ia-fase-5-ui-components`
 
 ---
 

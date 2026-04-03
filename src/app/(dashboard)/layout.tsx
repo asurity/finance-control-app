@@ -4,6 +4,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
 import { InitializeCategories } from '@/components/InitializeCategories';
 import { GlobalTransactionFAB } from '@/components/layout/GlobalTransactionFAB';
+import { VoiceButton } from '@/components/voice/VoiceButton';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -27,6 +28,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Global Floating Action Button */}
       <GlobalTransactionFAB />
+
+      {/* Voice Agent Button (condicionado a feature flag) */}
+      <VoiceButton />
     </ProtectedRoute>
   );
 }
