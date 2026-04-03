@@ -1,6 +1,6 @@
 /**
  * Tipos e interfaces del módulo de Voice Agent
- * Fase 0: Setup inicial
+ * Fase 1: Tipos actualizados para modelo de comandos
  */
 
 // TODO: Implementar en Fase 2
@@ -21,11 +21,17 @@ export interface VoiceToolResult {
   message: string;
 }
 
+/**
+ * Estados del agente de voz (modelo de comandos)
+ * - idle: Esperando que el usuario presione el botón
+ * - recording: Grabando comando de voz (max 15s)
+ * - processing: OpenAI transcribiendo y analizando intención
+ * - executing: Ejecutando function calls y use cases
+ * - error: Error en cualquier parte del flujo
+ */
 export type VoiceAgentState = 
   | 'idle' 
-  | 'connecting' 
-  | 'connected' 
-  | 'listening' 
-  | 'thinking' 
-  | 'speaking' 
+  | 'recording' 
+  | 'processing' 
+  | 'executing' 
   | 'error';

@@ -2,7 +2,12 @@
 
 ## Objetivo
 
-Implementar un botón de voz flotante que permita al usuario hablar, la IA interprete la intención y ejecute acciones dentro de la aplicación financiera (crear transacciones, consultar saldos, navegar, etc.) utilizando **OpenAI Realtime API** con **Function Calling**.
+Implementar un botón de voz flotante que permita al usuario dar **comandos de voz cortos** (máximo 15 segundos). La IA interpreta la intención y ejecuta acciones dentro de la aplicación financiera (crear transacciones, consultar saldos, navegar, etc.) sin respuesta de voz, solo confirmación visual. Utiliza **OpenAI Realtime API** con **Function Calling** en modo texto.
+
+**Modelo de uso:**
+- Usuario presiona botón → Habla (max 15s) → Comando se procesa → Acción se ejecuta → Confirmación visual
+- **SIN** respuesta de audio de la IA (solo texto en overlay + toast notifications)
+- Límites: 10 comandos/día, 15 segundos por comando, 3 function calls por comando
 
 ## Repositorio de Referencia
 
@@ -28,37 +33,46 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        CLIENTE (Browser)                     │
+│                    CLIENTE (Browser)                         │
 │                                                              │
-│  [Botón Mic] → MediaRecorder → WebRTC DataChannel ──────────┤
+│  [Botón Mic] → getUserMedia →Grabar 15s → Enviar audio ────┤
 │                                                              │
-│  ←── Audio TTS + UI Feedback ←── Respuesta IA ──────────────│
+│  ←── Respuesta TEXTO + Confirmación Visual ─────────────────│
 └──────────────────────┬───────────────────────────────────────┘
                        │ WebRTC (via API Route proxy)
                        ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                  NEXT.JS API ROUTE (Server)                   │
 │                                                              │
-│  /api/voice/session → Genera ephemeral token OpenAI          │
-│  /api/voice/config  → Devuelve tool declarations             │
+│  POST /api/voice/session                                     │
+│    → Valida autenticación (Firebase)                         │
+│    → Verifica rate limiting (10 comandos/día)                │
+│    → Genera ephemeral token OpenAI (modalities: ['text'])   │
+│    → Retorna token + contexto usuario                        │
 └──────────────────────┬───────────────────────────────────────┘
                        │
                        ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                    OPENAI REALTIME API                        │
+│                  (Modo: Audio Input → Text Output)           │
 │                                                              │
-│  Recibe audio → Interpreta intención → Devuelve:             │
-│    - Respuesta conversacional (texto/audio)                  │
+│  Recibe audio (max 15s) → Transcribe → Analiza intención    │
+│  Devuelve:                                                   │
+│    - Transcripción (texto)                                   │
 │    - functionCall { name, arguments, call_id }               │
+│    - Respuesta en TEXTO (sin TTS)                            │
 └──────────────────────┬───────────────────────────────────────┘
                        │
                        ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                  VOICE TOOL EXECUTOR (Client)                │
 │                                                              │
-│  Recibe functionCall → Valida args → Despacha al Use Case   │
-│  correspondiente via DIContainer → Devuelve resultado a      │
-│  OpenAI para que genere confirmación en audio                │
+│  Recibe functionCall → Valida args (Zod) → DIContainer      │
+│  Ejecuta Use Case → Invalida React Query cache               │
+│  Muestra confirmación:                                       │
+│    - Toast notification: "✓ Gasto de $15.000 creado"        │
+│    - Cierra overlay automáticamente                          │
+│    - Actualiza UI con datos nuevos                           │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -105,17 +119,30 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
 **Tag**: `v2.0.0-ia-fase-1-api-session`
 
 - [ ] Implementar `src/app/api/voice/session/route.ts`:
-  - Método POST que recibe `{ model, voice, instructions, tools }` (opcional)
-  - Valida que el request venga de un usuario autenticado (verificar session/token)
+  - Método POST que recibe `{ userId, orgId }` (del token de Firebase)
+  - Valida que el request venga de un usuario autenticado (verificar ID token de Firebase)
+  - **Verifica rate limiting**: Máximo 10 comandos por usuario por día (no por hora)
+  - Si supera el límite, retorna error 429 con mensaje: "Límite diario alcanzado (10 comandos/día)"
   - Genera un **ephemeral token** llamando a la API REST de OpenAI (`/v1/realtime/sessions`)
+  - Configura sesión con `modalities: ['text']` (SOLO texto, sin audio de salida)
   - Retorna el token efímero al cliente (NUNCA exponer `OPENAI_API_KEY` al frontend)
-  - Rate limiting: máximo 10 sesiones por usuario por hora
+  - Retorna también: comandos restantes hoy
 - [ ] Implementar `src/infrastructure/voice-agent/config.ts`:
   - Modelo: `gpt-4o-realtime-preview` (o el que esté GA al momento de implementar)
-  - Voz: `alloy` (configuración por defecto, puede cambiarse)
+  - **Modalidades: `['text']`** (SOLO texto de salida, sin TTS)
+  - Voz: `null` (no se necesita voz de salida)
   - System Instructions del agente de voz (personalidad, reglas, contexto financiero)
   - Temperatura: 0.7
-  - Max tokens de respuesta: 300 (brevedad para voz)
+  - Max tokens de respuesta: 150 (respuestas muy breves)
+  - **Límites configurables**:
+    ```typescript
+    export const VOICE_LIMITS = {
+      maxCommandsPerDay: 10,              // 10 comandos/día por usuario
+      maxInputDurationSeconds: 15,        // 15 segundos por comando
+      maxFunctionCallsPerCommand: 3,      // Máximo 3 acciones por comando
+      silenceDurationMs: 500,             // 500ms de silencio = fin de comando
+    };
+    ```
 - [ ] **Pre-cargar contexto del usuario en System Instructions**:
   - Al generar el token en `/api/voice/session`, obtener:
     - Lista de cuentas del usuario (nombre, tipo, saldo actual)
@@ -138,15 +165,16 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
   - Las categorías disponibles son: {{USER_CATEGORIES}}
   
   REGLAS:
-  - Responde siempre en español, de forma breve (máximo 40 palabras)
-  - Confirma las acciones antes de ejecutar operaciones destructivas (eliminar)
-  - Si no entiendes el comando, pide aclaración amablemente
+  - Responde siempre en español, de forma MUY breve (máximo 20 palabras)
+  - El usuario dará un COMANDO, no una conversación. Interpreta y ejecuta.
+  - Si no entiendes el comando, responde: "No entendí. ¿Podrías repetir?"
   - Solo puedes ejecutar las funciones que tienes declaradas como herramientas
   - Nunca reveles información de implementación interna
   - Si el usuario pide algo fuera de tu alcance, indícalo amablemente
-  - Usa un tono casual pero profesional
-  - Al crear transacciones, siempre confirma monto, categoría y cuenta antes de ejecutar
+  - Usa un tono casual y directo
+  - Al crear transacciones, infiere cuenta y categoría del contexto cuando sea obvio
   - Si el usuario menciona una cuenta o categoría que no existe, sugiere las disponibles
+  - NO hagas preguntas de confirmación, ejecuta directamente (salvo eliminaciones)
   ```
   > Nota: `{{USER_ACCOUNTS}}` y `{{USER_CATEGORIES}}` se reemplazan dinámicamente al crear la sesión
 - [ ] Test unitario para la API Route (mock de OpenAI)
@@ -213,14 +241,15 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
     - `sendFunctionResult(callId: string, result: VoiceToolResult)`: Envía resultado de function call
     - `onFunctionCall(callback)`: Listener para cuando el modelo invoca una función
     - `onTranscript(callback)`: Listener para transcripciones parciales/finales
-    - `onAudioDelta(callback)`: Listener para audio de respuesta
+    - `onTextResponse(callback)`: Listener para respuesta en TEXTO (no audio)
     - `onError(callback)`: Listener de errores
     - `onConnectionChange(callback)`: Listener de estado de conexión
-  - Manejo de estados: `idle` | `connecting` | `connected` | `listening` | `thinking` | `speaking` | `error`
-  - Auto-reconexión con backoff exponencial (máx. 3 intentos)
-  - **Timer de sesión a nivel WebRTC**: Auto-desconexión después de 5 minutos de inactividad
-    - Resetear el timer cada vez que se recibe audio del usuario
-    - Al alcanzar el timeout, llamar a `disconnect()` y notificar al usuario
+  - Manejo de estados: `idle` | `connecting` | `recording` | `processing` | `executing` | `error`
+  - **NO** auto-reconexión (cada comando es independiente)
+  - **Timer de grabación de 15 segundos**: Auto-detener al llegar al límite
+    - Contador regresivo visible en UI: "15s... 14s... 13s..."
+    - Permitir terminar antes si detecta silencio (VAD 500ms)
+    - Al llegar a 15s, detener grabación y procesar
   - Cleanup completo al desmontar (cierre de RTCPeerConnection, DataChannel, MediaStream)
 - [ ] La conexión WebRTC debe:
   1. Obtener ephemeral token del API Route `/api/voice/session`
@@ -242,18 +271,31 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
      ```
      > Esto permite que OpenAI detecte automáticamente cuando el usuario termina de hablar
 - [ ] Implementar protocolo de eventos del DataChannel:
-  - Envío: `session.update`, `response.create`, `conversation.item.create`, `response.cancel` (para barge-in)
-  - Recepción: `response.function_call_arguments.done`, `response.audio.delta`, `response.text.delta`, `response.done`, `error`
-- [ ] **Implementar pipeline de reproducción de audio**:
-  - Usar `AudioContext` del navegador para reproducir el audio del asistente
-  - Almacenar los `audio.delta` chunks en un buffer
-  - Reproducir con `AudioBufferSourceNode` para control fino
-  - **Barge-in (interrupción)**: Detectar cuando el usuario empieza a hablar mientras el asistente está hablando:
-    - Detener la reproducción de audio inmediatamente (`sourceNode.stop()`)
-    - Enviar `response.cancel` al servidor para cancelar la respuesta actual
-    - Vaciar el buffer de audio pendiente
-    - Cambiar estado a `listening` para recibir el nuevo input del usuario
-  - Implementar control de volumen y fade-in/fade-out suaves
+  - Envío: `session.update`, `response.create`, `conversation.item.create`
+  - Recepción: `response.function_call_arguments.done`, `response.text.delta`, `response.text.done`, `error`
+  - **NO** recibir `audio.delta` (sin TTS)
+- [ ] **Implementar timer de grabación de 15 segundos**:
+  - Iniciar contador al comenzar grabación: `recordingStartTime = Date.now()`
+  - Timeout automático a los 15 segundos:
+    ```typescript
+    setTimeout(() => {
+      this.stopRecording('timeout');
+    }, 15000);
+    ```
+  - Escuchar VAD (Voice Activity Detection) para detectar silencio:
+    - Si 500ms de silencio Y al menos 2s de audio → detener grabación
+  - Mostrar contador regresivo en overlay: "15s", "14s", "13s"...
+  - Enviar configuración al crear sesión:
+    ```json
+    {
+      "modalities": ["text"],
+      "turn_detection": {
+        "type": "server_vad",
+        "threshold": 0.5,
+        "silence_duration_ms": 500
+      }
+    }
+    ```
 - [ ] Tests unitarios con mocks de RTCPeerConnection y MediaStream
 - [ ] Verificar que `npm run build` sigue pasando
 - [ ] **Commit**: `feat(voice): fase 3 — cliente WebRTC para conexión con OpenAI Realtime API`
@@ -275,13 +317,15 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
   - Expone interfaz limpia para los componentes:
     ```typescript
     interface UseVoiceAgent {
-      state: VoiceAgentState;         // idle | connecting | connected | listening | thinking | speaking | error
-      isAvailable: boolean;            // Feature flag + API key configurada
-      startSession: () => Promise<void>;
-      endSession: () => void;
-      transcript: string;              // Última transcripción del usuario
-      agentMessage: string;            // Última respuesta del agente
+      state: VoiceAgentState;         // idle | recording | processing | executing | error
+      isAvailable: boolean;            // Feature flag + API key + comandos disponibles
+      startCommand: () => Promise<void>;  // Inicia grabación de comando
+      cancelCommand: () => void;          // Cancela comando en curso
+      transcript: string;                 // Transcripción del comando actual
+      response: string;                   // Respuesta de la IA (texto)
       error: string | null;
+      commandsRemainingToday: number;     // Comandos restantes hoy (10 → 0)
+      recordingTimeLeft: number;          // Segundos restantes (15 → 0)
     }
     ```
   - Maneja la lógica de Function Calling:
@@ -307,31 +351,33 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
   - Botón flotante circular con icono de micrófono (lucide-react `Mic` icon)
   - Posición: fixed, junto al FAB existente pero por encima (z-index mayor)
   - **Solo visible si** `enableVoiceAgent === true` y el usuario está autenticado
-  - **Fallback sin API key**: Si `isAvailable === false` (no hay `OPENAI_API_KEY` configurada):
-    - Renderizar el botón en estado deshabilitado con icono de `MicOff`
-    - Tooltip: "Función no disponible. Contacta al administrador."
-    - No permitir iniciar sesión
+  - **Deshabilitado si**: Sin API key O comandos agotados (0 restantes hoy)
   - Estados visuales:
-    - `idle`: Botón con outline sutil, icono de mic
-    - `connecting`: Pulse animation, icono de loader
-    - `listening`: Anillo pulsante (animación), color primario
-    - `thinking`: Dots animation, icono de brain/sparkles
-    - `speaking`: Ondas de audio animadas, color accent
+    - `idle`: Botón con outline sutil, icono de mic. Badge: "10" (comandos restantes)
+    - `recording`: Anillo pulsante (animación roja), icono de mic activo
+    - `processing`: Spinner, icono de loader
+    - `executing`: Icono de check animado
     - `error`: Color destructive, icono de alert
-    - `disabled`: Opacidad reducida, cursor not-allowed
-  - Click: inicia/termina sesión de voz
-  - Long press (>500ms): cancela la sesión activa
+    - `disabled`: Opacidad reducida, cursor not-allowed. Tooltip: "Sin comandos disponibles hoy"
+  - Click: inicia comando de voz (abre overlay + comienza grabación)
+  - Long press (>500ms): NO implementado (cada comando es independiente)
+  - Badge con número de comandos restantes: "10", "9", "8"... "0"
   - Accesible: aria-labels para cada estado, soporte de teclado
 - [ ] Implementar `src/components/voice/VoiceOverlay.tsx`:
-  - Overlay translúcido que aparece mientras la sesión está activa
+  - Overlay translúcido que aparece al iniciar comando de voz
+  - **Se cierra automáticamente después de procesar** (no espera acción del usuario)
   - Muestra:
+    - **Contador regresivo grande**: "15s" → "14s" → ... → "0s"
     - Transcripción en vivo del usuario (texto que va apareciendo)
-    - Respuesta del agente (texto que se muestra junto al audio)
-    - Indicador de estado actual (escuchando, pensando, hablando)
-    - Botón para cerrar/cancelar la sesión
+    - Estado actual: "🎤 Escuchando...", "⚙️ Procesando...", "✓ Ejecutando acción..."
+    - Respuesta breve de la IA (SOLO TEXTO, no audio)
+    - Botón "Cancelar" (solo visible durante grabación)
   - Animaciones suaves con CSS transitions (no librerías externas)
   - Responsive: se adapta a móvil y desktop
-  - Se cierra automáticamente tras 30s de inactividad
+  - **Cierre automático**:
+    - Después de ejecutar acción: 2 segundos → cierra
+    - Si hay error: 4 segundos → cierra
+  - Badge con comandos restantes: "9 comandos restantes hoy"
 - [ ] Integrar `VoiceButton` en `src/app/(dashboard)/layout.tsx`:
   - **Agregar** el componente junto al `GlobalTransactionFAB` existente
   - **NO** modificar el FAB existente
@@ -350,22 +396,25 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
 **Tag**: `v2.0.0-ia-fase-6-integration`
 
 - [ ] Conectar todas las piezas en el flujo completo:
-  1. Usuario presiona VoiceButton → `startSession()`
-  2. Hook solicita ephemeral token a `/api/voice/session`
-  3. RealtimeClient establece WebRTC con OpenAI
-  4. VoiceOverlay se muestra con estado "listening"
-  5. Usuario habla → OpenAI transcribe y analiza (VAD detecta cuando termina de hablar)
-  6. Si es conversacional → OpenAI responde en audio → Audio se reproduce via AudioContext
-  7. **Barge-in**: Si el usuario empieza a hablar mientras el asistente habla:
-     - Se cancela la reproducción de audio actual
-     - Se envía `response.cancel` a OpenAI
-     - Se cambia a estado `listening` inmediatamente
-  8. Si requiere acción → OpenAI envía `functionCall`
-  9. Hook busca tool en Registry → Ejecuta Use Case → Retorna resultado
-  10. OpenAI genera confirmación en audio con el resultado
-  11. React Query cache se invalida si hubo mutación
-  12. UI se actualiza automáticamente con los datos nuevos
-  13. Si hay 5 minutos de inactividad → Auto-desconexión con notificación
+  1. Usuario presiona VoiceButton → `startCommand()`
+  2. Hook verifica: ¿Tiene comandos disponibles hoy? → Si no: error
+  3. Hook solicita ephemeral token a `/api/voice/session` (retorna token + comandos restantes)
+  4. RealtimeClient establece WebRTC con OpenAI (modalities: ['text'])
+  5. VoiceOverlay se abre con estado "🎤 Escuchando... 15s"
+  6. Timer de 15 segundos inicia → Contador regresivo visible
+  7. Usuario habla → Transcripción aparece en vivo
+  8. Al terminar (15s O silencio de 500ms):
+     - Estado cambia a "⚙️ Procesando..."
+     - OpenAI transcribe y analiza
+  9. OpenAI interpreta intención → Envía `functionCall`
+  10. Hook busca tool en Registry → Ejecuta Use Case → Retorna resultado
+  11. Estado cambia a "✓ Ejecutando acción..."
+  12. React Query cache se invalida si hubo mutación
+  13. UI se actualiza automáticamente con los datos nuevos
+  14. Toast notification: "✓ Gasto de $15.000 registrado en Comida"
+  15. Overlay muestra respuesta de IA (texto) durante 2 segundos
+  16. Overlay se cierra automáticamente
+  17. Badge del botón se actualiza: "9 comandos restantes"
 - [ ] Implementar invalidación de cache de React Query post-tool-execution:
   - Map de tool-name → query keys a invalidar:
     - `create_expense` → `['transactions', orgId]`, `['accounts', orgId]`, `['dashboard', orgId]`
@@ -396,11 +445,15 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
   - Verificar que el usuario tiene sesión válida de Firebase antes de generar token
   - Implementar verificación del ID token de Firebase en el server
 - [ ] **Rate Limiting**:
-  - Máximo 10 sesiones de voz por usuario por hora
-  - Máximo 50 function calls por sesión
-  - Timeout de sesión: 5 minutos de inactividad → desconexión automática (implementado en RealtimeClient)
-  - Implementar con Map en memoria (suficiente para prod con un solo servidor)
-  - Al sobrepasar límites, retornar error 429 con mensaje descriptivo
+  - **Máximo 10 comandos de voz por usuario por día** (no por hora)
+  - Máximo 3 function calls por comando (no por sesión)
+  - Timeout de grabación: 15 segundos máximo (hard limit)
+  - Implementar con Map en memoria: `userId → { date, count }`
+  - Resetear contador a medianoche (00:00 hora local del servidor)
+  - Al sobrepasar límites:
+    - API retorna 429: `{ error: 'LIMIT_EXCEEDED', remaining: 0, resetAt: '2026-04-04T00:00:00Z' }`
+    - UI muestra: "Límite diario alcanzado. Volverá a estar disponible mañana."
+    - Botón se deshabilita hasta el reset
 - [ ] **Guardrails del modelo**:
   - System instructions que prohíben acciones fuera del scope
   - Validación estricta de argumentos con Zod en cada tool (ya implementado en Fase 2)
@@ -536,7 +589,24 @@ package.json                         # Agregar dependencia openai
 |---------|-----------|-------------------|
 | `openai` | SDK para generar ephemeral tokens (server-only) | 0 KB (server-side only) |
 
-> **Nota**: NO se agrega ningún SDK de cliente pesado. La conexión WebRTC se implementa con APIs nativas del browser (`RTCPeerConnection`, `MediaRecorder`, `getUserMedia`). El SDK `openai` solo se usa en el server para generar tokens efímeros.
+> **Nota**: NO se agrega ningún SDK de cliente pesado. La conexión WebRTC se implementa con APIs nativas del browser (`RTCPeerConnection`, `getUserMedia`). El SDK `openai` solo se usa en el server para generar tokens efímeros.
+
+## Estimación de Costos
+
+**Modelo simplificado (Audio Input → Text Output):**
+
+| Concepto | Costo |
+|----------|-------|
+| Audio input (15seg) | 0.25 min × $0.06 = **$0.015** |
+| Text output | Incluido en input |
+| **Total por comando** | **$0.015 USD** |
+
+**Proyecciones:**
+- Usuario activo (10 comandos/día): $0.15/día = **$4.50/mes**
+- 100 usuarios activos: **$450/mes**
+- 1000 usuarios activos: **$4,500/mes**
+
+**20 veces más barato** que el modelo con TTS bidireccional.
 
 ## Prerrequisitos para Comenzar
 
