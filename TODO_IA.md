@@ -306,13 +306,13 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
 ### FASE 4: Hook y Context — useVoiceAgent
 **Tag**: `v2.0.0-ia-fase-4-hook-context`
 
-- [ ] Implementar `src/components/voice/VoiceProvider.tsx`:
+- [x] Implementar `src/components/voice/VoiceProvider.tsx`:
   - Context que provee el estado del agente de voz a toda la app
   - Instancia el `RealtimeClient` como singleton
   - Maneja el ciclo de vida de la conexión
   - Expone: `state`, `connect()`, `disconnect()`, `transcript`, `isAvailable`
   - Se monta SOLO si `enableVoiceAgent === true` (feature flag)
-- [ ] Implementar `src/application/hooks/useVoiceAgent.ts`:
+- [x] Implementar `src/application/hooks/useVoiceAgent.ts`:
   - Hook que consume el VoiceProvider context
   - Expone interfaz limpia para los componentes:
     ```typescript
@@ -334,13 +334,13 @@ Partimos de `v2.0.0` porque la app está en `v1.0.0` con mejoras mobile `v-mobil
     3. Ejecuta el tool con el contexto (orgId, userId, container)
     4. Envía el resultado de vuelta a OpenAI via `sendFunctionResult`
   - Invalida React Query cache automáticamente cuando un tool modifica datos (e.g., crear transacción)
-- [ ] Integrar `VoiceProvider` en `src/app/providers.tsx` (condicionado al feature flag)
+- [x] Integrar `VoiceProvider` en `src/app/providers.tsx` (condicionado al feature flag)
   - Si `enableVoiceAgent` es false, no renderiza el provider
   - **Único cambio en archivo existente**: agregar el provider condicionalmente
-- [ ] Tests unitarios para el hook (mock del context y RealtimeClient)
-- [ ] Verificar que `npm run build` sigue pasando
-- [ ] **Commit**: `feat(voice): fase 4 — hook useVoiceAgent y VoiceProvider context`
-- [ ] **Tag**: `v2.0.0-ia-fase-4-hook-context`
+- [x] Tests unitarios para el hook (mock del context y RealtimeClient)
+- [x] Verificar que `npm run build` sigue pasando
+- [x] **Commit**: `feat(voice): fase 4 — hook useVoiceAgent y VoiceProvider context`
+- [x] **Tag**: `v2.0.0-ia-fase-4-hook-context`
 
 ---
 
