@@ -30,6 +30,7 @@ export const APP_CONFIG = {
   // Features flags
   enableAnalytics: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true',
   enableDebug: process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true',
+  enableVoiceAgent: process.env.NEXT_PUBLIC_ENABLE_VOICE_AGENT === 'true',
 
   // Límites de datos
   maxTransactionsPerImport: 1000,

@@ -49,29 +49,29 @@ const PRIORITY_CONFIG: Record<AlertPriority, {
 }> = {
   LOW: {
     icon: Info,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100 dark:bg-blue-900/30',
+    color: 'text-info',
+    bgColor: 'bg-info-light',
     label: 'Baja',
     badgeVariant: 'secondary',
   },
   MEDIUM: {
     icon: Info,
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-100 dark:bg-yellow-900/30',
+    color: 'text-warning',
+    bgColor: 'bg-warning-light',
     label: 'Media',
     badgeVariant: 'default',
   },
   HIGH: {
     icon: AlertTriangle,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100 dark:bg-orange-900/30',
+    color: 'text-warning',
+    bgColor: 'bg-warning-light',
     label: 'Alta',
     badgeVariant: 'default',
   },
   URGENT: {
     icon: AlertCircle,
-    color: 'text-red-600',
-    bgColor: 'bg-red-100 dark:bg-red-900/30',
+    color: 'text-danger',
+    bgColor: 'bg-danger-light',
     label: 'Urgente',
     badgeVariant: 'destructive',
   },
@@ -288,7 +288,7 @@ function NotificationsContent({ orgId, userId }: NotificationsContentProps) {
                             {ALERT_TYPE_LABELS[alert.type] || alert.type}
                           </Badge>
                           {!alert.isRead && (
-                            <span className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0" />
+                            <span className="h-2 w-2 rounded-full bg-info flex-shrink-0" />
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">{alert.message}</p>

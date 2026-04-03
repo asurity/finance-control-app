@@ -5,12 +5,14 @@ import { Calendar, Plus, Trash2, Edit2, AlertCircle, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { addMonths, startOfMonth, endOfMonth, format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Joyride, STATUS, EVENTS } from 'react-joyride';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
 import { useBudgetPeriods } from '@/application/hooks/useBudgetPeriods';
 import { useCategoryBudgets } from '@/application/hooks/useCategoryBudgets';
 import { useCategories } from '@/application/hooks/useCategories';
+import { useBudgetOnboarding, useApplyBudgetTemplate } from '@/application/hooks';
 import { formatCurrency } from '@/lib/utils/format';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +20,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -37,11 +46,14 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MAIN_BUDGET_TOUR, TOUR_CONFIG } from '@/lib/constants/budgetTours';
 
 // Import new components
 import { BudgetPeriodSelector } from '@/presentation/components/features/budgets/BudgetPeriodSelector';
 import { CategoryAllocationTable } from '@/presentation/components/features/budgets/CategoryAllocationTable';
 import { BudgetPeriodSummaryCard } from '@/presentation/components/features/budgets/BudgetPeriodSummaryCard';
+import { CategoryTemplateSelector } from '@/presentation/components/features/budgets/CategoryTemplateSelector';
+import { BudgetTemplateSelector } from '@/components/budgets/BudgetTemplateSelector';
 
 import type { Category } from '@/types/firestore';
 
@@ -91,6 +103,15 @@ function BudgetsContent({
   const budgetPeriods = useMemo(() => budgetPeriodsData?.budgetPeriods || [], [budgetPeriodsData]);
   const { data: categories = [] } = categoriesHook.useAllCategories();
 
+  // Onboarding tour
+  const {
+    currentTour,
+    isRunning,
+    stepIndex,
+    startMainTour,
+    handleJoyrideCallback: onboardingCallback,
+  } = useBudgetOnboarding();
+
   // Filter only expense categories
   const expenseCategories = useMemo(() => {
     return categories.filter((cat) => cat.type === 'EXPENSE');
@@ -125,6 +146,7 @@ function BudgetsContent({
   const [isCreateCategoryDialogOpen, setIsCreateCategoryDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryColor, setNewCategoryColor] = useState('#3b82f6');
+  const [newCategoryParentId, setNewCategoryParentId] = useState<string | null>(null);
 
   // Edit/Delete category state
   const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
@@ -150,6 +172,13 @@ function BudgetsContent({
     selectedPeriod?.startDate,
     selectedPeriod?.endDate
   );
+
+  // Budget template application
+  const { applyTemplate, isApplying } = useApplyBudgetTemplate({
+    organizationId: orgId,
+    budgetPeriodId: selectedPeriodId || '',
+    totalIncome: selectedPeriod?.totalAmount || 0,
+  });
 
   // Auto-select active period on load
   useMemo(() => {
@@ -354,11 +383,13 @@ function BudgetsContent({
         type: 'EXPENSE',
         color: newCategoryColor,
         icon: 'tag',
+        parentId: newCategoryParentId || undefined,
       });
 
       toast.success('Categoría creada');
       setNewCategoryName('');
       setNewCategoryColor('#3b82f6');
+      setNewCategoryParentId(null);
       setIsCreateCategoryDialogOpen(false);
     } catch (error: any) {
       console.error('❌ Error al crear categoría:', error);
@@ -422,8 +453,19 @@ function BudgetsContent({
     }
   };
 
+  // Handle tour callback (removed - now handled by useBudgetOnboarding)
+
   return (
     <div className="space-y-6">
+      {/* Onboarding Tour */}
+      {currentTour && isRunning && (
+        <Joyride
+          steps={currentTour.steps}
+          run={isRunning}
+          continuous
+        />
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-2">
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">Presupuestos</h1>
@@ -436,11 +478,13 @@ function BudgetsContent({
       {/* Tabs: Períodos | Asignación por Categoría */}
       <Tabs defaultValue="periods" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="periods">Períodos de Presupuesto</TabsTrigger>
-          <TabsTrigger value="allocation" disabled={!selectedPeriod}>
+          <TabsTrigger value="periods" data-tour="periods-tab">
+            Períodos de Presupuesto
+          </TabsTrigger>
+          <TabsTrigger value="allocation" disabled={!selectedPeriod} data-tour="allocation-tab">
             Asignación por Categoría
           </TabsTrigger>
-          <TabsTrigger value="summary" disabled={!selectedPeriod}>
+          <TabsTrigger value="summary" disabled={!selectedPeriod} data-tour="summary-tab">
             Resumen
           </TabsTrigger>
         </TabsList>
@@ -463,7 +507,10 @@ function BudgetsContent({
                       Copiar último
                     </Button>
                   )}
-                  <Button onClick={() => setIsCreatePeriodDialogOpen(true)}>
+                  <Button
+                    onClick={() => setIsCreatePeriodDialogOpen(true)}
+                    data-tour="new-period-btn"
+                  >
                     <Plus className="mr-2 h-4 w-4" />
                     Nuevo Período
                   </Button>
@@ -562,16 +609,24 @@ function BudgetsContent({
                         categorías de gastos
                       </CardDescription>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsCreateCategoryDialogOpen(true)}
-                      disabled={!canWrite}
-                      title={!canWrite ? 'No tienes permisos para crear categorías' : ''}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Nueva Categoría
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <BudgetTemplateSelector
+                        onSelectTemplate={applyTemplate}
+                        disabled={!selectedPeriod || isApplying}
+                      />
+                      <CategoryTemplateSelector />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsCreateCategoryDialogOpen(true)}
+                        disabled={!canWrite}
+                        title={!canWrite ? 'No tienes permisos para crear categorías' : ''}
+                        data-tour="new-category-btn"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Nueva Categoría
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -593,19 +648,21 @@ function BudgetsContent({
                       </AlertDescription>
                     </Alert>
                   ) : (
-                    <CategoryAllocationTable
-                      budgetPeriodId={selectedPeriod.id}
-                      totalAmount={selectedPeriod.totalAmount}
-                      categories={expenseCategories}
-                      categoryBudgets={categoryBudgets}
-                      onSave={handleSaveCategoryAllocations}
-                      onEditCategory={handleEditCategory}
-                      onDeleteCategory={handleDeleteCategory}
-                      isLoading={categoryBudgetsHook.setCategoryBudget.isPending}
-                      suggestions={suggestions || []}
-                      canWrite={canWrite}
-                      canDelete={canDelete}
-                    />
+                    <div data-tour="allocation-table">
+                      <CategoryAllocationTable
+                        budgetPeriodId={selectedPeriod.id}
+                        totalAmount={selectedPeriod.totalAmount}
+                        categories={expenseCategories}
+                        categoryBudgets={categoryBudgets}
+                        onSave={handleSaveCategoryAllocations}
+                        onEditCategory={handleEditCategory}
+                        onDeleteCategory={handleDeleteCategory}
+                        isLoading={categoryBudgetsHook.setCategoryBudget.isPending}
+                        suggestions={suggestions || []}
+                        canWrite={canWrite}
+                        canDelete={canDelete}
+                      />
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -842,6 +899,36 @@ function BudgetsContent({
                 <span className="text-sm text-muted-foreground">{newCategoryColor}</span>
               </div>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="category-parent">Categoría padre (Opcional)</Label>
+              <Select
+                value={newCategoryParentId || 'none'}
+                onValueChange={(value) => setNewCategoryParentId(value === 'none' ? null : value)}
+              >
+                <SelectTrigger id="category-parent">
+                  <SelectValue placeholder="Sin categoría padre" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sin categoría padre</SelectItem>
+                  {categories
+                    .filter((cat) => cat.type === 'EXPENSE' && !cat.parentId)
+                    .map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: cat.color }}
+                          />
+                          {cat.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Las subcategorías heredan el presupuesto de su categoría padre
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -850,6 +937,7 @@ function BudgetsContent({
                 setIsCreateCategoryDialogOpen(false);
                 setNewCategoryName('');
                 setNewCategoryColor('#3b82f6');
+                setNewCategoryParentId(null);
               }}
             >
               Cancelar

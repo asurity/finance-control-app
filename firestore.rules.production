@@ -140,17 +140,31 @@ service cloud.firestore {
     }
     
     // Budget Periods collection - accessible by organization members
+    // Includes optimistic locking validation
     match /budgetPeriods/{periodId} {
       allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
-      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
+      allow create: if isAuthenticated() && 
+        isMemberOfOrg(request.resource.data.orgId) &&
+        request.resource.data.version == 1; // New documents start at version 1
+      // Optimistic locking: ensure version is incremented and matches expected value
+      allow update: if isAuthenticated() && 
+        isMemberOfOrg(resource.data.orgId) &&
+        request.resource.data.version == resource.data.version + 1;
+      allow delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
     }
     
     // Category Budgets collection - accessible by organization members
+    // Includes optimistic locking validation
     match /categoryBudgets/{categoryBudgetId} {
       allow read: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
-      allow create: if isAuthenticated() && isMemberOfOrg(request.resource.data.orgId);
-      allow update, delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
+      allow create: if isAuthenticated() && 
+        isMemberOfOrg(request.resource.data.orgId) &&
+        request.resource.data.version == 1; // New documents start at version 1
+      // Optimistic locking: ensure version is incremented and matches expected value
+      allow update: if isAuthenticated() && 
+        isMemberOfOrg(resource.data.orgId) &&
+        request.resource.data.version == resource.data.version + 1;
+      allow delete: if isAuthenticated() && isMemberOfOrg(resource.data.orgId);
     }
     
     // User Settings collection - each user can read/write their own settings

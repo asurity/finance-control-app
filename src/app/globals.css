@@ -7,8 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-lexend);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -19,8 +18,28 @@
   --color-sidebar: var(--sidebar);
   --color-income: var(--income);
   --color-income-foreground: var(--income-foreground);
+  --color-income-light: var(--income-light);
   --color-expense: var(--expense);
   --color-expense-foreground: var(--expense-foreground);
+  --color-expense-light: var(--expense-light);
+  --color-saving: var(--saving);
+  --color-saving-foreground: var(--saving-foreground);
+  --color-saving-light: var(--saving-light);
+  --color-budget: var(--budget);
+  --color-budget-foreground: var(--budget-foreground);
+  --color-budget-light: var(--budget-light);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-light: var(--success-light);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-light: var(--warning-light);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-danger-light: var(--danger-light);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-light: var(--info-light);
   --color-neutral: var(--neutral);
   --color-neutral-foreground: var(--neutral-foreground);
   --color-chart-5: var(--chart-5);
@@ -31,6 +50,7 @@
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
@@ -54,88 +74,180 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  /* === BORDER RADIUS === */
+  --radius: 0.75rem; /* 12px - Más moderno */
+  
+  /* === FOUNDATION === */
+  --background: oklch(0.99 0.005 240); /* Off-white, apenas azulado */
+  --foreground: oklch(0.15 0.01 245); /* Casi negro con hint azul */
+  
+  --card: oklch(1 0 0); /* Blanco puro */
+  --card-foreground: oklch(0.15 0.01 245);
+  
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --popover-foreground: oklch(0.15 0.01 245);
+  
+  /* === BRAND & ACCENTS === */
+  --primary: oklch(0.52 0.16 245); /* Azul financiero profesional */
+  --primary-foreground: oklch(0.98 0 0);
+  
+  --secondary: oklch(0.94 0.02 245); /* Gris-azul claro */
+  --secondary-foreground: oklch(0.20 0.02 245);
+  
+  --accent: oklch(0.70 0.14 285); /* Violeta moderno */
+  --accent-foreground: oklch(0.98 0 0);
+  
+  --muted: oklch(0.95 0.01 245); /* Gris claro azulado */
+  --muted-foreground: oklch(0.50 0.02 245); /* Gris medio */
+  
+  --destructive: oklch(0.60 0.23 20); /* Rojo peligro */
+  
+  /* === BORDERS & INPUTS === */
+  --border: oklch(0.90 0.01 245); /* Sutil azul */
+  --border-strong: oklch(0.75 0.02 245);
+  --input: oklch(0.90 0.01 245);
+  --ring: oklch(0.52 0.16 245 / 0.3); /* Focus ring */
+  
+  /* === CHARTS === */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
+  
+  /* === SIDEBAR === */
   --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-foreground: oklch(0.15 0.01 245);
+  --sidebar-primary: oklch(0.52 0.16 245);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.94 0.02 245);
+  --sidebar-accent-foreground: oklch(0.20 0.02 245);
+  --sidebar-border: oklch(0.90 0.01 245);
+  --sidebar-ring: oklch(0.52 0.16 245 / 0.3);
 
-  /* Custom colors for financial app */
-  --income: oklch(0.65 0.19 145);
-  --income-foreground: oklch(0.985 0 0);
-  --expense: oklch(0.63 0.24 25);
-  --expense-foreground: oklch(0.985 0 0);
+  /* === SEMANTIC - FINANCIERO === */
+  --income: oklch(0.62 0.20 148); /* Verde éxito */
+  --income-foreground: oklch(0.98 0 0);
+  --income-light: oklch(0.92 0.10 148);
+  
+  --expense: oklch(0.58 0.22 25); /* Rojo gasto */
+  --expense-foreground: oklch(0.98 0 0);
+  --expense-light: oklch(0.94 0.12 25);
+  
+  --saving: oklch(0.68 0.16 220); /* Azul ahorro */
+  --saving-foreground: oklch(0.98 0 0);
+  --saving-light: oklch(0.92 0.08 220);
+  
+  --budget: oklch(0.65 0.15 280); /* Violeta presupuesto */
+  --budget-foreground: oklch(0.98 0 0);
+  --budget-light: oklch(0.90 0.08 280);
+  
+  /* === SEMANTIC - ALERTS === */
+  --success: oklch(0.64 0.19 150); /* Verde */
+  --success-foreground: oklch(0.98 0 0);
+  --success-light: oklch(0.92 0.10 150);
+  
+  --warning: oklch(0.72 0.18 70); /* Amarillo */
+  --warning-foreground: oklch(0.20 0.02 245);
+  --warning-light: oklch(0.94 0.10 70);
+  
+  --danger: oklch(0.60 0.23 20); /* Rojo */
+  --danger-foreground: oklch(0.98 0 0);
+  --danger-light: oklch(0.93 0.12 20);
+  
+  --info: oklch(0.63 0.17 235); /* Azul info */
+  --info-foreground: oklch(0.98 0 0);
+  --info-light: oklch(0.92 0.09 235);
+  
   --neutral: oklch(0.52 0.02 240);
-  --neutral-foreground: oklch(0.985 0 0);
+  --neutral-foreground: oklch(0.98 0 0);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  /* === FOUNDATION === */
+  --background: oklch(0.12 0.01 245); /* Negro azulado */
+  --foreground: oklch(0.96 0.005 240);
+  
+  --card: oklch(0.16 0.01 245);
+  --card-foreground: oklch(0.96 0.005 240);
+  
+  --popover: oklch(0.16 0.01 245);
+  --popover-foreground: oklch(0.96 0.005 240);
+  
+  /* === BRAND & ACCENTS === */
+  --primary: oklch(0.68 0.18 245); /* Azul más claro en dark */
+  --primary-foreground: oklch(0.12 0.01 245);
+  
+  --secondary: oklch(0.22 0.02 245);
+  --secondary-foreground: oklch(0.90 0.01 240);
+  
+  --accent: oklch(0.75 0.16 285); /* Violeta más claro */
+  --accent-foreground: oklch(0.12 0.01 245);
+  
+  --muted: oklch(0.22 0.02 245);
+  --muted-foreground: oklch(0.65 0.02 240);
+  
+  --destructive: oklch(0.65 0.22 20);
+  
+  /* === BORDERS & INPUTS === */
+  --border: oklch(0.28 0.02 245);
+  --border-strong: oklch(0.40 0.03 245);
+  --input: oklch(0.28 0.02 245);
+  --ring: oklch(0.68 0.18 245 / 0.4);
+  
+  /* === CHARTS === */
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  
+  /* === SIDEBAR === */
+  --sidebar: oklch(0.16 0.01 245);
+  --sidebar-foreground: oklch(0.96 0.005 240);
+  --sidebar-primary: oklch(0.68 0.18 245);
+  --sidebar-primary-foreground: oklch(0.12 0.01 245);
+  --sidebar-accent: oklch(0.22 0.02 245);
+  --sidebar-accent-foreground: oklch(0.90 0.01 240);
+  --sidebar-border: oklch(0.28 0.02 245);
+  --sidebar-ring: oklch(0.68 0.18 245 / 0.4);
 
-  /* Custom colors for financial app - Dark mode */
-  --income: oklch(0.65 0.19 145);
-  --income-foreground: oklch(0.145 0 0);
-  --expense: oklch(0.63 0.24 25);
-  --expense-foreground: oklch(0.145 0 0);
-  --neutral: oklch(0.6 0.04 240);
-  --neutral-foreground: oklch(0.145 0 0);
+  /* === SEMANTIC - FINANCIERO (Dark) === */
+  --income: oklch(0.68 0.20 148); /* Verde más claro */
+  --income-foreground: oklch(0.12 0.01 245);
+  --income-light: oklch(0.25 0.15 148);
+  
+  --expense: oklch(0.65 0.22 25); /* Rojo más claro */
+  --expense-foreground: oklch(0.12 0.01 245);
+  --expense-light: oklch(0.25 0.15 25);
+  
+  --saving: oklch(0.70 0.16 220);
+  --saving-foreground: oklch(0.12 0.01 245);
+  --saving-light: oklch(0.25 0.12 220);
+  
+  --budget: oklch(0.70 0.15 280);
+  --budget-foreground: oklch(0.12 0.01 245);
+  --budget-light: oklch(0.28 0.12 280);
+  
+  /* === SEMANTIC - ALERTS (Dark) === */
+  --success: oklch(0.68 0.19 150);
+  --success-foreground: oklch(0.12 0.01 245);
+  --success-light: oklch(0.25 0.14 150);
+  
+  --warning: oklch(0.75 0.18 70);
+  --warning-foreground: oklch(0.12 0.01 245);
+  --warning-light: oklch(0.30 0.14 70);
+  
+  --danger: oklch(0.65 0.23 20);
+  --danger-foreground: oklch(0.12 0.01 245);
+  --danger-light: oklch(0.25 0.18 20);
+  
+  --info: oklch(0.68 0.17 235);
+  --info-foreground: oklch(0.12 0.01 245);
+  --info-light: oklch(0.25 0.12 235);
+  
+  --neutral: oklch(0.60 0.04 240);
+  --neutral-foreground: oklch(0.12 0.01 245);
 }
 
 @layer base {

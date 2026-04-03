@@ -84,4 +84,12 @@ export interface IBudgetPeriodRepository extends IRepository<BudgetPeriod> {
     endDate: Date,
     excludeId?: string
   ): Promise<boolean>;
+
+  /**
+   * Updates a budget period with optimistic locking
+   * @param id - Budget period ID
+   * @param budgetPeriod - Updated budget period data
+   * @returns Promise resolving when update is complete
+   */
+  updateWithOptimisticLock(id: string, budgetPeriod: Partial<BudgetPeriod>): Promise<void>;
 }

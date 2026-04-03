@@ -14,7 +14,8 @@ export class BudgetPeriod {
     public readonly name?: string,
     public readonly description?: string,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly updatedAt: Date = new Date(),
+    public readonly version: number = 1
   ) {
     this.validate();
   }
@@ -129,7 +130,8 @@ export class BudgetPeriod {
       updates.name ?? this.name,
       updates.description ?? this.description,
       this.createdAt,
-      new Date() // updatedAt
+      new Date(), // updatedAt
+      this.version // preserve version for optimistic locking
     );
   }
 
@@ -148,6 +150,7 @@ export class BudgetPeriod {
       description: this.description,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      version: this.version,
     };
   }
 }

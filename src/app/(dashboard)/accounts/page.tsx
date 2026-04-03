@@ -324,7 +324,7 @@ function AccountsContent({
             setDeletingAccount(account);
             setIsDeleteDialogOpen(true);
           }}
-          className="text-red-600 dark:text-red-400"
+          className="text-danger"
         >
           <Trash2 className="mr-2 h-4 w-4" />
           Eliminar
@@ -361,8 +361,8 @@ function AccountsContent({
                   <span
                     className={`text-3xl font-bold ${
                       debtSummary.netWorth >= 0
-                        ? 'text-green-600 dark:text-green-500'
-                        : 'text-red-600 dark:text-red-500'
+                        ? 'text-income'
+                        : 'text-expense'
                     }`}
                   >
                     {debtSummary.netWorth >= 0 ? '↑' : '↓'}
@@ -381,7 +381,7 @@ function AccountsContent({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-green-500" />
+                      <div className="w-3 h-3 rounded-full bg-income" />
                       <span className="text-sm font-medium">Total Activos</span>
                     </div>
                     <MoneyDisplay
@@ -400,7 +400,7 @@ function AccountsContent({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-red-500" />
+                      <div className="w-3 h-3 rounded-full bg-expense" />
                       <span className="text-sm font-medium">Total Deudas</span>
                     </div>
                     <MoneyDisplay
@@ -420,7 +420,7 @@ function AccountsContent({
               <div className="flex h-4 rounded-full overflow-hidden bg-muted">
                 {debtSummary.totalAssets > 0 && (
                   <div
-                    className="bg-green-500 transition-all flex items-center justify-center text-xs text-white font-medium"
+                    className="bg-income transition-all flex items-center justify-center text-xs text-white font-medium"
                     style={{
                       width: `${(debtSummary.totalAssets / (debtSummary.totalAssets + debtSummary.totalDebt)) * 100}%`,
                     }}
@@ -439,7 +439,7 @@ function AccountsContent({
                 )}
                 {debtSummary.totalDebt > 0 && (
                   <div
-                    className="bg-red-500 transition-all flex items-center justify-center text-xs text-white font-medium"
+                    className="bg-expense transition-all flex items-center justify-center text-xs text-white font-medium"
                     style={{
                       width: `${(debtSummary.totalDebt / (debtSummary.totalAssets + debtSummary.totalDebt)) * 100}%`,
                     }}
@@ -786,7 +786,7 @@ function AccountsContent({
                       const util = (used / limit) * 100;
                       return (
                         <div className="space-y-1">
-                          <MoneyDisplay amount={avail} type="neutral" size="sm" className={util > 90 ? 'text-red-600 dark:text-red-400' : util > 70 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'} />
+                          <MoneyDisplay amount={avail} type="neutral" size="sm" className={util > 90 ? 'text-danger' : util > 70 ? 'text-warning' : 'text-success'} />
                           <Progress value={util} className="h-1.5" />
                           <p className="text-xs text-muted-foreground">{util.toFixed(0)}% usado</p>
                         </div>
@@ -1084,7 +1084,7 @@ function AccountsContent({
             <AlertDialogCancel onClick={() => setDeletingAccount(null)}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteAccount}
-              className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+              className="bg-danger hover:bg-danger/90"
             >
               {accountsHook.deleteAccount.isPending ? 'Eliminando...' : 'Eliminar cuenta'}
             </AlertDialogAction>

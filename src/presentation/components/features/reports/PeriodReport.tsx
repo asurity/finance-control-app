@@ -231,7 +231,7 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <TrendingDown className="h-4 w-4 text-red-600" />
+              <TrendingDown className="h-4 w-4 text-expense" />
               <MoneyDisplay amount={totalSpent} type="expense" size="lg" />
             </div>
             <Progress value={(totalSpent / totalBudgeted) * 100} className="mt-2" />
@@ -267,16 +267,16 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
             <MoneyDisplay amount={realBalance} type="balance" size="lg" />
             <div className="flex items-center gap-4 mt-2 text-xs">
               <div className="flex items-center gap-1">
-                <TrendingUp className="h-3 w-3 text-green-600" />
+                <TrendingUp className="h-3 w-3 text-income" />
                 <span className="text-muted-foreground">Ingresos:</span>
-                <span className="font-medium text-green-600 dark:text-green-400">
+                <span className="font-medium text-income">
                   {formatCurrencyAbsolute(totalIncome)}
                 </span>
               </div>
               <div className="flex items-center gap-1">
-                <TrendingDown className="h-3 w-3 text-red-600" />
+                <TrendingDown className="h-3 w-3 text-expense" />
                 <span className="text-muted-foreground">Gastos:</span>
-                <span className="font-medium text-red-600 dark:text-red-400">
+                <span className="font-medium text-expense">
                   {formatCurrencyAbsolute(totalExpenses)}
                 </span>
               </div>
@@ -297,8 +297,8 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
               {insights.bestCategory && (
-                <div className="rounded-lg bg-green-50 dark:bg-green-900/20 p-4">
-                  <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                <div className="rounded-lg bg-success-light p-4">
+                  <p className="text-sm font-medium text-success">
                     🏆 Mayor ahorro
                   </p>
                   <p className="text-sm mt-1">
@@ -308,8 +308,8 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
                 </div>
               )}
               {insights.worstCategory && (
-                <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-4">
-                  <p className="text-sm font-medium text-red-700 dark:text-red-400">
+                <div className="rounded-lg bg-danger-light p-4">
+                  <p className="text-sm font-medium text-danger">
                     ⚠️ Mayor exceso
                   </p>
                   <p className="text-sm mt-1">
@@ -319,8 +319,8 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
                 </div>
               )}
               {insights.highestSpendingDay && (
-                <div className="rounded-lg bg-orange-50 dark:bg-orange-900/20 p-4">
-                  <p className="text-sm font-medium text-orange-700 dark:text-orange-400">
+                <div className="rounded-lg bg-warning-light p-4">
+                  <p className="text-sm font-medium text-warning">
                     📅 Día de mayor gasto
                   </p>
                   <p className="text-sm mt-1">
@@ -330,8 +330,8 @@ export function PeriodReport({ orgId, userId, budgetPeriodId }: PeriodReportProp
                 </div>
               )}
               {totalIncome > 0 && (
-                <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-4">
-                  <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                <div className="rounded-lg bg-saving-light p-4">
+                  <p className="text-sm font-medium text-saving">
                     💰 Tasa de ahorro
                   </p>
                   <p className="text-sm mt-1">

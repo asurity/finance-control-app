@@ -211,14 +211,14 @@ export default function AnalyzeAlondritaPage() {
           <CardDescription>Categoría ID: {CATEGORY_ID}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <div className="p-4 bg-warning-light border border-warning rounded-lg">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+              <AlertTriangle className="h-5 w-5 text-warning mt-0.5" />
               <div>
-                <p className="font-semibold text-yellow-900 dark:text-yellow-100">
+                <p className="font-semibold text-foreground">
                   Discrepancia Detectada
                 </p>
-                <p className="text-sm text-yellow-800 dark:text-yellow-200 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   La tabla de presupuestos muestra <strong>$17,740 CLP</strong> pero hay evidencia
                   de más gastos. Este análisis identificará qué transacciones no están siendo
                   contabilizadas.

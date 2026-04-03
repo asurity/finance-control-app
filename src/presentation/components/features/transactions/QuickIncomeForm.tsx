@@ -186,7 +186,7 @@ export function QuickIncomeForm({
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    className="text-xl sm:text-2xl md:text-3xl font-bold pl-9 sm:pl-12 h-12 sm:h-14 md:h-16 text-green-600"
+                    className="text-xl sm:text-2xl md:text-3xl font-bold pl-9 sm:pl-12 h-12 sm:h-14 md:h-16 text-income"
                     {...field}
                     ref={(e) => {
                       field.ref(e);
@@ -466,7 +466,7 @@ export function QuickIncomeForm({
           <Button
             type="submit"
             disabled={isSubmitting || !watchAmount || !watchCategoryId}
-            className="w-full h-12 text-base font-semibold bg-green-600 hover:bg-green-700"
+            className="w-full h-12 text-base font-semibold bg-income hover:bg-income/90"
           >
             {isSubmitting ? 'Registrando...' : 'Registrar Ingreso'}
           </Button>

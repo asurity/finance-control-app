@@ -56,11 +56,11 @@ export function BalanceChart({
             <span className="text-muted-foreground">Balance: </span>
             <span className="font-medium">{formatCurrency(data.balance)}</span>
           </p>
-          <p className="text-sm text-green-600">
+          <p className="text-sm text-income">
             <span className="text-muted-foreground">Ingresos: </span>
             <span className="font-medium">{formatCurrencyAbsolute(data.income)}</span>
           </p>
-          <p className="text-sm text-red-600">
+          <p className="text-sm text-expense">
             <span className="text-muted-foreground">Gastos: </span>
             <span className="font-medium">{formatCurrencyAbsolute(data.expenses)}</span>
           </p>
@@ -71,9 +71,9 @@ export function BalanceChart({
   };
 
   const getTrendIcon = () => {
-    if (trend === 'up') return <TrendingUp className="h-4 w-4 text-green-600" />;
-    if (trend === 'down') return <TrendingDown className="h-4 w-4 text-red-600" />;
-    return <Minus className="h-4 w-4 text-gray-600" />;
+    if (trend === 'up') return <TrendingUp className="h-4 w-4 text-income" />;
+    if (trend === 'down') return <TrendingDown className="h-4 w-4 text-expense" />;
+    return <Minus className="h-4 w-4 text-muted-foreground" />;
   };
 
   const getTrendText = () => {
@@ -102,10 +102,10 @@ export function BalanceChart({
             <span
               className={`text-sm font-medium ${
                 trend === 'up'
-                  ? 'text-green-600'
+                  ? 'text-income'
                   : trend === 'down'
-                    ? 'text-red-600'
-                    : 'text-gray-600'
+                    ? 'text-expense'
+                    : 'text-muted-foreground'
               }`}
             >
               {getTrendText()}

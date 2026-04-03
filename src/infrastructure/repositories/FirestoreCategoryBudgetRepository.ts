@@ -11,11 +11,13 @@ import {
   doc,
   increment,
   writeBatch,
+  runTransaction,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { ICategoryBudgetRepository } from '@/domain/repositories/ICategoryBudgetRepository';
 import { CategoryBudget } from '@/domain/entities/CategoryBudget';
 import { CategoryBudgetMapper } from '@/infrastructure/mappers/CategoryBudgetMapper';
+import { OptimisticLockError } from '@/domain/errors/OptimisticLockError';
 
 /**
  * Firestore implementation of Category Budget Repository
@@ -59,6 +61,46 @@ export class FirestoreCategoryBudgetRepository implements ICategoryBudgetReposit
     const docRef = doc(db, this.collectionPath, id);
     const firestoreData = CategoryBudgetMapper.toFirestoreUpdate(data);
     await updateDoc(docRef, firestoreData);
+  }
+
+  /**
+   * Updates a category budget with optimistic locking to prevent concurrent modification conflicts
+   * @param id - Document ID to update
+   * @param data - Updated category budget data
+   * @throws OptimisticLockError if the document has been modified by another user
+   */
+  async updateWithOptimisticLock(id: string, data: CategoryBudget): Promise<void> {
+    const docRef = doc(db, this.collectionPath, id);
+    
+    await runTransaction(db, async (transaction) => {
+      const docSnap = await transaction.get(docRef);
+      
+      if (!docSnap.exists()) {
+        throw new Error(`Category budget with ID ${id} not found`);
+      }
+
+      const currentData = docSnap.data();
+      const currentVersion = currentData.version || 1;
+      const attemptedVersion = data.version;
+
+      // Check if version matches (optimistic lock)
+      if (currentVersion !== attemptedVersion) {
+        throw new OptimisticLockError(
+          'CategoryBudget',
+          id,
+          currentVersion,
+          attemptedVersion
+        );
+      }
+
+      // Update with incremented version
+      const firestoreData = {
+        ...CategoryBudgetMapper.toFirestoreUpdate(data),
+        version: currentVersion + 1,
+      };
+
+      transaction.update(docRef, firestoreData);
+    });
   }
 
   async delete(id: string): Promise<void> {

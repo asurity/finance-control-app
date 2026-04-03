@@ -13,3 +13,6 @@ export { useAlerts, alertKeys } from './useAlerts';
 export { useCreditCards, creditCardKeys } from './useCreditCards';
 export { useRecurringTransactions, recurringTransactionKeys } from './useRecurringTransactions';
 export { useSavingsGoals, savingsGoalKeys } from './useSavingsGoals';
+export { useBudgetOnboarding } from './useBudgetOnboarding';
+export { useApplyBudgetTemplate } from './useApplyBudgetTemplate';
+export { useCategoryTemplates } from './useCategoryTemplates';

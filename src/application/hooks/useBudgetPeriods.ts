@@ -16,6 +16,7 @@ import {
   CheckPeriodExpirationDTO,
   SuggestCategoryBudgetsDTO,
 } from '@/application/dto';
+import { handleOptimisticLockError } from '@/lib/utils/optimisticLockErrorHandler';
 
 /**
  * Budget Period query keys factory
@@ -185,6 +186,10 @@ export function useBudgetPeriods(orgId: string) {
       queryClient.invalidateQueries({ queryKey: budgetPeriodKeys.all(orgId) });
       // Also invalidate category budgets as amounts may have been recalculated
       queryClient.invalidateQueries({ queryKey: ['categoryBudgets', orgId] });
+    },
+    onError: (error) => {
+      // Handle optimistic locking errors with user-friendly messages
+      handleOptimisticLockError(error);
     },
   });
 

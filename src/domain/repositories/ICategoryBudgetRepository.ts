@@ -85,4 +85,12 @@ export interface ICategoryBudgetRepository extends IRepository<CategoryBudget> {
    * @returns Promise resolving when update is complete
    */
   recalculateAllocatedAmounts(budgetPeriodId: string, newTotalAmount: number): Promise<void>;
+
+  /**
+   * Updates a category budget with optimistic locking
+   * @param id - Category budget ID
+   * @param categoryBudget - Updated category budget data
+   * @returns Promise resolving when update is complete
+   */
+  updateWithOptimisticLock(id: string, categoryBudget: Partial<CategoryBudget>): Promise<void>;
 }

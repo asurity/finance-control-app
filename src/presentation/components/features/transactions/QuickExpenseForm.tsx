@@ -209,7 +209,7 @@ export function QuickExpenseForm({
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    className="text-xl sm:text-2xl md:text-3xl font-bold pl-9 sm:pl-12 h-12 sm:h-14 md:h-16 text-red-600"
+                    className="text-xl sm:text-2xl md:text-3xl font-bold pl-9 sm:pl-12 h-12 sm:h-14 md:h-16 text-expense"
                     {...field}
                     ref={(e) => {
                       field.ref(e);

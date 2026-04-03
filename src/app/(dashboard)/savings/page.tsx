@@ -120,9 +120,9 @@ function SavingsGoalsContent({ orgId, userId }: SavingsGoalsContentProps) {
   };
 
   const getProgressColor = (percent: number) => {
-    if (percent >= 100) return 'text-green-600 dark:text-green-400';
-    if (percent >= 75) return 'text-blue-600 dark:text-blue-400';
-    if (percent >= 50) return 'text-yellow-600 dark:text-yellow-400';
+    if (percent >= 100) return 'text-success';
+    if (percent >= 75) return 'text-info';
+    if (percent >= 50) return 'text-warning';
     return 'text-muted-foreground';
   };
 
@@ -130,7 +130,7 @@ function SavingsGoalsContent({ orgId, userId }: SavingsGoalsContentProps) {
     <div className="flex items-center justify-end gap-1">
       {goal.status === 'ACTIVE' && (
         <Button variant="ghost" size="icon" onClick={() => setContributingGoal(goal)} title="Contribuir">
-          <TrendingUp className="h-4 w-4 text-green-600" />
+          <TrendingUp className="h-4 w-4 text-success" />
         </Button>
       )}
       <Button variant="ghost" size="icon" onClick={() => setEditingGoal(goal)} title="Editar">
@@ -138,7 +138,7 @@ function SavingsGoalsContent({ orgId, userId }: SavingsGoalsContentProps) {
       </Button>
       {goal.status === 'ACTIVE' && (
         <Button variant="ghost" size="icon" onClick={() => setCancellingGoalId(goal.id)} title="Cancelar meta">
-          <ArrowRight className="h-4 w-4 text-orange-500" />
+          <ArrowRight className="h-4 w-4 text-warning" />
         </Button>
       )}
       <Button variant="ghost" size="icon" onClick={() => setDeletingGoalId(goal.id)} title="Eliminar">

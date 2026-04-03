@@ -10,11 +10,13 @@ import {
   deleteDoc,
   doc,
   Timestamp,
+  runTransaction,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { IBudgetPeriodRepository } from '@/domain/repositories/IBudgetPeriodRepository';
 import { BudgetPeriod } from '@/domain/entities/BudgetPeriod';
 import { BudgetPeriodMapper } from '@/infrastructure/mappers/BudgetPeriodMapper';
+import { OptimisticLockError } from '@/domain/errors/OptimisticLockError';
 
 /**
  * Firestore implementation of Budget Period Repository
@@ -58,6 +60,46 @@ export class FirestoreBudgetPeriodRepository implements IBudgetPeriodRepository 
     const docRef = doc(db, this.collectionPath, id);
     const firestoreData = BudgetPeriodMapper.toFirestoreUpdate(data);
     await updateDoc(docRef, firestoreData);
+  }
+
+  /**
+   * Updates a budget period with optimistic locking to prevent concurrent modification conflicts
+   * @param id - Document ID to update
+   * @param data - Updated budget period data
+   * @throws OptimisticLockError if the document has been modified by another user
+   */
+  async updateWithOptimisticLock(id: string, data: BudgetPeriod): Promise<void> {
+    const docRef = doc(db, this.collectionPath, id);
+    
+    await runTransaction(db, async (transaction) => {
+      const docSnap = await transaction.get(docRef);
+      
+      if (!docSnap.exists()) {
+        throw new Error(`Budget period with ID ${id} not found`);
+      }
+
+      const currentData = docSnap.data();
+      const currentVersion = currentData.version || 1;
+      const attemptedVersion = data.version;
+
+      // Check if version matches (optimistic lock)
+      if (currentVersion !== attemptedVersion) {
+        throw new OptimisticLockError(
+          'BudgetPeriod',
+          id,
+          currentVersion,
+          attemptedVersion
+        );
+      }
+
+      // Update with incremented version
+      const firestoreData = {
+        ...BudgetPeriodMapper.toFirestoreUpdate(data),
+        version: currentVersion + 1,
+      };
+
+      transaction.update(docRef, firestoreData);
+    });
   }
 
   async delete(id: string): Promise<void> {

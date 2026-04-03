@@ -223,7 +223,7 @@ export default function DebugTransactionsPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-red-600 dark:text-red-400">
+                      <p className="font-bold text-expense">
                         {cat.totalAmount.toLocaleString('es-CL')} CLP
                       </p>
                     </div>
@@ -279,7 +279,7 @@ export default function DebugTransactionsPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-red-600 dark:text-red-400">
+                        <p className="font-bold text-expense">
                           {tx.amount.toLocaleString('es-CL')} CLP
                         </p>
                       </div>
