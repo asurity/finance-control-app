@@ -86,14 +86,13 @@ describe('VoiceToolRegistry', () => {
       registry.register('tool2', mockTool);
 
       const tools = registry.getAll();
-      expect(tools.size).toBe(2);
-      expect(tools.has('tool1')).toBe(true);
-      expect(tools.has('tool2')).toBe(true);
+      expect(tools.length).toBe(2);
+      expect(tools).toContainEqual(mockTool);
     });
 
-    it('should return empty map when no tools registered', () => {
+    it('should return empty array when no tools registered', () => {
       const tools = registry.getAll();
-      expect(tools.size).toBe(0);
+      expect(tools.length).toBe(0);
     });
   });
 

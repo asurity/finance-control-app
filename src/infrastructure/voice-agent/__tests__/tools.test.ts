@@ -40,7 +40,7 @@ describe('Voice Agent Tools', () => {
         id: 'transaction-id',
         amount: 5000,
         description: 'Almuerzo',
-        type: 'expense',
+        type: 'EXPENSE',
       });
 
       (mockContainer.getCreateTransactionUseCase as jest.Mock).mockReturnValue({
@@ -61,7 +61,7 @@ describe('Voice Agent Tools', () => {
       expect(result.message).toContain('5.000');
       expect(mockExecute).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'expense',
+          type: 'EXPENSE',
           amount: 5000,
           description: 'Almuerzo',
           userId: 'test-user-id',
@@ -111,9 +111,11 @@ describe('Voice Agent Tools', () => {
 
     it('should get balance successfully', async () => {
       const mockExecute = jest.fn().mockResolvedValue({
-        id: 'account-id',
-        name: 'Cuenta Corriente',
-        balance: 50000,
+        account: {
+          id: 'account-id',
+          name: 'Cuenta Corriente',
+          balance: 50000,
+        },
       });
 
       (mockContainer.getGetAccountByIdUseCase as jest.Mock).mockReturnValue({
@@ -129,8 +131,7 @@ describe('Voice Agent Tools', () => {
       expect(result.message).toContain('50.000');
       expect(result.message).toContain('Cuenta Corriente');
       expect(mockExecute).toHaveBeenCalledWith({
-        id: 'account-id',
-        userId: 'test-user-id',
+        accountId: 'account-id',
       });
     });
 
@@ -152,7 +153,7 @@ describe('Voice Agent Tools', () => {
       );
 
       expect(result.success).toBe(false);
-      expect(result.message).toContain('No pude obtener');
+      expect(result.message).toContain('No pude consultar el saldo');
     });
   });
 
