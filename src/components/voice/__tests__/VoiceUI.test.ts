@@ -4,6 +4,7 @@
  */
 
 import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import React from 'react';
 
 // Mocks ANTES de imports (hoisting crítico)

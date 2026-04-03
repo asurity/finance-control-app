@@ -1,20 +1,29 @@
 /**
  * API Route para crear sesiones efímeras con OpenAI Realtime API
  * Fase 1: Implementación completa con autenticación y rate limiting
+ * Fase 7: Rate limiting persistente en Firestore con caché híbrido
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase/admin';
 import { VOICE_AGENT_CONFIG, VOICE_LIMITS, buildSystemInstructions } from '@/infrastructure/voice-agent/config';
+import { AdminVoiceUsageRepository } from '@/infrastructure/repositories/AdminVoiceUsageRepository';
 
 /**
- * Rate limiter en memoria
- * Estructura: userId -> { date: string (YYYY-MM-DD), count: number }
+ * Repositorio de uso de voz (persistente en Firestore)
  */
-const rateLimitMap = new Map<string, { date: string; count: number }>();
+const voiceUsageRepo = new AdminVoiceUsageRepository();
 
 /**
- * Obtiene la fecha actual en formato YYYY-MM-DD (hora local del servidor)
+ * Caché en memoria para optimizar lecturas frecuentes
+ * Estructura: userId -> { date: string, count: number, lastSync: number }
+ * Se sincroniza con Firestore cada 30 segundos
+ */
+const cacheMap = new Map<string, { date: string; count: number; lastSync: number }>();
+const CACHE_TTL_MS = 30000; // 30 segundos
+
+/**
+ * Obtiene la fecha actual en formato YYYY-MM-DD
  */
 function getCurrentDate(): string {
   return new Date().toISOString().split('T')[0];
@@ -22,47 +31,76 @@ function getCurrentDate(): string {
 
 /**
  * Verifica y actualiza el rate limit para un usuario
+ * Usa Firestore como fuente de verdad con caché híbrido
  * @param userId - ID del usuario
  * @returns { allowed: boolean, remaining: number, resetAt?: string }
  */
-function checkRateLimit(userId: string): {
+async function checkRateLimit(userId: string): Promise<{
   allowed: boolean;
   remaining: number;
   resetAt?: string;
-} {
+}> {
   const today = getCurrentDate();
-  const userLimit = rateLimitMap.get(userId);
+  const now = Date.now();
+  const cached = cacheMap.get(userId);
 
-  // Si no existe o es de un día anterior, resetear
-  if (!userLimit || userLimit.date !== today) {
-    rateLimitMap.set(userId, { date: today, count: 1 });
+  // Si hay caché válido del mismo día, usarlo para verificación rápida
+  if (cached && cached.date === today && (now - cached.lastSync) < CACHE_TTL_MS) {
+    if (cached.count >= VOICE_LIMITS.maxCommandsPerDay) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+
+      return {
+        allowed: false,
+        remaining: 0,
+        resetAt: tomorrow.toISOString(),
+      };
+    }
+    
+    // Actualizar caché optimista
+    cached.count += 1;
+    cacheMap.set(userId, cached);
+  }
+
+  try {
+    // Incrementar contador en Firestore (fuente de verdad)
+    const commandsUsed = await voiceUsageRepo.incrementCommandCount(userId, today);
+
+    // Actualizar caché
+    cacheMap.set(userId, {
+      date: today,
+      count: commandsUsed,
+      lastSync: now,
+    });
+
+    // Verificar si excede el límite
+    if (commandsUsed > VOICE_LIMITS.maxCommandsPerDay) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+
+      return {
+        allowed: false,
+        remaining: 0,
+        resetAt: tomorrow.toISOString(),
+      };
+    }
+
+    return {
+      allowed: true,
+      remaining: VOICE_LIMITS.maxCommandsPerDay - commandsUsed,
+    };
+  } catch (error) {
+    console.error('[checkRateLimit] Error al verificar límite en Firestore:', error);
+    
+    // Fallback: permitir si hay error de Firestore (mejor UX que bloquear)
+    // pero log para monitoreo
     return {
       allowed: true,
       remaining: VOICE_LIMITS.maxCommandsPerDay - 1,
     };
   }
-
-  // Verificar si excede el límite
-  if (userLimit.count >= VOICE_LIMITS.maxCommandsPerDay) {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-
-    return {
-      allowed: false,
-      remaining: 0,
-      resetAt: tomorrow.toISOString(),
-    };
-  }
-
-  // Incrementar contador
-  userLimit.count += 1;
-  rateLimitMap.set(userId, userLimit);
-
-  return {
-    allowed: true,
-    remaining: VOICE_LIMITS.maxCommandsPerDay - userLimit.count,
-  };
 }
 
 /**
@@ -95,8 +133,8 @@ export async function POST(request: NextRequest) {
 
     const userId = decodedToken.uid;
 
-    // 2. Verificar rate limiting
-    const rateLimitCheck = checkRateLimit(userId);
+    // 2. Verificar rate limiting (con persistencia en Firestore)
+    const rateLimitCheck = await checkRateLimit(userId);
     if (!rateLimitCheck.allowed) {
       return NextResponse.json(
         {

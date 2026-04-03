@@ -29,11 +29,7 @@ export function Providers({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
         <AuthProvider>
-          {APP_CONFIG.enableVoiceAgent ? (
-            <VoiceProvider>{children}</VoiceProvider>
-          ) : (
-            children
-          )}
+          <VoiceProvider>{children}</VoiceProvider>
         </AuthProvider>
         <ReactQueryDevtools initialIsOpen={false} />
       </ThemeProvider>

@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useVoiceUsageLogger } from '@/application/hooks/useVoiceUsageLogger';
 import { 
   RealtimeClient,
   type RealtimeClientState,
@@ -67,6 +68,7 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
   const { user, firebaseUser } = useAuth();
   const { currentOrgId } = useOrganization();
   const queryClient = useQueryClient();
+  const { logCommand } = useVoiceUsageLogger();
 
   // RealtimeClient singleton
   const clientRef = useRef<RealtimeClient | null>(null);
@@ -187,6 +189,16 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
         showSuccessToast(functionCall.name, result.message);
       }
 
+      // Registrar comando ejecutado en Firestore (async, no bloquea)
+      logCommand({
+        transcription: transcript,
+        toolsExecuted: [functionCall.name],
+        tokensUsed: 0, // TODO: Capturar usage real de la respuesta de OpenAI
+        success: true,
+      }).catch((err) => {
+        console.error('[VoiceProvider] Error al guardar log:', err);
+      });
+
       console.log('[VoiceProvider] Tool ejecutado:', functionCall.name, result);
 
     } catch (err) {
@@ -207,10 +219,21 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
         description: errorMessage,
       });
 
+      // Registrar error en Firestore (async, no bloquea)
+      logCommand({
+        transcription: transcript,
+        toolsExecuted: [functionCall.name],
+        tokensUsed: 0,
+        success: false,
+        errorMessage,
+      }).catch((err) => {
+        console.error('[VoiceProvider] Error al guardar log de error:', err);
+      });
+
       setError(errorMessage);
       setState('error');
     }
-  }, [user, currentOrgId]);
+  }, [user, currentOrgId, transcript, logCommand]);
 
   /**
    * Muestra toast de confirmación según el tipo de acción

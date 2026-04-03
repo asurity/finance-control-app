@@ -15,5 +15,13 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if isAuthenticated();
     }
+    
+    // Strict rules for voiceUsage (commented for production restoration)
+    // match /voiceUsage/{usageId} {
+    //   // Estructura del usageId: {userId}_{date}
+    //   // Solo el usuario dueño puede leer/escribir sus propios registros
+    //   allow read, write: if isAuthenticated() && 
+    //                         request.auth.uid == resource.data.userId;
+    // }
   }
 }
