@@ -1,13 +1,15 @@
 /**
- * VoiceProvider - Context provider para el agente de voz con IA
- * Fase 4: Hook y Context
+ * VoiceProvider - Context provider para el agente de voz conversacional
+ * Fase 4: Refactorizado para multi-turno con push-to-talk
  * 
  * Responsabilidades:
- * - Manejar el ciclo de vida de RealtimeClient
- * - Solicitar ephemeral token del API route
- * - Coordinar el flujo de estados del agente de voz
- * - Ejecutar tools cuando OpenAI invoca function calls
+ * - Gestionar ciclo de vida del proveedor de IA (vía AIProviderFactory)
+ * - Separar conexión de sesión de la grabación (push-to-talk)
+ * - Mantener historial de conversación multi-turno
+ * - Validar transcript vacío antes de procesar
+ * - Ejecutar tools cuando la IA invoca function calls
  * - Invalidar React Query cache después de mutaciones
+ * - NO auto-cerrar después de ejecución (sesión persiste)
  */
 
 'use client';
@@ -18,15 +20,13 @@ import { useOrganization } from '@/hooks/useOrganization';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useVoiceUsageLogger } from '@/application/hooks/useVoiceUsageLogger';
-import { 
-  RealtimeClient,
-  type RealtimeClientState,
-  type RealtimeFunctionCall,
-  type RealtimeSessionConfig
-} from '@/infrastructure/voice-agent/RealtimeClient';
+import { AIProviderFactory } from '@/infrastructure/voice-agent/AIProviderFactory';
+import type { IAIRealtimeProvider, AIProviderState, AIFunctionCall } from '@/domain/ports/IAIRealtimeProvider';
 import { VoiceToolRegistry } from '@/infrastructure/voice-agent/VoiceToolRegistry';
 import { registerAllTools } from '@/infrastructure/voice-agent/tools';
 import { DIContainer } from '@/infrastructure/di/DIContainer';
+import { APP_CONFIG } from '@/lib/constants/config';
+import type { ConversationMessage } from './VoiceConversationHistory';
 
 /**
  * Estado del agente de voz
@@ -34,9 +34,9 @@ import { DIContainer } from '@/infrastructure/di/DIContainer';
 export type VoiceAgentState = 
   | 'idle'          // Sin actividad
   | 'connecting'    // Estableciendo conexión WebRTC
-  | 'ready'         // Conectado, esperando comando de voz
+  | 'ready'         // Conectado, esperando push-to-talk
   | 'recording'     // Grabando audio del usuario
-  | 'processing'    // OpenAI procesando el audio
+  | 'processing'    // IA procesando el audio
   | 'executing'     // Ejecutando function calls
   | 'error';        // Error en el flujo
 
@@ -44,16 +44,31 @@ export type VoiceAgentState =
  * Interfaz del contexto de voz
  */
 interface VoiceContextType {
+  // Estado
   state: VoiceAgentState;
   isAvailable: boolean;
-  startCommand: () => Promise<void>;
-  cancelCommand: () => void;
-  forceCommitAudio: () => void;
+  isSessionActive: boolean;
+  isModalOpen: boolean;
+
+  // Acciones
+  openModal: () => void;
+  closeModal: () => void;
+  startRecording: () => Promise<void>;
+  stopRecording: () => void;
+  endSession: () => void;
+
+  // Datos
   transcript: string;
   response: string;
   error: string | null;
   commandsRemainingToday: number;
   recordingTimeLeft: number;
+  conversationHistory: ConversationMessage[];
+
+  // Backward compat (deprecados)
+  startCommand: () => Promise<void>;
+  cancelCommand: () => void;
+  forceCommitAudio: () => void;
 }
 
 const VoiceContext = createContext<VoiceContextType | undefined>(undefined);
@@ -72,8 +87,8 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
   const queryClient = useQueryClient();
   const { logCommand } = useVoiceUsageLogger();
 
-  // RealtimeClient singleton
-  const clientRef = useRef<RealtimeClient | null>(null);
+  // Proveedor de IA (singleton por sesión)
+  const providerRef = useRef<IAIRealtimeProvider | null>(null);
   
   // Refs para mantener valores actualizados en callbacks (evita stale closures)
   const userRef = useRef(user);
@@ -92,95 +107,92 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
   const [error, setError] = useState<string | null>(null);
   const [commandsRemainingToday, setCommandsRemainingToday] = useState(10);
   const [recordingTimeLeft, setRecordingTimeLeft] = useState(15);
+  const [isSessionActive, setIsSessionActive] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
+
+  // Ref para ID de mensajes
+  const messageIdRef = useRef(0);
+  const nextId = useCallback(() => {
+    messageIdRef.current += 1;
+    return `msg-${messageIdRef.current}`;
+  }, []);
 
   // Registrar tools al montar
   useEffect(() => {
     registerAllTools();
   }, []);
 
-  // Inicializar RealtimeClient
+  // Cleanup al desmontar
   useEffect(() => {
-    if (!clientRef.current) {
-      clientRef.current = new RealtimeClient();
-    }
-
     return () => {
-      // Cleanup al desmontar
-      if (clientRef.current) {
-        clientRef.current.disconnect();
-        clientRef.current = null;
+      if (providerRef.current) {
+        providerRef.current.disconnect();
+        providerRef.current = null;
       }
     };
   }, []);
 
-  // Escuchar cambios de estado del RealtimeClient
-  useEffect(() => {
-    if (!clientRef.current) return;
+  /**
+   * Agrega un mensaje al historial de conversación
+   */
+  const addMessage = useCallback((role: 'user' | 'assistant', text: string) => {
+    setConversationHistory((prev) => [
+      ...prev,
+      { id: nextId(), role, text, timestamp: new Date() },
+    ]);
+  }, [nextId]);
 
-    const client = clientRef.current;
-
-    // Estado del cliente
-    client.onStateChange((clientState: RealtimeClientState) => {
-      // Mapear estados del cliente a estados del agente
-      if (clientState === 'idle') setState('idle');
-      else if (clientState === 'connecting') setState('connecting');
-      else if (clientState === 'ready') setState('ready');
-      else if (clientState === 'recording') setState('recording');
-      else if (clientState === 'processing') setState('processing');
-      else if (clientState === 'executing') setState('executing');
-      else if (clientState === 'error') setState('error');
+  /**
+   * Registra listeners en el proveedor de IA
+   */
+  const setupProviderListeners = useCallback((provider: IAIRealtimeProvider) => {
+    provider.onStateChange((providerState: AIProviderState) => {
+      setState(providerState as VoiceAgentState);
     });
 
-    // Transcripción
-    client.onTranscript((text: string, isFinal: boolean) => {
+    provider.onTranscript((text: string) => {
       setTranscript(text);
     });
 
-    // Respuesta de texto
-    client.onTextResponse((text: string, isFinal: boolean) => {
-      setResponse(text);
+    provider.onTextResponse((text: string, isFinal: boolean) => {
+      setResponse((prev) => (isFinal ? text : prev + text));
+      if (isFinal && text.trim()) {
+        addMessage('assistant', text);
+      }
     });
 
-    // Errores
-    client.onError((err: Error) => {
+    provider.onError((err: Error) => {
       console.error('[VoiceProvider] Error:', err);
       setError(err.message);
       setState('error');
     });
 
-    // Tiempo de grabación
-    client.onRecordingTimeUpdate((timeLeft: number) => {
+    provider.onRecordingTimeUpdate((timeLeft: number) => {
       setRecordingTimeLeft(timeLeft);
     });
 
-    // Function calls
-    client.onFunctionCall(async (functionCall: RealtimeFunctionCall) => {
+    provider.onFunctionCall(async (functionCall: AIFunctionCall) => {
       await handleFunctionCall(functionCall);
     });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addMessage]);
 
   /**
    * Maneja la ejecución de function calls
    */
-  const handleFunctionCall = useCallback(async (functionCall: RealtimeFunctionCall) => {
+  const handleFunctionCall = useCallback(async (functionCall: AIFunctionCall) => {
     const currentUser = userRef.current;
     const currentOrg = orgIdRef.current;
     
-    if (!currentUser || !currentOrg || !clientRef.current) {
-      console.error('[VoiceProvider] handleFunctionCall: Missing user or orgId', {
-        hasUser: !!currentUser,
-        hasOrgId: !!currentOrg,
-        hasClient: !!clientRef.current
-      });
+    if (!currentUser || !currentOrg || !providerRef.current) {
+      console.error('[VoiceProvider] handleFunctionCall: Missing user or orgId');
       return;
     }
 
     setState('executing');
 
     try {
-      // Buscar el tool en el registry
       const registry = VoiceToolRegistry.getInstance();
       const tool = registry.getByName(functionCall.name);
 
@@ -190,7 +202,6 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
 
       console.log('[VoiceProvider] Ejecutando tool:', functionCall.name, 'con args:', functionCall.arguments);
 
-      // Ejecutar el tool
       const container = DIContainer.getInstance();
       container.setOrgId(currentOrg);
       
@@ -202,22 +213,22 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
 
       console.log('[VoiceProvider] Tool ejecutado exitosamente:', functionCall.name, result);
 
-      // Enviar resultado de vuelta a OpenAI
-      clientRef.current.sendFunctionResult(functionCall.callId, result);
+      // Enviar resultado de vuelta a la IA
+      providerRef.current.sendFunctionResult(functionCall.callId, result);
 
       // Invalidar React Query cache si el tool modificó datos
       invalidateCacheForTool(functionCall.name, currentOrg);
 
-      // Mostrar toast de confirmación para acciones exitosas
+      // Toast de confirmación
       if (result.success) {
         showSuccessToast(functionCall.name, result.message);
       }
 
-      // Registrar comando ejecutado en Firestore (async, no bloquea)
+      // Log async
       logCommand(currentUser.id, {
         transcription: transcript,
         toolsExecuted: [functionCall.name],
-        tokensUsed: 0, // TODO: Capturar usage real de la respuesta de OpenAI
+        tokensUsed: 0,
         success: true,
       }).catch((err) => {
         console.error('[VoiceProvider] Error al guardar log:', err);
@@ -228,38 +239,28 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
       
       const errorMessage = err instanceof Error ? err.message : 'Error al ejecutar la acción';
       
-      // Enviar error a OpenAI
-      if (clientRef.current) {
-        clientRef.current.sendFunctionResult(functionCall.callId, {
+      if (providerRef.current) {
+        providerRef.current.sendFunctionResult(functionCall.callId, {
           success: false,
           message: errorMessage,
         });
       }
 
-      // Mostrar toast de error
-      toast.error('Error al ejecutar acción', {
-        description: errorMessage,
-      });
+      toast.error('Error al ejecutar acción', { description: errorMessage });
 
-      // Registrar error en Firestore (async, no bloquea)
-      logCommand(currentUser.id, {
+      logCommand(userRef.current?.id || '', {
         transcription: transcript,
         toolsExecuted: [functionCall.name],
         tokensUsed: 0,
         success: false,
         errorMessage,
-      }).catch((err) => {
-        console.error('[VoiceProvider] Error al guardar log de error:', err);
-      });
+      }).catch(() => {});
 
       setError(errorMessage);
-      setState('error');
+      // NO poner error state — la sesión sigue activa para retry
     }
-  }, [transcript, logCommand]); // user y currentOrgId ahora usan refs
+  }, [transcript, logCommand]);
 
-  /**
-   * Muestra toast de confirmación según el tipo de acción
-   */
   const showSuccessToast = useCallback((toolName: string, message: string) => {
     const toastConfig: Record<string, { icon: string; title: string }> = {
       'create_expense': { icon: '💸', title: 'Gasto registrado' },
@@ -272,30 +273,13 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     };
 
     const config = toastConfig[toolName] || { icon: '✅', title: 'Acción completada' };
-
-    toast.success(config.title, {
-      description: message,
-      icon: config.icon,
-      duration: 3000,
-    });
+    toast.success(config.title, { description: message, icon: config.icon, duration: 3000 });
   }, []);
 
-  /**
-   * Invalida cache de React Query según el tool ejecutado
-   */
   const invalidateCacheForTool = useCallback((toolName: string, orgId: string) => {
     const invalidationMap: Record<string, string[][]> = {
-      'create_expense': [
-        ['transactions', orgId],
-        ['accounts', orgId],
-        ['dashboard', orgId],
-      ],
-      'create_income': [
-        ['transactions', orgId],
-        ['accounts', orgId],
-        ['dashboard', orgId],
-      ],
-      // Tools de lectura no invalidan cache
+      'create_expense': [['transactions', orgId], ['accounts', orgId], ['dashboard', orgId]],
+      'create_income': [['transactions', orgId], ['accounts', orgId], ['dashboard', orgId]],
       'get_balance': [],
       'get_dashboard_summary': [],
       'list_accounts': [],
@@ -304,161 +288,184 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     };
 
     const queryKeys = invalidationMap[toolName] || [];
-    
     queryKeys.forEach((queryKey) => {
       queryClient.invalidateQueries({ queryKey });
     });
-
-    if (queryKeys.length > 0) {
-      console.log('[VoiceProvider] Cache invalidado para:', toolName, queryKeys);
-    }
   }, [queryClient]);
 
+  // =====================
+  // Acciones públicas
+  // =====================
+
   /**
-   * Inicia un comando de voz
+   * Conectar sesión con la IA (solicita token + WebRTC)
+   * Se llama automáticamente al primer push-to-talk
    */
-  const startCommand = useCallback(async () => {
+  const connectSession = useCallback(async () => {
     const currentUser = userRef.current;
     const currentOrg = orgIdRef.current;
     
-    if (!currentUser || !firebaseUser || !currentOrg || !clientRef.current) {
+    if (!currentUser || !firebaseUser || !currentOrg) {
       const errorMsg = 'Usuario no autenticado o organización no seleccionada';
-      console.error('[VoiceProvider] startCommand failed:', {
-        hasUser: !!currentUser,
-        hasFirebaseUser: !!firebaseUser,
-        hasOrgId: !!currentOrg,
-        hasClient: !!clientRef.current
-      });
       setError(errorMsg);
       toast.error('No disponible', { description: errorMsg });
-      return;
+      throw new Error(errorMsg);
     }
 
-    // Reset de estados
-    setTranscript('');
-    setResponse('');
-    setError(null);
     setState('connecting');
 
+    // Crear proveedor si no existe
+    if (!providerRef.current) {
+      providerRef.current = AIProviderFactory.create(APP_CONFIG.aiProvider);
+      setupProviderListeners(providerRef.current);
+    }
+
     try {
-      // Solicitar ephemeral token del API route
       const idToken = await firebaseUser.getIdToken();
       
-      const response = await fetch('/api/voice/session', {
+      const res = await fetch('/api/voice/session', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ provider: APP_CONFIG.aiProvider }),
       });
 
-      if (!response.ok) {
-        // Manejar errores específicos del servidor
-        if (response.status === 429) {
-          const errorData = await response.json();
+      if (!res.ok) {
+        if (res.status === 429) {
+          const errorData = await res.json();
           const resetDate = errorData.resetAt ? new Date(errorData.resetAt) : null;
           const resetTime = resetDate ? resetDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : 'mañana';
-          
-          throw new Error(`Límite diario alcanzado (10 comandos/día). Disponible nuevamente a las ${resetTime}.`);
+          throw new Error(`Límite diario alcanzado. Disponible nuevamente a las ${resetTime}.`);
         }
-        
-        if (response.status === 401) {
-          throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-        }
-        
-        if (response.status === 503) {
-          throw new Error('Servicio de voz temporalmente no disponible. Intenta nuevamente en unos minutos.');
-        }
-
-        const errorData = await response.json();
+        if (res.status === 401) throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+        if (res.status === 503) throw new Error('Servicio de voz temporalmente no disponible.');
+        const errorData = await res.json();
         throw new Error(errorData.message || 'Error al iniciar sesión de voz');
       }
 
-      const sessionData = await response.json();
-      
-      // Actualizar comandos restantes
+      const sessionData = await res.json();
       setCommandsRemainingToday(sessionData.commandsRemaining);
 
-      // Preparar configuración de la sesión
       const registry = VoiceToolRegistry.getInstance();
-      const config: RealtimeSessionConfig = {
+      await providerRef.current.connect({
         ephemeralToken: sessionData.ephemeralToken,
         tools: registry.getDeclarations(),
-      };
+      });
 
-      // Conectar con OpenAI Realtime API
-      await clientRef.current.connect(config);
-
-      console.log('[VoiceProvider] Sesión de voz iniciada');
+      setIsSessionActive(true);
+      console.log('[VoiceProvider] Sesión conectada');
 
     } catch (err) {
-      console.error('[VoiceProvider] Error iniciando comando:', err);
+      console.error('[VoiceProvider] Error conectando sesión:', err);
       
       let errorMessage = 'Error al iniciar comando de voz';
       let errorDescription = '';
 
       if (err instanceof Error) {
-        // Errores específicos de permisos de micrófono
         if (err.name === 'NotAllowedError' || err.message.includes('Permission denied')) {
           errorMessage = 'Permisos de micrófono denegados';
           errorDescription = 'Por favor, permite el acceso al micrófono en la configuración de tu navegador.';
-        }
-        // Errores de dispositivo no disponible
-        else if (err.name === 'NotFoundError' || err.message.includes('not found')) {
+        } else if (err.name === 'NotFoundError' || err.message.includes('not found')) {
           errorMessage = 'Micrófono no encontrado';
           errorDescription = 'No se detectó ningún micrófono en tu dispositivo.';
-        }
-        // Errores de red
-        else if (err.message.includes('Failed to fetch') || err.message.includes('Network')) {
+        } else if (err.message.includes('Failed to fetch') || err.message.includes('Network')) {
           errorMessage = 'Error de conexión';
           errorDescription = 'Verifica tu conexión a internet e intenta nuevamente.';
-        }
-        // Errores personalizados del servidor
-        else if (err.message.includes('Límite diario') || err.message.includes('Sesión expirada') || err.message.includes('no disponible')) {
-          errorMessage = err.message;
-        }
-        // Otros errores con mensaje descriptivo
-        else {
+        } else {
           errorMessage = err.message;
         }
       }
 
       setError(errorMessage);
       setState('error');
-
-      // Mostrar toast de error
       toast.error(errorMessage, errorDescription ? { description: errorDescription } : undefined);
+      throw err;
     }
-  }, [firebaseUser]); // user y currentOrgId ahora usan refs
+  }, [firebaseUser, setupProviderListeners]);
 
   /**
-   * Cancela el comando de voz en curso
+   * Iniciar grabación (push-to-talk DOWN)
+   * Conecta sesión automáticamente si no está conectada
    */
-  const cancelCommand = useCallback(() => {
-    if (clientRef.current) {
-      clientRef.current.disconnect();
+  const startRecording = useCallback(async () => {
+    setError(null);
+    setTranscript('');
+    setResponse('');
+    setRecordingTimeLeft(15);
+
+    if (!isSessionActive || !providerRef.current) {
+      await connectSession();
+    }
+
+    if (providerRef.current) {
+      await providerRef.current.startAudioCapture();
+    }
+  }, [isSessionActive, connectSession]);
+
+  /**
+   * Detener grabación (push-to-talk UP)
+   * Valida transcript vacío — si vacío, no gasta tokens
+   */
+  const stopRecording = useCallback(() => {
+    if (!providerRef.current || state !== 'recording') return;
+
+    providerRef.current.stopAudioCaptureAndProcess();
+
+    // Agregar transcripción del usuario al historial (se actualiza cuando llega el transcript final)
+    // El transcript real llega async vía onTranscript callback
+  }, [state]);
+
+  /**
+   * Cerrar sesión completa
+   */
+  const endSession = useCallback(() => {
+    if (providerRef.current) {
+      providerRef.current.disconnect();
+      providerRef.current = null;
     }
     
+    setIsSessionActive(false);
     setState('idle');
     setTranscript('');
     setResponse('');
     setError(null);
     setRecordingTimeLeft(15);
+    setConversationHistory([]);
+    messageIdRef.current = 0;
   }, []);
 
   /**
-   * Fuerza el commit del audio buffer actual
-   * Útil cuando el usuario terminó de hablar pero el VAD no detectó el silencio
+   * Abrir modal
    */
-  const forceCommitAudio = useCallback(() => {
-    if (clientRef.current && state === 'recording') {
-      clientRef.current.forceCommitAudio();
-    }
-  }, [state]);
+  const openModal = useCallback(() => {
+    setIsModalOpen(true);
+  }, []);
 
   /**
-   * Verifica si el agente de voz está disponible
+   * Cerrar modal (y sesión)
    */
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
+    endSession();
+  }, [endSession]);
+
+  // Agregar transcript del usuario al historial cuando pasa a processing
+  useEffect(() => {
+    if (state === 'processing' && transcript.trim().length > 0) {
+      addMessage('user', transcript);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
+  // =====================
+  // Backward compat aliases
+  // =====================
+  const startCommand = startRecording;
+  const cancelCommand = endSession;
+  const forceCommitAudio = stopRecording;
+
   const isAvailable = Boolean(
     user && 
     currentOrgId && 
@@ -469,14 +476,23 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
   const value: VoiceContextType = {
     state,
     isAvailable,
-    startCommand,
-    cancelCommand,
-    forceCommitAudio,
+    isSessionActive,
+    isModalOpen,
+    openModal,
+    closeModal,
+    startRecording,
+    stopRecording,
+    endSession,
     transcript,
     response,
     error,
     commandsRemainingToday,
     recordingTimeLeft,
+    conversationHistory,
+    // Backward compat
+    startCommand,
+    cancelCommand,
+    forceCommitAudio,
   };
 
   return (

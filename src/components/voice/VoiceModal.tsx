@@ -3,7 +3,7 @@
  * 
  * Reemplaza a VoiceOverlay con:
  * - Botón push-to-talk grande central
- * - Historial de conversación scrollable
+ * - Historial de conversación scrollable (desde VoiceProvider context)
  * - Transcripción en vivo durante grabación
  * - Reproducción de audio TTS automática
  * - NO se auto-cierra: mantiene sesión hasta que el usuario cierra
@@ -12,12 +12,12 @@
 'use client';
 
 import { useCallback, useRef, useEffect, useState } from 'react';
-import { X, Volume2, VolumeX } from 'lucide-react';
+import { X, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useVoiceAgent } from '@/application/hooks/useVoiceAgent';
 import { Button } from '@/components/ui/button';
 import { VoicePushToTalkButton } from './VoicePushToTalkButton';
-import { VoiceConversationHistory, type ConversationMessage } from './VoiceConversationHistory';
+import { VoiceConversationHistory } from './VoiceConversationHistory';
 
 interface VoiceModalProps {
   isOpen: boolean;
@@ -28,108 +28,43 @@ export function VoiceModal({ isOpen, onClose }: VoiceModalProps) {
   const {
     state,
     transcript,
-    response,
     error,
     recordingTimeLeft,
     commandsRemainingToday,
-    startCommand,
-    cancelCommand,
-    forceCommitAudio,
+    isSessionActive,
     isRecording,
+    conversationHistory,
+    startRecording,
+    stopRecording,
+    endSession,
   } = useVoiceAgent();
 
-  // Historial de conversación local al modal
-  const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [isAISpeaking, setIsAISpeaking] = useState(false);
-  const [isSessionConnected, setIsSessionConnected] = useState(false);
-
-  // Refs para tracking de mensajes
-  const lastTranscriptRef = useRef('');
-  const lastResponseRef = useRef('');
-  const messageIdRef = useRef(0);
 
   // Audio element para TTS
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const nextId = useCallback(() => {
-    messageIdRef.current += 1;
-    return `msg-${messageIdRef.current}`;
-  }, []);
-
-  // Agregar mensaje del usuario cuando termina de grabar (transcript final)
-  useEffect(() => {
-    if (
-      state === 'processing' &&
-      lastTranscriptRef.current !== transcript &&
-      transcript.trim().length > 0
-    ) {
-      lastTranscriptRef.current = transcript;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: nextId(),
-          role: 'user',
-          text: transcript,
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  }, [state, transcript, nextId]);
-
-  // Agregar mensaje de la IA cuando llega respuesta final
-  useEffect(() => {
-    if (
-      (state === 'executing' || state === 'ready' || state === 'idle') &&
-      response.trim().length > 0 &&
-      lastResponseRef.current !== response
-    ) {
-      lastResponseRef.current = response;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: nextId(),
-          role: 'assistant',
-          text: response,
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  }, [state, response, nextId]);
-
-  // Push-to-talk: iniciar grabación
+  // Push-to-talk: iniciar grabación (conecta sesión automáticamente)
   const handleStartRecording = useCallback(async () => {
-    if (!isSessionConnected) {
-      try {
-        await startCommand();
-        setIsSessionConnected(true);
-      } catch (err) {
-        console.error('[VoiceModal] Error al conectar sesión:', err);
-        return;
-      }
+    try {
+      await startRecording();
+    } catch (err) {
+      console.error('[VoiceModal] Error al iniciar grabación:', err);
     }
-    // En la siguiente fase (4), startRecording() será separado de startCommand()
-    // Por ahora, startCommand() ya inicia la grabación
-  }, [isSessionConnected, startCommand]);
+  }, [startRecording]);
 
   // Push-to-talk: detener grabación
   const handleStopRecording = useCallback(() => {
     if (isRecording) {
-      forceCommitAudio();
+      stopRecording();
     }
-  }, [isRecording, forceCommitAudio]);
+  }, [isRecording, stopRecording]);
 
   // Cerrar modal
   const handleClose = useCallback(() => {
-    if (isSessionConnected) {
-      cancelCommand();
-      setIsSessionConnected(false);
-    }
-    setMessages([]);
-    lastTranscriptRef.current = '';
-    lastResponseRef.current = '';
-    messageIdRef.current = 0;
+    endSession();
     onClose();
-  }, [isSessionConnected, cancelCommand, onClose]);
+  }, [endSession, onClose]);
 
   // Cerrar al hacer clic fuera (backdrop)
   const handleBackdropClick = useCallback(
@@ -203,7 +138,7 @@ export function VoiceModal({ isOpen, onClose }: VoiceModalProps) {
 
         {/* Conversation History */}
         <VoiceConversationHistory
-          messages={messages}
+          messages={conversationHistory}
           isTranscribing={isRecording}
           currentTranscript={transcript}
           isAISpeaking={isAISpeaking}
@@ -232,7 +167,7 @@ export function VoiceModal({ isOpen, onClose }: VoiceModalProps) {
           <p className="text-xs text-muted-foreground">
             {commandsRemainingToday} comando{commandsRemainingToday !== 1 ? 's' : ''} restante{commandsRemainingToday !== 1 ? 's' : ''} hoy
           </p>
-          {isSessionConnected && (
+          {isSessionActive && (
             <div className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
               <span className="text-xs text-muted-foreground">Sesión activa</span>
