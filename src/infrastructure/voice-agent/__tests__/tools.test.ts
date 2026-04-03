@@ -18,6 +18,7 @@ const mockContainer = {
 } as unknown as DIContainer;
 
 const mockContext: VoiceToolContext = {
+  orgId: 'test-org-id',
   userId: 'test-user-id',
   container: mockContainer,
 };
