@@ -14,6 +14,7 @@ import { OpenAIToolDeclaration } from './types';
 export type RealtimeClientState = 
   | 'idle'           // Sin conexión
   | 'connecting'     // Estableciendo WebRTC
+  | 'ready'          // Conectado, esperando comando de voz
   | 'recording'      // Grabando audio del usuario
   | 'processing'     // OpenAI procesando el audio
   | 'executing'      // Ejecutando function call
@@ -152,8 +153,11 @@ export class RealtimeClient {
       // 9. Configurar sesión (tools, VAD, modalities)
       this.sendSessionUpdate(config);
 
-      // 10. Iniciar grabación con timer de 15 segundos
-      this.startRecording();
+      // 10. Establecer estado ready - esperando que el usuario hable
+      this.setState('ready');
+
+      // Nota: La grabación se iniciará automáticamente cuando el VAD detecte voz,
+      // o puede iniciarse manualmente con startRecordingManually()
 
     } catch (error) {
       this.handleError(error as Error);
@@ -234,6 +238,16 @@ export class RealtimeClient {
    */
   private handleServerEvent(event: any): void {
     switch (event.type) {
+      case 'input_audio_buffer.speech_started':
+        // VAD detectó que el usuario empezó a hablar
+        this.startRecording();
+        break;
+
+      case 'input_audio_buffer.speech_stopped':
+        // VAD detectó que el usuario dejó de hablar (auto-commit)
+        // El commit se maneja automáticamente por el VAD
+        break;
+
       case 'conversation.item.input_audio_transcription.completed':
         // Transcripción completa del audio del usuario
         if (this.onTranscriptCallback) {
@@ -294,7 +308,7 @@ export class RealtimeClient {
       session: {
         modalities: ['text'],  // SOLO texto de salida, sin TTS
         instructions: config.systemInstructions || '',
-        voice: null,
+        voice: 'alloy',
         input_audio_format: 'pcm16',
         output_audio_format: 'pcm16',
         input_audio_transcription: {
@@ -302,9 +316,9 @@ export class RealtimeClient {
         },
         turn_detection: {
           type: 'server_vad',
-          threshold: 0.5,
-          prefix_padding_ms: 300,
-          silence_duration_ms: 500,  // 500ms de silencio = fin de comando
+          threshold: 0.8,  // Aumentado para reducir sensibilidad al ruido
+          prefix_padding_ms: 500,  // Más contexto antes de la voz
+          silence_duration_ms: 1000,  // Más tiempo de silencio para confirmar fin
         },
         tools: config.tools,
         tool_choice: 'auto',
@@ -316,8 +330,11 @@ export class RealtimeClient {
 
   /**
    * Inicia grabación con timer de 15 segundos
+   * Puede ser llamado automáticamente por VAD o manualmente
    */
   private startRecording(): void {
+    if (this.state === 'recording') return; // Ya está grabando
+    
     this.setState('recording');
     this.recordingStartTime = Date.now();
 
@@ -395,6 +412,19 @@ export class RealtimeClient {
     }
 
     this.dataChannel.send(JSON.stringify(event));
+  }
+
+  /**
+   * Fuerza el commit del audio buffer actual
+   * Útil cuando el usuario quiere enviar manualmente sin esperar al VAD
+   */
+  forceCommitAudio(): void {
+    if (this.state !== 'recording') {
+      console.warn('No se puede hacer commit: no hay grabación activa');
+      return;
+    }
+
+    this.stopRecording('manual');
   }
 
   /**

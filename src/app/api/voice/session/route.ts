@@ -12,7 +12,16 @@ import { AdminVoiceUsageRepository } from '@/infrastructure/repositories/AdminVo
 /**
  * Repositorio de uso de voz (persistente en Firestore)
  */
-const voiceUsageRepo = new AdminVoiceUsageRepository();
+let voiceUsageRepo: AdminVoiceUsageRepository;
+
+try {
+  console.log('[API /voice/session] Inicializando AdminVoiceUsageRepository...');
+  voiceUsageRepo = new AdminVoiceUsageRepository();
+  console.log('[API /voice/session] AdminVoiceUsageRepository inicializado correctamente');
+} catch (error) {
+  console.error('[API /voice/session] ERROR al inicializar AdminVoiceUsageRepository:', error);
+  // Continuar sin el repo, usar fallback en checkRateLimit
+}
 
 /**
  * Caché en memoria para optimizar lecturas frecuentes
@@ -93,6 +102,7 @@ async function checkRateLimit(userId: string): Promise<{
     };
   } catch (error) {
     console.error('[checkRateLimit] Error al verificar límite en Firestore:', error);
+    console.error('[checkRateLimit] Stack:', error instanceof Error ? error.stack : 'No stack');
     
     // Fallback: permitir si hay error de Firestore (mejor UX que bloquear)
     // pero log para monitoreo
@@ -108,10 +118,15 @@ async function checkRateLimit(userId: string): Promise<{
  * Genera un token efímero para conectar con OpenAI Realtime API vía WebRTC
  */
 export async function POST(request: NextRequest) {
+  console.log('[API /voice/session] POST request recibido');
+  
   try {
     // 1. Validar autenticación del usuario
     const authHeader = request.headers.get('authorization');
+    console.log('[API /voice/session] Auth header presente:', !!authHeader);
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('[API /voice/session] Token de autenticación faltante o inválido');
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Token de autenticación requerido' },
         { status: 401 }
@@ -122,9 +137,11 @@ export async function POST(request: NextRequest) {
     let decodedToken;
 
     try {
+      console.log('[API /voice/session] Verificando token con Firebase Admin...');
       decodedToken = await adminAuth.verifyIdToken(idToken);
+      console.log('[API /voice/session] Token verificado exitosamente. UserID:', decodedToken.uid);
     } catch (error) {
-      console.error('Error al verificar token de Firebase:', error);
+      console.error('[API /voice/session] Error al verificar token de Firebase:', error);
       return NextResponse.json(
         { error: 'UNAUTHORIZED', message: 'Token de autenticación inválido' },
         { status: 401 }
@@ -167,6 +184,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         model: VOICE_AGENT_CONFIG.model,
         modalities: VOICE_AGENT_CONFIG.modalities,
+        voice: VOICE_AGENT_CONFIG.voice,
         instructions: buildSystemInstructions(),
         temperature: VOICE_AGENT_CONFIG.temperature,
         max_response_output_tokens: VOICE_AGENT_CONFIG.maxTokens,
@@ -195,7 +213,8 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error en POST /api/voice/session:', error);
+    console.error('[API /voice/session] Error NO CAPTURADO en POST:', error);
+    console.error('[API /voice/session] Stack trace:', error instanceof Error ? error.stack : 'No stack');
     return NextResponse.json(
       { error: 'INTERNAL_ERROR', message: 'Error interno del servidor' },
       { status: 500 }

@@ -18,6 +18,7 @@ import { useOrganization } from '@/hooks/useOrganization';
 import { useUnreadAlerts } from '@/presentation/components/features/dashboard/hooks/useUnreadAlerts';
 import { formatRelativeDate } from '@/lib/utils/format';
 import { QuickTransactionModal } from '@/presentation/components/features/transactions/QuickTransactionModal';
+import { VoiceButton } from '@/components/voice/VoiceButton';
 import {
   Dialog,
   DialogContent,
@@ -107,10 +108,11 @@ export function Header({ title = 'Dashboard' }: HeaderProps) {
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
-          {/* Botón Nueva Transacción - Solo desktop */}
+          {/* Botones Nueva Transacción y Voice Agent - Solo desktop */}
           {user && currentOrgId ? (
-            <div className="hidden lg:block">
+            <div className="hidden lg:flex lg:items-center lg:gap-2">
               <QuickTransactionModal orgId={currentOrgId} userId={user.id} />
+              <VoiceButton variant="header" />
             </div>
           ) : null}
 

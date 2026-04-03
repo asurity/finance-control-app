@@ -34,6 +34,7 @@ import { DIContainer } from '@/infrastructure/di/DIContainer';
 export type VoiceAgentState = 
   | 'idle'          // Sin actividad
   | 'connecting'    // Estableciendo conexión WebRTC
+  | 'ready'         // Conectado, esperando comando de voz
   | 'recording'     // Grabando audio del usuario
   | 'processing'    // OpenAI procesando el audio
   | 'executing'     // Ejecutando function calls
@@ -47,6 +48,7 @@ interface VoiceContextType {
   isAvailable: boolean;
   startCommand: () => Promise<void>;
   cancelCommand: () => void;
+  forceCommitAudio: () => void;
   transcript: string;
   response: string;
   error: string | null;
@@ -72,6 +74,16 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
 
   // RealtimeClient singleton
   const clientRef = useRef<RealtimeClient | null>(null);
+  
+  // Refs para mantener valores actualizados en callbacks (evita stale closures)
+  const userRef = useRef(user);
+  const orgIdRef = useRef(currentOrgId);
+  
+  // Actualizar refs cuando cambian los valores
+  useEffect(() => {
+    userRef.current = user;
+    orgIdRef.current = currentOrgId;
+  }, [user, currentOrgId]);
   
   // Estado del agente
   const [state, setState] = useState<VoiceAgentState>('idle');
@@ -112,6 +124,7 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
       // Mapear estados del cliente a estados del agente
       if (clientState === 'idle') setState('idle');
       else if (clientState === 'connecting') setState('connecting');
+      else if (clientState === 'ready') setState('ready');
       else if (clientState === 'recording') setState('recording');
       else if (clientState === 'processing') setState('processing');
       else if (clientState === 'executing') setState('executing');
@@ -152,8 +165,15 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
    * Maneja la ejecución de function calls
    */
   const handleFunctionCall = useCallback(async (functionCall: RealtimeFunctionCall) => {
-    if (!user || !currentOrgId || !clientRef.current) {
-      console.error('[VoiceProvider] handleFunctionCall: Missing user or orgId');
+    const currentUser = userRef.current;
+    const currentOrg = orgIdRef.current;
+    
+    if (!currentUser || !currentOrg || !clientRef.current) {
+      console.error('[VoiceProvider] handleFunctionCall: Missing user or orgId', {
+        hasUser: !!currentUser,
+        hasOrgId: !!currentOrg,
+        hasClient: !!clientRef.current
+      });
       return;
     }
 
@@ -168,21 +188,25 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
         throw new Error(`Tool no encontrado: ${functionCall.name}`);
       }
 
+      console.log('[VoiceProvider] Ejecutando tool:', functionCall.name, 'con args:', functionCall.arguments);
+
       // Ejecutar el tool
       const container = DIContainer.getInstance();
-      container.setOrgId(currentOrgId);
+      container.setOrgId(currentOrg);
       
       const result = await tool.execute(functionCall.arguments, {
-        userId: user.id,
-        orgId: currentOrgId,
+        userId: currentUser.id,
+        orgId: currentOrg,
         container,
       });
+
+      console.log('[VoiceProvider] Tool ejecutado exitosamente:', functionCall.name, result);
 
       // Enviar resultado de vuelta a OpenAI
       clientRef.current.sendFunctionResult(functionCall.callId, result);
 
       // Invalidar React Query cache si el tool modificó datos
-      invalidateCacheForTool(functionCall.name, currentOrgId);
+      invalidateCacheForTool(functionCall.name, currentOrg);
 
       // Mostrar toast de confirmación para acciones exitosas
       if (result.success) {
@@ -190,7 +214,7 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
       }
 
       // Registrar comando ejecutado en Firestore (async, no bloquea)
-      logCommand({
+      logCommand(currentUser.id, {
         transcription: transcript,
         toolsExecuted: [functionCall.name],
         tokensUsed: 0, // TODO: Capturar usage real de la respuesta de OpenAI
@@ -198,8 +222,6 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
       }).catch((err) => {
         console.error('[VoiceProvider] Error al guardar log:', err);
       });
-
-      console.log('[VoiceProvider] Tool ejecutado:', functionCall.name, result);
 
     } catch (err) {
       console.error('[VoiceProvider] Error ejecutando tool:', err);
@@ -220,7 +242,7 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
       });
 
       // Registrar error en Firestore (async, no bloquea)
-      logCommand({
+      logCommand(currentUser.id, {
         transcription: transcript,
         toolsExecuted: [functionCall.name],
         tokensUsed: 0,
@@ -233,7 +255,7 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
       setError(errorMessage);
       setState('error');
     }
-  }, [user, currentOrgId, transcript, logCommand]);
+  }, [transcript, logCommand]); // user y currentOrgId ahora usan refs
 
   /**
    * Muestra toast de confirmación según el tipo de acción
@@ -296,8 +318,17 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
    * Inicia un comando de voz
    */
   const startCommand = useCallback(async () => {
-    if (!user || !firebaseUser || !currentOrgId || !clientRef.current) {
+    const currentUser = userRef.current;
+    const currentOrg = orgIdRef.current;
+    
+    if (!currentUser || !firebaseUser || !currentOrg || !clientRef.current) {
       const errorMsg = 'Usuario no autenticado o organización no seleccionada';
+      console.error('[VoiceProvider] startCommand failed:', {
+        hasUser: !!currentUser,
+        hasFirebaseUser: !!firebaseUser,
+        hasOrgId: !!currentOrg,
+        hasClient: !!clientRef.current
+      });
       setError(errorMsg);
       toast.error('No disponible', { description: errorMsg });
       return;
@@ -398,7 +429,7 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
       // Mostrar toast de error
       toast.error(errorMessage, errorDescription ? { description: errorDescription } : undefined);
     }
-  }, [user, firebaseUser, currentOrgId]);
+  }, [firebaseUser]); // user y currentOrgId ahora usan refs
 
   /**
    * Cancela el comando de voz en curso
@@ -416,6 +447,16 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
   }, []);
 
   /**
+   * Fuerza el commit del audio buffer actual
+   * Útil cuando el usuario terminó de hablar pero el VAD no detectó el silencio
+   */
+  const forceCommitAudio = useCallback(() => {
+    if (clientRef.current && state === 'recording') {
+      clientRef.current.forceCommitAudio();
+    }
+  }, [state]);
+
+  /**
    * Verifica si el agente de voz está disponible
    */
   const isAvailable = Boolean(
@@ -430,6 +471,7 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     isAvailable,
     startCommand,
     cancelCommand,
+    forceCommitAudio,
     transcript,
     response,
     error,

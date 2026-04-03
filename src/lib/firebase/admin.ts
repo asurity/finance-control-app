@@ -23,28 +23,46 @@ function initializeFirebaseAdmin() {
     return;
   }
 
-  // Intenta cargar credenciales desde variable de entorno
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-  
-  if (serviceAccount) {
-    try {
+  try {
+    // Intenta cargar credenciales desde variable de entorno
+    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+    
+    if (serviceAccount) {
       const credentials = JSON.parse(serviceAccount);
       adminApp = initializeApp({
         credential: cert(credentials),
       });
-    } catch (error) {
-      throw new Error('Error al parsear FIREBASE_SERVICE_ACCOUNT_KEY: ' + error);
-    }
-  } else {
-    // Modo desarrollo: usa Application Default Credentials
-    // o el archivo JSON de credenciales en la raíz del proyecto
-    adminApp = initializeApp({
-      credential: cert(require('../../../cuentas-financieras-0625-firebase-adminsdk-fbsvc-d97375c92b.json')),
-    });
-  }
+    } else {
+      // Modo desarrollo: construye credenciales desde variables de entorno individuales
+      const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+      const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+      const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
-  adminAuth = getAuth(adminApp);
-  adminDb = getFirestore(adminApp);
+      if (!projectId || !clientEmail || !privateKey) {
+        throw new Error(
+          'Faltan credenciales de Firebase Admin. ' +
+          'Configura FIREBASE_SERVICE_ACCOUNT_KEY o las variables individuales ' +
+          '(FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY)'
+        );
+      }
+
+      adminApp = initializeApp({
+        credential: cert({
+          projectId,
+          clientEmail,
+          privateKey: privateKey.replace(/\\n/g, '\n'), // Decodificar saltos de línea
+        }),
+      });
+    }
+
+    adminAuth = getAuth(adminApp);
+    adminDb = getFirestore(adminApp);
+    
+    console.log('[Firebase Admin] Inicializado correctamente');
+  } catch (error) {
+    console.error('[Firebase Admin] Error al inicializar:', error);
+    throw error;
+  }
 }
 
 // Inicializar en la primera importación

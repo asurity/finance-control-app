@@ -66,7 +66,7 @@ export class GetDebtSummaryUseCase extends BaseUseCase<GetDebtSummaryInput, Debt
     // Get all active accounts
     const accounts = await this.accountRepo.getActive();
 
-    console.log('[GetDebtSummary] All active accounts:', accounts.length);
+    // console.log('[GetDebtSummary] All active accounts:', accounts.length);
 
     // Separate accounts by type
     const creditCardAccounts = accounts.filter((acc) => acc.type === 'CREDIT_CARD');
@@ -79,9 +79,9 @@ export class GetDebtSummaryUseCase extends BaseUseCase<GetDebtSummaryInput, Debt
         acc.type === 'INVESTMENT'
     );
 
-    console.log('[GetDebtSummary] Credit cards:', creditCardAccounts.length);
-    console.log('[GetDebtSummary] Lines of credit:', lineOfCreditAccounts.length);
-    console.log('[GetDebtSummary] Debit accounts:', debitAccounts.length);
+    // console.log('[GetDebtSummary] Credit cards:', creditCardAccounts.length);
+    // console.log('[GetDebtSummary] Lines of credit:', lineOfCreditAccounts.length);
+    // console.log('[GetDebtSummary] Debit accounts:', debitAccounts.length);
 
     // Calculate credit card details
     const creditCards = creditCardAccounts.map((acc) => {
@@ -92,13 +92,13 @@ export class GetDebtSummaryUseCase extends BaseUseCase<GetDebtSummaryInput, Debt
       const usedCredit = Math.max(0, -acc.balance);
       const utilizationPercent = creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
 
-      console.log(`[GetDebtSummary] Credit Card: ${acc.name}`, {
-        rawBalance: acc.balance,
-        usedCredit,
-        creditLimit,
-        availableCredit,
-        utilizationPercent,
-      });
+      // console.log(`[GetDebtSummary] Credit Card: ${acc.name}`, {
+      //   rawBalance: acc.balance,
+      //   usedCredit,
+      //   creditLimit,
+      //   availableCredit,
+      //   utilizationPercent,
+      // });
 
       // Calculate days until next payment
       let daysUntilPayment: number | null = null;
@@ -147,14 +147,14 @@ export class GetDebtSummaryUseCase extends BaseUseCase<GetDebtSummaryInput, Debt
       const usedCredit = Math.max(0, creditLimit - availableCredit);
       const utilizationPercent = creditLimit > 0 ? (usedCredit / creditLimit) * 100 : 0;
 
-      console.log(`[GetDebtSummary] Line of Credit: ${acc.name}`, {
-        rawBalance: acc.balance,
-        rawAvailableCredit: acc.availableCredit,
-        creditLimit,
-        availableCredit,
-        usedCredit,
-        utilizationPercent,
-      });
+      // console.log(`[GetDebtSummary] Line of Credit: ${acc.name}`, {
+      //   rawBalance: acc.balance,
+      //   rawAvailableCredit: acc.availableCredit,
+      //   creditLimit,
+      //   availableCredit,
+      //   usedCredit,
+      //   utilizationPercent,
+      // });
 
       return {
         accountId: acc.id,
@@ -186,13 +186,13 @@ export class GetDebtSummaryUseCase extends BaseUseCase<GetDebtSummaryInput, Debt
 
     const netWorth = totalAssets - totalDebt;
 
-    console.log('[GetDebtSummary] Summary:', {
-      totalDebt,
-      totalAssets,
-      netWorth,
-      creditCardsDebt: creditCards.reduce((sum, cc) => sum + cc.balance, 0),
-      linesOfCreditDebt: linesOfCredit.reduce((sum, loc) => sum + loc.balance, 0),
-    });
+    // console.log('[GetDebtSummary] Summary:', {
+    //   totalDebt,
+    //   totalAssets,
+    //   netWorth,
+    //   creditCardsDebt: creditCards.reduce((sum, cc) => sum + cc.balance, 0),
+    //   linesOfCreditDebt: linesOfCredit.reduce((sum, loc) => sum + loc.balance, 0),
+    // });
 
     return {
       totalDebt,

@@ -1,17 +1,21 @@
 /**
- * Voice Agent Tools Registry
- * Exporta y registra todas las herramientas disponibles para el agente de voz
- * Fase 2: Tool Declarations
+ * Voice Agent Tools Registry - Fase Optimizada
+ * ENFOQUE: Quick Expense/Income con inferencia inteligente
+ * 
+ * Tools activos:
+ * - get_organization_context: Obtener contexto organizacional (PASO 0)
+ * - list_accounts: Contexto interno (cuentas disponibles)
+ * - list_categories: Contexto interno (categorías disponibles)
+ * - create_expense: Registro rápido de gastos
+ * - create_income: Registro rápido de ingresos
  */
 
 import { VoiceToolRegistry } from '../VoiceToolRegistry';
+import { getOrganizationContextTool } from './getOrganizationContextTool';
 import { createExpenseTool } from './createExpenseTool';
 import { createIncomeTool } from './createIncomeTool';
-import { getBalanceTool } from './getBalanceTool';
-import { getDashboardSummaryTool } from './getDashboardSummaryTool';
 import { listAccountsTool } from './listAccountsTool';
 import { listCategoriesTool } from './listCategoriesTool';
-import { navigateToTool } from './navigateToTool';
 
 /**
  * Registra todas las herramientas en el VoiceToolRegistry
@@ -23,33 +27,29 @@ export function registerAllTools(): void {
   // Limpiar registro previo (útil en desarrollo con HMR)
   registry.clear();
 
-  // Registrar herramientas de transacciones
-  registry.register('create_expense', createExpenseTool);
-  registry.register('create_income', createIncomeTool);
+  // PASO 0: Contexto organizacional (debe ejecutarse primero siempre)
+  registry.register('get_organization_context', getOrganizationContextTool);
 
-  // Registrar herramientas de consulta
-  registry.register('get_balance', getBalanceTool);
-  registry.register('get_dashboard_summary', getDashboardSummaryTool);
+  // PASO 1: Herramientas de contexto (para inferencia inteligente)
   registry.register('list_accounts', listAccountsTool);
   registry.register('list_categories', listCategoriesTool);
 
-  // Registrar herramienta de navegación
-  registry.register('navigate_to', navigateToTool);
+  // PASO 2: Herramientas principales (Quick Expense/Income)
+  registry.register('create_expense', createExpenseTool);
+  registry.register('create_income', createIncomeTool);
 
-  console.log(`[VoiceAgent] ${registry.count()} tools registrados`);
+  // console.log(`[VoiceAgent] ${registry.count()} tools registrados`);
 }
 
 /**
  * Exporta todas las herramientas individuales para testing
  */
 export {
+  getOrganizationContextTool,
   createExpenseTool,
   createIncomeTool,
-  getBalanceTool,
-  getDashboardSummaryTool,
   listAccountsTool,
   listCategoriesTool,
-  navigateToTool,
 };
 
 /**

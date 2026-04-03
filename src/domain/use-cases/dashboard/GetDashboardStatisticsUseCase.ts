@@ -95,11 +95,11 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
 
     if (activeBudgetPeriod && input.period === 'month') {
       // Use the active budget period dates for 'month' view
-      console.log('Using active budget period:', {
-        name: activeBudgetPeriod.name,
-        startDate: activeBudgetPeriod.startDate,
-        endDate: activeBudgetPeriod.endDate,
-      });
+      // console.log('Using active budget period:', {
+      //   name: activeBudgetPeriod.name,
+      //   startDate: activeBudgetPeriod.startDate,
+      //   endDate: activeBudgetPeriod.endDate,
+      // });
       
       startDate = new Date(activeBudgetPeriod.startDate);
       endDate = new Date(activeBudgetPeriod.endDate);
@@ -117,11 +117,11 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
       previousEndDate = dateRange.previousEndDate;
     }
 
-    console.log('Dashboard period range:', {
-      period: input.period,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-    });
+    // console.log('Dashboard period range:', {
+    //   period: input.period,
+    //   startDate: startDate.toISOString(),
+    //   endDate: endDate.toISOString(),
+    // });
 
     // Get transactions for current period
     const currentTransactions = await this.transactionRepo.getByDateRange(startDate, endDate);

@@ -32,14 +32,15 @@ export function VoiceOverlay({ onClose }: VoiceOverlayProps) {
     recordingTimeLeft,
     commandsRemainingToday,
     cancelCommand,
+    forceCommitAudio,
   } = useVoiceAgent();
 
   const [autoCloseTimer, setAutoCloseTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Auto-cerrar después de completar o error
   useEffect(() => {
-    if (state === 'executing' || state === 'error') {
-      const delay = state === 'error' ? 4000 : 2000;
+    if (state === 'executing') {
+      const delay = 2000;
       
       const timer = setTimeout(() => {
         onClose();
@@ -78,11 +79,13 @@ export function VoiceOverlay({ onClose }: VoiceOverlayProps) {
   const getStatusMessage = () => {
     switch (state) {
       case 'connecting':
-        return '🔌 Conectando...';
+        return '🔌 Conectando con IA...';
+      case 'ready':
+        return '✔️ Listo - Háblame ahora';
       case 'recording':
         return '🎤 Escuchando...';
       case 'processing':
-        return '⚙️ Procesando...';
+        return '⚙️ Procesando tu comando...';
       case 'executing':
         return '✓ Ejecutando acción...';
       case 'error':
@@ -95,6 +98,8 @@ export function VoiceOverlay({ onClose }: VoiceOverlayProps) {
   // Determinar icono para el estado
   const getStatusIcon = () => {
     switch (state) {
+      case 'ready':
+        return <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />;
       case 'recording':
         return <Mic className="h-8 w-8 animate-pulse" />;
       case 'processing':
@@ -133,6 +138,11 @@ export function VoiceOverlay({ onClose }: VoiceOverlayProps) {
             {getStatusIcon()}
             <div>
               <h3 className="text-lg font-semibold">{getStatusMessage()}</h3>
+              {state === 'ready' && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Empieza a hablar cuando estés listo
+                </p>
+              )}
               {state === 'recording' && (
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Habla claramente y de forma concisa
@@ -141,17 +151,16 @@ export function VoiceOverlay({ onClose }: VoiceOverlayProps) {
             </div>
           </div>
 
-          {/* Botón cerrar (solo visible si no está grabando) */}
-          {state !== 'recording' && state !== 'processing' && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleCancel}
-              className="h-8 w-8"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
+          {/* Botón cerrar (siempre visible) */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCancel}
+            className="h-8 w-8"
+            title="Cerrar"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
 
         {/* Contador regresivo (solo durante grabación) */}
@@ -230,23 +239,37 @@ export function VoiceOverlay({ onClose }: VoiceOverlayProps) {
 
         {/* Footer con información adicional */}
         {state !== 'error' && (
-          <div className="flex items-center justify-between pt-4 border-t border-border">
+          <div className="flex items-center justify-between pt-4 border-t border-border gap-3">
             <p className="text-xs text-muted-foreground">
               {commandsRemainingToday} comando{commandsRemainingToday !== 1 ? 's' : ''} restante
               {commandsRemainingToday !== 1 ? 's' : ''} hoy
             </p>
 
-            {/* Botón cancelar (solo durante grabación o procesamiento) */}
-            {(state === 'recording' || state === 'processing') && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCancel}
-                className="h-8"
-              >
-                Cancelar
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {/* Botón Enviar (durante grabación) */}
+              {state === 'recording' && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={forceCommitAudio}
+                  className="h-8"
+                >
+                  Enviar
+                </Button>
+              )}
+
+              {/* Botón Finalizar Sesión (siempre visible excepto en error) */}
+              {(state === 'ready' || state === 'recording' || state === 'processing') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancel}
+                  className="h-8"
+                >
+                  Finalizar
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </div>

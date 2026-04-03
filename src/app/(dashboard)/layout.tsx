@@ -29,8 +29,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Global Floating Action Button */}
       <GlobalTransactionFAB />
 
-      {/* Voice Agent Button (condicionado a feature flag) */}
-      <VoiceButton />
+      {/* Voice Agent Button - Solo móvil (en desktop está en Header) */}
+      <VoiceButton variant="mobile" />
     </ProtectedRoute>
   );
 }

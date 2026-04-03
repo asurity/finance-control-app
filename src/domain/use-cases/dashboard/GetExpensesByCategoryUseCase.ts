@@ -46,11 +46,11 @@ export class GetExpensesByCategoryUseCase {
 
     if (activeBudgetPeriod && period === 'month') {
       // Use the active budget period dates for 'month' view
-      console.log('[GetExpensesByCategory] Using active budget period:', {
-        name: activeBudgetPeriod.name,
-        startDate: activeBudgetPeriod.startDate,
-        endDate: activeBudgetPeriod.endDate,
-      });
+      // console.log('[GetExpensesByCategory] Using active budget period:', {
+      //   name: activeBudgetPeriod.name,
+      //   startDate: activeBudgetPeriod.startDate,
+      //   endDate: activeBudgetPeriod.endDate,
+      // });
       
       startDate = new Date(activeBudgetPeriod.startDate);
       endDate = new Date(activeBudgetPeriod.endDate);
@@ -61,11 +61,11 @@ export class GetExpensesByCategoryUseCase {
       endDate = dateRange.endDate;
     }
     
-    console.log('[GetExpensesByCategory] Period:', period);
-    console.log('[GetExpensesByCategory] Date range:', {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-    });
+    // console.log('[GetExpensesByCategory] Period:', period);
+    // console.log('[GetExpensesByCategory] Date range:', {
+    //   startDate: startDate.toISOString(),
+    //   endDate: endDate.toISOString(),
+    // });
 
     // Get transactions by date range from the organization (not filtered by user)
     // This ensures multi-user organizations see consolidated data
@@ -73,8 +73,8 @@ export class GetExpensesByCategoryUseCase {
     const allTransactions = await this.transactionRepository.getByDateRange(startDate, endDate);
     const expenses = allTransactions.filter((tx) => tx.type === 'EXPENSE');
     
-    console.log('[GetExpensesByCategory] Total transactions found:', allTransactions.length);
-    console.log('[GetExpensesByCategory] Total expenses found:', expenses.length);
+    // console.log('[GetExpensesByCategory] Total transactions found:', allTransactions.length);
+    // console.log('[GetExpensesByCategory] Total expenses found:', expenses.length);
 
     const totalExpenses = expenses.reduce((sum: number, tx) => sum + tx.amount, 0);
 

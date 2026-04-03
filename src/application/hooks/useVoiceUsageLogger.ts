@@ -4,7 +4,6 @@
  */
 
 import { useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { FirestoreVoiceUsageRepository } from '@/infrastructure/repositories/FirestoreVoiceUsageRepository';
 import type { VoiceCommandLog } from '@/domain/entities/VoiceUsage';
 
@@ -18,15 +17,13 @@ function dateToString(date: Date): string {
 }
 
 export function useVoiceUsageLogger() {
-  const { user } = useAuth();
-
   /**
    * Registra un comando ejecutado en Firestore
    */
   const logCommand = useCallback(
-    async (commandLog: Omit<VoiceCommandLog, 'timestamp'>) => {
-      if (!user) {
-        console.warn('[useVoiceUsageLogger] No hay usuario autenticado');
+    async (userId: string, commandLog: Omit<VoiceCommandLog, 'timestamp'>) => {
+      if (!userId) {
+        console.warn('[useVoiceUsageLogger] No se proporcionó userId');
         return;
       }
 
@@ -38,13 +35,13 @@ export function useVoiceUsageLogger() {
       };
 
       try {
-        await voiceUsageRepo.logCommand(user.id, today, fullLog);
+        await voiceUsageRepo.logCommand(userId, today, fullLog);
       } catch (error) {
         // Log el error pero no fallar (mejor UX)
         console.error('[useVoiceUsageLogger] Error al guardar log:', error);
       }
     },
-    [user]
+    []
   );
 
   return { logCommand };

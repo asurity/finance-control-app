@@ -27,9 +27,6 @@ export {
   registerAllTools,
   createExpenseTool,
   createIncomeTool,
-  getBalanceTool,
-  getDashboardSummaryTool,
   listAccountsTool,
   listCategoriesTool,
-  navigateToTool,
 } from './tools';

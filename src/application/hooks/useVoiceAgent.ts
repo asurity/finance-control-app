@@ -32,6 +32,7 @@ export interface UseVoiceAgent {
    * Estado actual del agente de voz
    * - 'idle': Sin actividad
    * - 'connecting': Estableciendo conexión con OpenAI
+   * - 'ready': Conectado, esperando comando de voz
    * - 'recording': Grabando audio del usuario (15s max)
    * - 'processing': OpenAI procesando el audio y transcribiendo
    * - 'executing': Ejecutando function calls (acciones)
@@ -60,6 +61,12 @@ export interface UseVoiceAgent {
    * - Resetea estado a 'idle'
    */
   cancelCommand: () => void;
+
+  /**
+   * Fuerza el commit del audio buffer actual
+   * Útil cuando el usuario terminó de hablar pero el VAD no detectó el silencio
+   */
+  forceCommitAudio: () => void;
 
   /**
    * Transcripción del comando del usuario
@@ -138,6 +145,7 @@ export function useVoiceAgent(): UseVoiceAgent {
     isAvailable: context.isAvailable,
     startCommand: context.startCommand,
     cancelCommand: context.cancelCommand,
+    forceCommitAudio: context.forceCommitAudio,
     transcript: context.transcript,
     response: context.response,
     error: context.error,
