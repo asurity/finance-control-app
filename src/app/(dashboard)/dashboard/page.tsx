@@ -321,11 +321,11 @@ export default function DashboardPage() {
           <Select value={period} onValueChange={(value) => setPeriod(value as DashboardPeriod)}>
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Seleccionar período" />
-            </SelectTrigger>activePeriod">
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="activePeriod">
                 {activeBudgetPeriod?.name || 'Periodo Activo'}
               </SelectItem>
-              <SelectItem value="
-            <SelectContent>
               <SelectItem value="week">Esta semana</SelectItem>
               <SelectItem value="month">Este mes</SelectItem>
               <SelectItem value="quarter">Este trimestre</SelectItem>
