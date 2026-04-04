@@ -80,17 +80,10 @@ export const createIncomeTool: VoiceTool = {
         notes: validatedArgs.notes,
       });
 
-      // Formatear monto para el mensaje
-      const formattedAmount = new Intl.NumberFormat('es-CL', {
-        style: 'currency',
-        currency: 'CLP',
-        minimumFractionDigits: 0,
-      }).format(validatedArgs.amount);
-
       return {
         success: true,
         data: result,
-        message: `Ingreso de ${formattedAmount} registrado en ${validatedArgs.description}`,
+        message: 'Registrado',
       };
     } catch (error) {
       console.error('Error en createIncomeTool:', error);
@@ -105,7 +98,7 @@ export const createIncomeTool: VoiceTool = {
 
       return {
         success: false,
-        message: 'No pude registrar el ingreso. Intenta nuevamente.',
+        message: 'Error. Intenta de nuevo',
       };
     }
   },

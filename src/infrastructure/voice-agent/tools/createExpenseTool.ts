@@ -80,17 +80,10 @@ export const createExpenseTool: VoiceTool = {
         notes: validatedArgs.notes,
       });
 
-      // Formatear monto para el mensaje
-      const formattedAmount = new Intl.NumberFormat('es-CL', {
-        style: 'currency',
-        currency: 'CLP',
-        minimumFractionDigits: 0,
-      }).format(validatedArgs.amount);
-
       return {
         success: true,
         data: result,
-        message: `Gasto de ${formattedAmount} registrado en ${validatedArgs.description}`,
+        message: 'Registrado',
       };
     } catch (error) {
       console.error('Error en createExpenseTool:', error);
@@ -107,13 +100,13 @@ export const createExpenseTool: VoiceTool = {
       if (error instanceof Error && error.message === 'Insufficient balance') {
         return {
           success: false,
-          message: 'La cuenta seleccionada no tiene saldo suficiente. Pregúntale al usuario si quiere usar otra cuenta o registrar el gasto de todas formas.',
+          message: 'Cuenta sin saldo. ¿Usar otra?',
         };
       }
 
       return {
         success: false,
-        message: 'No pude registrar el gasto. Intenta nuevamente.',
+        message: 'Error. Intenta de nuevo',
       };
     }
   },
