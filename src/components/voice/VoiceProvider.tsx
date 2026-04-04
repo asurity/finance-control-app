@@ -416,8 +416,15 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
    * Valida transcript vacío — si vacío, no gasta tokens
    */
   const stopRecording = useCallback(() => {
-    if (!providerRef.current || state !== 'recording') return;
+    if (!providerRef.current) return;
+    
+    // Solo detener si estamos grabando (evita múltiples llamadas)
+    if (state !== 'recording') {
+      console.log('[VoiceProvider] stopRecording ignorado - no estamos en estado recording (estado actual:', state, ')');
+      return;
+    }
 
+    console.log('[VoiceProvider] Deteniendo grabación y solicitando respuesta...');
     providerRef.current.stopAudioCaptureAndProcess();
 
     // Agregar transcripción del usuario al historial (se actualiza cuando llega el transcript final)

@@ -6,6 +6,35 @@
 
 ---
 
+## 🚀 PROGRESO ACTUAL
+
+**Branch**: `feature/voice-conversational`  
+**Última actualización**: 3 de abril de 2026
+
+### Estado de Fases
+
+| Fase | Estado | Commit | Tag | Descripción |
+|------|--------|--------|-----|-------------|
+| ✅ FASE 0 | **COMPLETADA** | `9f2ec92` | `v2.1.0-pre-voice-conversational` | Snapshot inicial + branch |
+| ✅ FASE 1 | **COMPLETADA** | `54fa437` | `v2.1.0-voice-phase1` | Multi-provider abstraction layer |
+| ✅ FASE 2 | **COMPLETADA** | `60b6b96` | `v2.1.0-voice-phase2` | System instructions conversacionales |
+| ✅ FASE 3 | **COMPLETADA** | `389ae6a` | `v2.1.0-voice-phase3` | VoiceModal + Push-to-Talk UI |
+| ✅ FASE 4 | **COMPLETADA** | `0143ea3` | `v2.1.0-voice-phase4` | VoiceProvider multi-turno |
+| ✅ FASE 5 | **COMPLETADA** | `48d6849` | `v2.1.0-voice-phase5` | TTS audio output integration |
+| ✅ FASE 6 | **COMPLETADA** | `6415a0e` | `v2.1.0-voice-phase6` | Push-to-talk control + event fixes |
+| ✅ FASE 7 | **COMPLETADA** | `65d48f9` | `v2.1.0-voice-phase7` | Tests y estabilización (134 tests ✓) |
+| ⏳ FASE 8 | **PENDIENTE** | - | - | Cleanup + merge |
+
+### Tests Status
+- **10 suites passing** (134 tests)
+- **Build**: ✅ SUCCESS
+- **Coverage**: Infraestructura, Hooks, UI components, Integration
+
+### Siguiente Paso
+**FASE 8**: Cleanup (eliminar VoiceOverlay, RealtimeClient.test.ts deprecado) + merge a `main`
+
+---
+
 ## Principios Rectores
 
 | Principio | Aplicación en este plan |
@@ -1015,36 +1044,69 @@ describe('Voice Conversational Flow', () => {
 ### FASE 8: Limpieza y Merge
 
 **Commit**: `chore(voice): cleanup deprecated files and finalize conversational voice system`  
-**Tag**: `v2.0.0-voice-conversational`
+**Tag**: `v2.1.0-voice-final`
 
-#### 8.1 — Eliminar VoiceOverlay.tsx (si VoiceModal está estable)
-#### 8.2 — Eliminar backward compat re-export de RealtimeClient.ts
-#### 8.3 — Actualizar VOICE_LIMITS para producción
+**Objetivo**: Limpiar código deprecado, preparar para merge a `main`.
 
-```typescript
-maxCommandsPerDay: 10,  // Volver a 10 para producción
-```
+#### 8.1 — Eliminar archivos deprecados
 
-#### 8.4 — Revisar y limpiar console.logs de debugging
-#### 8.5 — Actualizar README con documentación del sistema de voz
-#### 8.6 — Merge branch `feature/voice-conversational` → `main`
-#### 8.7 — Tag final: `v2.0.0-voice-conversational`
+- [ ] Eliminar `VoiceOverlay.tsx` (reemplazado por VoiceModal)
+- [ ] Eliminar `RealtimeClient.test.ts` (ya marcado como deprecated, reemplazado por OpenAIRealtimeProvider.test.ts)
+- [ ] Eliminar backward compat re-export en `RealtimeClient.ts` (opcional, puede mantenerse)
+
+#### 8.2 — Limpiar código de debugging
+
+- [ ] Revisar y limpiar `console.log` innecesarios en VoiceProvider.tsx
+- [ ] Revisar y limpiar `console.log` innecesarios en OpenAIRealtimeProvider.ts
+- [ ] Limpiar comentarios de debugging temporales
+
+#### 8.3 — Actualizar configuración de producción
+
+- [ ] Verificar `VOICE_LIMITS.maxCommandsPerDay` (actualmente en valor de desarrollo)
+- [ ] Verificar que las system instructions están finalizadas
+- [ ] Confirmar modalities: ['text', 'audio'] en config
+
+#### 8.4 — Actualizar documentación
+
+- [ ] Actualizar README.md con sección del sistema de voz conversacional
+- [ ] Documentar flujo de uso push-to-talk
+- [ ] Documentar cómo cambiar de proveedor de IA
+- [ ] Agregar ejemplos de conversaciones multi-turno
+
+#### 8.5 — Verificación final
+
+- [ ] Ejecutar `npm test` → todos los tests pasan
+- [ ] Ejecutar `npm run build` → build exitoso
+- [ ] Ejecutar `npm run lint` → sin errores
+
+#### 8.6 — Merge y tag final
+
+- [ ] Merge `feature/voice-conversational` → `develop` (o `main`)
+- [ ] Crear tag final: `v2.1.0-voice-final`
+- [ ] Push del merge y tag al repositorio remoto
+
+#### Validación de Fase 8:
+- [ ] Código limpio sin archivos deprecados
+- [ ] Documentación actualizada
+- [ ] Todos los tests pasan
+- [ ] Build exitoso
+- [ ] Merged a branch principal con tag final
 
 ---
 
 ## Resumen de Commits y Tags
 
-| Fase | Commit | Tag |
-|---|---|---|
-| 0 | `chore: snapshot pre-voice-conversational-refactor` | `v1.x.x-pre-voice-refactor` |
-| 1 | `feat(voice): add multi-provider AI abstraction layer` | `v1.x.x-voice-phase1` |
-| 2 | `feat(voice): update system instructions for conversational flow` | `v1.x.x-voice-phase2` |
-| 3 | `feat(voice): implement VoiceModal with push-to-talk and conversation history` | `v1.x.x-voice-phase3` |
-| 4 | `feat(voice): refactor VoiceProvider for multi-turn conversation` | `v1.x.x-voice-phase4` |
-| 5 | `feat(voice): integrate TTS audio output for AI responses` | `v1.x.x-voice-phase5` |
-| 6 | `feat(voice): implement push-to-talk audio control in provider` | `v1.x.x-voice-phase6` |
-| 7 | `test(voice): add tests for conversational voice system` | `v1.x.x-voice-phase7` |
-| 8 | `chore(voice): cleanup deprecated files and finalize` | `v2.0.0-voice-conversational` |
+| Fase | Estado | Commit | Tag | Mensaje |
+|------|--------|--------|-----|---------|
+| 0 | ✅ | `9f2ec92` | `v2.1.0-pre-voice-conversational` | Snapshot pre-voice-conversational-refactor |
+| 1 | ✅ | `54fa437` | `v2.1.0-voice-phase1` | feat(voice): add multi-provider AI abstraction layer |
+| 2 | ✅ | `60b6b96` | `v2.1.0-voice-phase2` | feat(voice): update system instructions for conversational flow |
+| 3 | ✅ | `389ae6a` | `v2.1.0-voice-phase3` | feat(voice): implement VoiceModal with push-to-talk UI |
+| 4 | ✅ | `0143ea3` | `v2.1.0-voice-phase4` | feat(voice): refactor VoiceProvider for multi-turn conversation |
+| 5 | ✅ | `48d6849` | `v2.1.0-voice-phase5` | feat(voice): integrate TTS audio output for AI responses |
+| 6 | ✅ | `6415a0e` | `v2.1.0-voice-phase6` | feat(voice): implement push-to-talk audio control in provider |
+| 7 | ✅ | `65d48f9` | `v2.1.0-voice-phase7` | test(voice): FASE 7 - tests y estabilización (134 tests ✓) |
+| 8 | ⏳ | - | `v2.1.0-voice-final` | chore(voice): cleanup + merge to main |
 
 ---
 

@@ -50,12 +50,15 @@ export function VoiceModal({ isOpen, onClose }: VoiceModalProps) {
     const audio = audioRef.current;
     if (!audio || !audioStream) return;
 
+    console.log('[VoiceModal] Reproduciendo audio TTS de la IA');
     audio.srcObject = audioStream;
-    audio.play().catch((err) => {
-      // Fallback: autoplay bloqueado en algunos navegadores móviles
-      // El texto se sigue mostrando en el historial de conversación
-      console.warn('[VoiceModal] Autoplay bloqueado, fallback a texto:', err.message);
-    });
+    
+    audio.play()
+      .catch((err) => {
+        // Fallback: autoplay bloqueado en algunos navegadores móviles
+        // El texto se sigue mostrando en el historial de conversación
+        console.warn('[VoiceModal] Autoplay bloqueado, fallback a solo texto:', err.message);
+      });
 
     return () => {
       audio.srcObject = null;
@@ -116,7 +119,10 @@ export function VoiceModal({ isOpen, onClose }: VoiceModalProps) {
 
   if (!isOpen) return null;
 
-  const isBusy = state === 'connecting' || state === 'processing' || state === 'executing';
+  // Deshabilitar PTT cuando:
+  // - Está conectando, procesando o ejecutando
+  // - La IA está hablando (para evitar interrupciones)
+  const isBusy = state === 'connecting' || state === 'processing' || state === 'executing' || isAISpeaking;
 
   return (
     <div

@@ -83,8 +83,11 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
         const [remoteStream] = event.streams;
         if (remoteStream) {
           const audioTrack = remoteStream.getAudioTracks()[0];
-          if (audioTrack && this.onAudioResponseCallback) {
-            this.onAudioResponseCallback(audioTrack);
+          if (audioTrack) {
+            console.log('[OpenAIRealtimeProvider] Audio TTS track recibido');
+            if (this.onAudioResponseCallback) {
+              this.onAudioResponseCallback(audioTrack);
+            }
           }
         }
       };
@@ -178,6 +181,15 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
   }
 
   stopAudioCaptureAndProcess(): void {
+    // Prevenir múltiples llamadas
+    if (this.state !== 'recording') {
+      console.warn('[OpenAIRealtimeProvider] stopAudioCaptureAndProcess llamado pero no estamos grabando (estado:', this.state, ')');
+      return;
+    }
+
+    // Cambiar estado INMEDIATAMENTE para prevenir race conditions
+    this.setState('processing');
+
     // Mute audio tracks (no destruir stream para reutilizar en multi-turno)
     if (this.mediaStream) {
       this.mediaStream.getAudioTracks().forEach((track) => {
@@ -190,8 +202,6 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
     // Commit audio buffer y solicitar respuesta
     this.sendEvent({ type: 'input_audio_buffer.commit' });
     this.sendEvent({ type: 'response.create' });
-
-    this.setState('processing');
   }
 
   sendFunctionResult(callId: string, result: unknown): void {

@@ -103,6 +103,14 @@ export const createExpenseTool: VoiceTool = {
         };
       }
 
+      // Error de saldo insuficiente
+      if (error instanceof Error && error.message === 'Insufficient balance') {
+        return {
+          success: false,
+          message: 'La cuenta seleccionada no tiene saldo suficiente. Pregúntale al usuario si quiere usar otra cuenta o registrar el gasto de todas formas.',
+        };
+      }
+
       return {
         success: false,
         message: 'No pude registrar el gasto. Intenta nuevamente.',
