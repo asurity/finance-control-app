@@ -70,11 +70,6 @@ export function TransactionFilters({
   const [isOpen, setIsOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState<DateRangePreset | 'activePeriod' | null>('activePeriod');
 
-  // Debug: verificar si llega el periodo activo
-  useEffect(() => {
-    console.log('[TransactionFilters] activeBudgetPeriod:', activeBudgetPeriod);
-  }, [activeBudgetPeriod]);
-
   // Sync filters when initialFilters change
   useEffect(() => {
     setFilters(initialFilters);

@@ -20,7 +20,7 @@ import {
   Bell,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { APP_CONFIG } from '@/lib/constants/config';
 
@@ -150,6 +150,9 @@ export function Sidebar() {
         <SheetContent side="left" className="w-64 p-0">
           <SheetHeader className="sr-only">
             <SheetTitle>Menú de navegación</SheetTitle>
+            <SheetDescription>
+              Accede a todas las secciones de la aplicación
+            </SheetDescription>
           </SheetHeader>
           <div className="flex flex-col h-full">
             <SidebarContent onLinkClick={() => setMobileMenuOpen(false)} />

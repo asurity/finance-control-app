@@ -27,11 +27,6 @@ export default function TransactionsPage() {
   // Obtener periodos activos de la organización
   const { data: activePeriodsData } = budgetPeriodsHook.useActiveBudgetPeriods(user?.id || '');
 
-  // Debug
-  useEffect(() => {
-    console.log('[TransactionsPage] activePeriodsData:', activePeriodsData);
-  }, [activePeriodsData]);
-
   // Encontrar el periodo que contiene la fecha actual
   const activeBudgetPeriod = useMemo(() => {
     const periods = activePeriodsData?.budgetPeriods ?? [];
@@ -70,7 +65,9 @@ export default function TransactionsPage() {
   // Update filters when budget period loads
   useEffect(() => {
     if (activeBudgetPeriod) {
-      console.log('[TransactionsPage] Setting filters to active period:', activeBudgetPeriod);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[TransactionsPage] Setting filters to active period:', activeBudgetPeriod);
+      }
       setFilters(prev => ({
         ...prev,
         dateRange: {
