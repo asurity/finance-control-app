@@ -85,7 +85,7 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
         fill="white"
         textAnchor={x > cx ? 'start' : 'end'}
         dominantBaseline="central"
-        className="text-xs font-semibold"
+        className="text-[10px] font-semibold"
       >
         {`${(percent * 100).toFixed(0)}%`}
       </text>
@@ -117,7 +117,7 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveChart desktopHeight={300} mobileHeight={220}>
+        <ResponsiveChart desktopHeight={250} mobileHeight={200}>
           <PieChart>
             <Pie
               data={chartData}
@@ -125,7 +125,7 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
               cy="50%"
               labelLine={false}
               label={CustomLabel}
-              outerRadius={100}
+              outerRadius={75}
               fill="#8884d8"
               dataKey="value"
             >
@@ -136,7 +136,9 @@ export function ExpensesByCategoryChart({ data, totalExpenses }: ExpensesByCateg
             <Tooltip content={<CustomTooltip />} />
             <Legend
               verticalAlign="bottom"
-              height={36}
+              height={32}
+              iconSize={10}
+              wrapperStyle={{ fontSize: '11px' }}
               formatter={(value, entry: any) => {
                 const data = entry.payload;
                 return `${value} (${data.percentage.toFixed(1)}%)`;
