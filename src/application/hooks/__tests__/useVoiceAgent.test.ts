@@ -25,8 +25,47 @@ jest.mock('@/hooks/useOrganization', () => ({
   }),
 }));
 
-jest.mock('@/infrastructure/voice-agent/RealtimeClient');
-jest.mock('@/infrastructure/voice-agent/VoiceToolRegistry');
+jest.mock('@/lib/constants/config', () => ({
+  APP_CONFIG: {
+    enableVoiceAgent: true,
+    aiProvider: 'openai',
+  },
+}));
+
+// Mock del proveedor de IA
+const mockProvider = {
+  connect: jest.fn().mockResolvedValue(undefined),
+  disconnect: jest.fn(),
+  startAudioCapture: jest.fn().mockResolvedValue(undefined),
+  stopAudioCaptureAndProcess: jest.fn(),
+  sendFunctionResult: jest.fn(),
+  onStateChange: jest.fn(),
+  onTranscript: jest.fn(),
+  onTextResponse: jest.fn(),
+  onFunctionCall: jest.fn(),
+  onAudioResponse: jest.fn(),
+  onError: jest.fn(),
+  onRecordingTimeUpdate: jest.fn(),
+  getState: jest.fn().mockReturnValue('idle'),
+};
+
+jest.mock('@/infrastructure/voice-agent/AIProviderFactory', () => ({
+  AIProviderFactory: {
+    create: jest.fn(() => mockProvider),
+    getSupportedProviders: jest.fn(() => ['openai']),
+  },
+}));
+jest.mock('@/infrastructure/voice-agent/VoiceToolRegistry', () => ({
+  VoiceToolRegistry: {
+    getInstance: jest.fn(() => ({
+      getByName: jest.fn(),
+      getDeclarations: jest.fn().mockReturnValue([]),
+      clear: jest.fn(),
+      register: jest.fn(),
+      count: jest.fn().mockReturnValue(0),
+    })),
+  },
+}));
 jest.mock('@/infrastructure/voice-agent/tools', () => ({
   registerAllTools: jest.fn(),
 }));
@@ -36,6 +75,11 @@ jest.mock('@/infrastructure/di/DIContainer', () => ({
       setOrgId: jest.fn(),
     })),
   },
+}));
+jest.mock('@/application/hooks/useVoiceUsageLogger', () => ({
+  useVoiceUsageLogger: jest.fn(() => ({
+    logCommand: jest.fn().mockResolvedValue(undefined),
+  })),
 }));
 
 // Mock de fetch global

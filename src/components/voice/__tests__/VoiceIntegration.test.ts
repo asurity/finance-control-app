@@ -23,6 +23,7 @@ jest.mock('sonner', () => ({
 jest.mock('@/lib/constants/config', () => ({
   APP_CONFIG: {
     enableVoiceAgent: true,
+    aiProvider: 'openai',
   },
 }));
 
@@ -49,21 +50,34 @@ jest.mock('@tanstack/react-query', () => ({
   })),
 }));
 
-// Mock de RealtimeClient
-const mockRealtimeClient = {
-  connect: jest.fn(),
+// Mock del proveedor de IA (reemplaza RealtimeClient)
+const mockProvider = {
+  connect: jest.fn().mockResolvedValue(undefined),
   disconnect: jest.fn(),
+  startAudioCapture: jest.fn().mockResolvedValue(undefined),
+  stopAudioCaptureAndProcess: jest.fn(),
   sendFunctionResult: jest.fn(),
   onStateChange: jest.fn(),
   onTranscript: jest.fn(),
   onTextResponse: jest.fn(),
   onFunctionCall: jest.fn(),
+  onAudioResponse: jest.fn(),
   onError: jest.fn(),
   onRecordingTimeUpdate: jest.fn(),
+  getState: jest.fn().mockReturnValue('idle'),
 };
 
-jest.mock('@/infrastructure/voice-agent/RealtimeClient', () => ({
-  RealtimeClient: jest.fn(() => mockRealtimeClient),
+jest.mock('@/infrastructure/voice-agent/AIProviderFactory', () => ({
+  AIProviderFactory: {
+    create: jest.fn(() => mockProvider),
+    getSupportedProviders: jest.fn(() => ['openai']),
+  },
+}));
+
+jest.mock('@/application/hooks/useVoiceUsageLogger', () => ({
+  useVoiceUsageLogger: jest.fn(() => ({
+    logCommand: jest.fn().mockResolvedValue(undefined),
+  })),
 }));
 
 // Mock de VoiceToolRegistry
@@ -149,7 +163,7 @@ describe('Voice Agent - Integración End-to-End', () => {
 
       // 3. Verifica que se conectó con OpenAI con la configuración correcta
       await waitFor(() => {
-        expect(mockRealtimeClient.connect).toHaveBeenCalledWith({
+        expect(mockProvider.connect).toHaveBeenCalledWith({
           ephemeralToken: 'mock-ephemeral-token',
           tools: [mockTool.declaration],
         });
@@ -168,7 +182,7 @@ describe('Voice Agent - Integración End-to-End', () => {
       };
 
       // Obtener el callback de onFunctionCall
-      const onFunctionCallCallback = mockRealtimeClient.onFunctionCall.mock.calls[0][0];
+      const onFunctionCallCallback = mockProvider.onFunctionCall.mock.calls[0][0];
       
       await act(async () => {
         await onFunctionCallCallback(mockFunctionCall);
@@ -184,7 +198,7 @@ describe('Voice Agent - Integración End-to-End', () => {
       );
 
       // 6. Verificar que se envió el resultado de vuelta a OpenAI
-      expect(mockRealtimeClient.sendFunctionResult).toHaveBeenCalledWith(
+      expect(mockProvider.sendFunctionResult).toHaveBeenCalledWith(
         'call_123',
         {
           success: true,
@@ -209,7 +223,7 @@ describe('Voice Agent - Integración End-to-End', () => {
 
     it('debe manejar errores de permisos de micrófono correctamente', async () => {
       // Simular error de permisos cuando se conecta
-      mockRealtimeClient.connect.mockRejectedValueOnce(
+      mockProvider.connect.mockRejectedValueOnce(
         Object.assign(new Error('Permission denied'), {
           name: 'NotAllowedError',
         })
@@ -218,7 +232,7 @@ describe('Voice Agent - Integración End-to-End', () => {
       const { result } = renderHook(() => useVoiceAgent(), { wrapper });
 
       await act(async () => {
-        await result.current.startCommand();
+        await result.current.startCommand().catch(() => {});
       });
 
       // Verificar estado de error
@@ -251,7 +265,7 @@ describe('Voice Agent - Integración End-to-End', () => {
       const { result } = renderHook(() => useVoiceAgent(), { wrapper });
 
       await act(async () => {
-        await result.current.startCommand();
+        await result.current.startCommand().catch(() => {});
       });
 
       // Verificar estado de error
@@ -271,7 +285,7 @@ describe('Voice Agent - Integración End-to-End', () => {
       const { result } = renderHook(() => useVoiceAgent(), { wrapper });
 
       await act(async () => {
-        await result.current.startCommand();
+        await result.current.startCommand().catch(() => {});
       });
 
       // Verificar estado de error
@@ -310,7 +324,7 @@ describe('Voice Agent - Integración End-to-End', () => {
       expect(result.current.recordingTimeLeft).toBe(15);
 
       // Verificar que se desconectó el cliente
-      expect(mockRealtimeClient.disconnect).toHaveBeenCalled();
+      expect(mockProvider.disconnect).toHaveBeenCalled();
     });
 
     it('debe mostrar el toast correcto para cada tipo de tool', async () => {
@@ -322,6 +336,15 @@ describe('Voice Agent - Integración End-to-End', () => {
 
       for (const testCase of testCases) {
         jest.clearAllMocks();
+
+        // Re-configurar fetch mock después de clearAllMocks
+        (global.fetch as jest.Mock).mockResolvedValue({
+          ok: true,
+          json: async () => ({
+            ephemeralToken: 'mock-ephemeral-token',
+            commandsRemaining: 9,
+          }),
+        });
 
         const customMockTool = {
           ...mockTool,
@@ -336,7 +359,12 @@ describe('Voice Agent - Integración End-to-End', () => {
 
         const { result } = renderHook(() => useVoiceAgent(), { wrapper });
 
-        const onFunctionCallCallback = mockRealtimeClient.onFunctionCall.mock.calls[0][0];
+        // Conectar sesión para que se registren los listeners
+        await act(async () => {
+          await result.current.startCommand();
+        });
+
+        const onFunctionCallCallback = mockProvider.onFunctionCall.mock.calls[0][0];
         
         await act(async () => {
           await onFunctionCallCallback({
@@ -372,13 +400,13 @@ describe('Voice Agent - Integración End-to-End', () => {
     it('debe invalidar cache para create_expense', async () => {
       const { result } = renderHook(() => useVoiceAgent(), { wrapper });
 
-      // Esperar a que se monte el provider
-      await waitFor(() => {
-        expect(result.current.state).toBe('idle');
+      // Conectar sesión para registrar listeners
+      await act(async () => {
+        await result.current.startCommand();
       });
 
       // Simular function call de create_expense
-      const onFunctionCallCallback = mockRealtimeClient.onFunctionCall.mock.calls[0]?.[0];
+      const onFunctionCallCallback = mockProvider.onFunctionCall.mock.calls[0]?.[0];
       expect(onFunctionCallCallback).toBeDefined();
       
       await act(async () => {
@@ -414,13 +442,13 @@ describe('Voice Agent - Integración End-to-End', () => {
 
       const { result } = renderHook(() => useVoiceAgent(), { wrapper });
 
-      // Esperar montaje
-      await waitFor(() => {
-        expect(result.current.state).toBe('idle');
+      // Conectar sesión para registrar listeners
+      await act(async () => {
+        await result.current.startCommand();
       });
 
       // Simular function call de get_balance
-      const calls = mockRealtimeClient.onFunctionCall.mock.calls;
+      const calls = mockProvider.onFunctionCall.mock.calls;
       const onFunctionCallCallback = calls[calls.length - 1]?.[0];
       
       // Forzar que el mock tool tenga success true
