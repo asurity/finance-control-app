@@ -23,6 +23,7 @@ export interface UseVoiceAgent {
   startRecording: () => Promise<void>;
   stopRecording: () => void;
   endSession: () => void;
+  prepareSession: () => Promise<void>;
 
   // Datos
   transcript: string;
@@ -75,6 +76,7 @@ export function useVoiceAgent(): UseVoiceAgent {
     startRecording: context.startRecording,
     stopRecording: context.stopRecording,
     endSession: context.endSession,
+    prepareSession: context.prepareSession,
 
     // Datos
     transcript: context.transcript,

@@ -56,6 +56,7 @@ interface VoiceContextType {
   startRecording: () => Promise<void>;
   stopRecording: () => void;
   endSession: () => void;
+  prepareSession: () => Promise<void>; // Nueva: pre-conectar sesión
 
   // Datos
   transcript: string;
@@ -402,12 +403,25 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     setResponse('');
     setRecordingTimeLeft(15);
 
+    // Solo conectar si no hay sesión activa
     if (!isSessionActive || !providerRef.current) {
       await connectSession();
     }
 
+    // Iniciar captura de audio
     if (providerRef.current) {
       await providerRef.current.startAudioCapture();
+    }
+  }, [isSessionActive, connectSession]);
+
+  /**
+   * Pre-conectar sesión sin iniciar grabación
+   * Útil para mejorar UX: precargar conexión al abrir modal
+   */
+  const prepareSession = useCallback(async () => {
+    // Solo conectar si no hay sesión activa
+    if (!isSessionActive && !providerRef.current) {
+      await connectSession();
     }
   }, [isSessionActive, connectSession]);
 
@@ -485,6 +499,7 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     user && 
     currentOrgId && 
     commandsRemainingToday > 0 &&
+    prepareSession,
     state !== 'error'
   );
 

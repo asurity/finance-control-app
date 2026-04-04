@@ -38,12 +38,23 @@ export function VoiceModal({ isOpen, onClose }: VoiceModalProps) {
     startRecording,
     stopRecording,
     endSession,
+    prepareSession,
   } = useVoiceAgent();
 
   const [isAISpeaking, setIsAISpeaking] = useState(false);
 
   // Audio element para TTS
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Pre-conectar sesión cuando se abre el modal (mejora UX - sin "Conectando" al presionar PTT)
+  useEffect(() => {
+    if (isOpen && !isSessionActive) {
+      console.log('[VoiceModal] Precargando sesión de voz...');
+      prepareSession().catch((err) => {
+        console.error('[VoiceModal] Error precargando sesión:', err);
+      });
+    }
+  }, [isOpen, isSessionActive, prepareSession]);
 
   // Conectar audio stream remoto al elemento <audio> para TTS
   useEffect(() => {
