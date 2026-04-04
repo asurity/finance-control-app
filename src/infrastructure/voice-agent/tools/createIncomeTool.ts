@@ -38,7 +38,7 @@ export const createIncomeTool: VoiceTool = {
         },
         description: {
           type: 'string',
-          description: 'Descripción breve del ingreso. Ejemplo: "Sueldo", "Freelance", "Venta"',
+          description: 'Descripción narrativa del ingreso (3-8 palabras). Debe incluir contexto mencionado por el usuario. Ejemplos: "Pago de sueldo mensual enero", "Proyecto freelance diseño web", "Venta de muebles usados". Si no hay contexto, usar solo categoría: "Sueldo", "Freelance".',
         },
         categoryId: {
           type: 'string',

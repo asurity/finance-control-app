@@ -38,7 +38,7 @@ export const createExpenseTool: VoiceTool = {
         },
         description: {
           type: 'string',
-          description: 'Descripción breve del gasto. Ejemplo: "Almuerzo", "Supermercado", "Bencina"',
+          description: 'Descripción narrativa del gasto (3-8 palabras). Debe incluir contexto mencionado por el usuario. Ejemplos: "Café en Starbucks durante la mañana", "Almuerzo con equipo en centro", "Compra semanal en Jumbo". Si no hay contexto, usar solo categoría: "Café", "Almuerzo".',
         },
         categoryId: {
           type: 'string',
