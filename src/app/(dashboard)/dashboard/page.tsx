@@ -17,6 +17,7 @@ import { useDailyWeeklyStats } from '@/presentation/components/features/dashboar
 import { useBudgetVsActual } from '@/presentation/components/features/dashboard/hooks/useBudgetVsActual';
 import { useWeeklyPattern } from '@/presentation/components/features/dashboard/hooks/useWeeklyPattern';
 import { useRecurringTransactions } from '@/application/hooks/useRecurringTransactions';
+import { useBudgetPeriods } from '@/application/hooks/useBudgetPeriods';
 import { KPICard, KPICardSkeleton } from '@/presentation/components/shared/Cards/KPICard';
 import {
   BalanceChart,
@@ -92,12 +93,38 @@ import { PeriodStatusBanner } from '@/presentation/components/features/budgets/P
 import { OnboardingWizard } from '@/presentation/components/features/onboarding/OnboardingWizard';
 import { useAccounts } from '@/application/hooks/useAccounts';
 
-type DashboardPeriod = 'week' | 'month' | 'quarter' | 'year';
+type DashboardPeriod = 'activePeriod' | 'week' | 'month' | 'quarter' | 'year';
 
 export default function DashboardPage() {
-  const [period, setPeriod] = useState<DashboardPeriod>('month');
+  const [period, setPeriod] = useState<DashboardPeriod>('activePeriod');
   const { user } = useAuth();
   const { currentOrgId } = useOrganization();
+  
+  // Obtener periodo activo de presupuesto
+  const budgetPeriodsHook = useBudgetPeriods(currentOrgId || '');
+  const { data: activePeriodsData } = budgetPeriodsHook.useActiveBudgetPeriods(user?.id || '');
+  
+  // Encontrar el periodo que contiene la fecha actual
+  const activeBudgetPeriod = useMemo(() => {
+    const periods = activePeriodsData?.budgetPeriods ?? [];
+    if (periods.length === 0) return null;
+    const now = new Date();
+    const current = periods.find(p => p.startDate <= now && p.endDate >= now);
+    if (current) {
+      return {
+        startDate: current.startDate,
+        endDate: current.endDate,
+        name: current.name ?? '',
+      };
+    }
+    // Si no encuentra, usar el más reciente
+    return {
+      startDate: periods[0].startDate,
+      endDate: periods[0].endDate,
+      name: periods[0].name ?? '',
+    };
+  }, [activePeriodsData]);
+  
   const { data: stats, isLoading, error, refetch, isFetching } = useDashboardStats(period);
   const { data: balanceHistory, isLoading: isLoadingBalance } = useBalanceHistory(period);
   const { data: expensesByCategory, isLoading: isLoadingExpenses } = useExpensesByCategory(period);
@@ -113,6 +140,16 @@ export default function DashboardPage() {
     const now = new Date();
     const end = now;
     let start: Date;
+    
+    // Si es periodo activo y existe, usar esas fechas
+    if (period === 'activePeriod' && activeBudgetPeriod) {
+      return {
+        startDate: activeBudgetPeriod.startDate,
+        endDate: activeBudgetPeriod.endDate,
+      };
+    }
+    
+    // Fallback a otros periodos
     switch (period) {
       case 'week':
         start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
@@ -126,9 +163,13 @@ export default function DashboardPage() {
       case 'year':
         start = new Date(now.getFullYear(), 0, 1);
         break;
+      case 'activePeriod':
+        // Fallback si no hay periodo activo: usar mes actual
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
     }
     return { startDate: start, endDate: end };
-  }, [period]);
+  }, [period, activeBudgetPeriod]);
 
   // Calculate date range for weekly pattern - independent of selected period
   // Show current week (Monday to Sunday) to analyze spending patterns
@@ -205,6 +246,8 @@ export default function DashboardPage() {
 
   const getPeriodLabel = () => {
     switch (period) {
+      case 'activePeriod':
+        return activeBudgetPeriod?.name || 'Periodo Activo';
       case 'week':
         return 'Esta semana';
       case 'month':
@@ -278,7 +321,10 @@ export default function DashboardPage() {
           <Select value={period} onValueChange={(value) => setPeriod(value as DashboardPeriod)}>
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Seleccionar período" />
-            </SelectTrigger>
+            </SelectTrigger>activePeriod">
+                {activeBudgetPeriod?.name || 'Periodo Activo'}
+              </SelectItem>
+              <SelectItem value="
             <SelectContent>
               <SelectItem value="week">Esta semana</SelectItem>
               <SelectItem value="month">Este mes</SelectItem>
