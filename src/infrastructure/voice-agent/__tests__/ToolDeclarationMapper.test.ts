@@ -54,7 +54,7 @@ describe('ToolDeclarationMapper', () => {
         parameters: {
           type: 'object' as const,
           properties: {
-            amount: { type: 'number', description: 'Monto del gasto' },
+            amount: { type: 'number' as const, description: 'Monto del gasto' },
           },
           required: ['amount'] as string[],
         },
