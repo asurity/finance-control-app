@@ -109,11 +109,18 @@ export function useRecurringTransactions(orgId: string, userId: string) {
   const processRecurringTransaction = useMutation({
     mutationFn: (recurringId: string) =>
       processRecurringUseCase.execute({ currentDate: new Date() }),
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: recurringTransactionKeys.all(orgId, userId) });
       queryClient.invalidateQueries({ queryKey: ['transactions', orgId] });
       queryClient.invalidateQueries({ queryKey: ['accounts', orgId] });
-      toast.success('Transacción procesada');
+      
+      // Solo mostrar toast si realmente procesó transacciones
+      if (result.processedCount > 0) {
+        const message = result.processedCount === 1 
+          ? '1 transacción procesada' 
+          : `${result.processedCount} transacciones procesadas`;
+        toast.success(message);
+      }
     },
     onError: (error: Error) => {
       toast.error(`Error al procesar: ${error.message}`);
