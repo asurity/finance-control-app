@@ -235,7 +235,30 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      case 'gemini':
+      case 'gemini': {
+        // Gemini usa Web Speech API + HTTP REST (no requiere token efímero de proveedor)
+        // En su lugar, el provider usa el Firebase ID token directamente para autenticar requests
+        const geminiApiKey = process.env.GEMINI_API_KEY;
+        if (!geminiApiKey) {
+          console.error('GEMINI_API_KEY no está configurada');
+          return NextResponse.json(
+            { error: 'SERVICE_UNAVAILABLE', message: 'Servicio de voz de Gemini no disponible' },
+            { status: 503 }
+          );
+        }
+
+        // Retornar el idToken de Firebase como ephemeralToken
+        // GeminiTextProvider lo usará para autenticar en /api/voice/gemini
+        return NextResponse.json({
+          ephemeralToken: idToken, // Firebase ID token para autenticación en /api/voice/gemini
+          expiresAt: new Date(decodedToken.exp * 1000).toISOString(),
+          commandsRemaining: rateLimitCheck.remaining,
+          maxDuration: VOICE_LIMITS.maxInputDurationSeconds,
+          provider,
+          userId,
+        });
+      }
+
       case 'claude':
         return NextResponse.json(
           { error: 'PROVIDER_NOT_IMPLEMENTED', message: `Proveedor '${provider}' aún no está implementado` },
