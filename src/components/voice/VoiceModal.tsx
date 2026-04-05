@@ -107,6 +107,7 @@ export function VoiceModal({ isOpen, onClose }: VoiceModalProps) {
   );
 
   // Detectar audio playback para indicador "IA hablando"
+  // Soporta tanto OpenAI (audioStream) como Gemini (speechSynthesis)
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -123,6 +124,23 @@ export function VoiceModal({ isOpen, onClose }: VoiceModalProps) {
       audio.removeEventListener('play', onPlay);
       audio.removeEventListener('ended', onEnded);
       audio.removeEventListener('pause', onPause);
+    };
+  }, []);
+
+  // Detectar speechSynthesis (Gemini TTS) para indicador "IA hablando"
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+    let checkInterval: NodeJS.Timeout;
+
+    // Verificar cada 100ms si speechSynthesis está hablando
+    checkInterval = setInterval(() => {
+      const isSpeaking = window.speechSynthesis.speaking;
+      setIsAISpeaking(isSpeaking);
+    }, 100);
+
+    return () => {
+      if (checkInterval) clearInterval(checkInterval);
     };
   }, []);
 
