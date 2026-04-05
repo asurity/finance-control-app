@@ -5,6 +5,8 @@
  * Ref: https://ai.google.dev/gemini-api/docs/function-calling?hl=es-419
  */
 
+import { FunctionCallingConfigMode } from '@google/genai';
+
 /**
  * Configuración del modelo Gemini para Voice Agent
  * Optimizada para function calling determinístico y bajo costo
@@ -29,10 +31,10 @@ export const GEMINI_VOICE_CONFIG = {
    * FUERZA function calling (no chatear sin función)
    * Ref: https://ai.google.dev/gemini-api/docs/function-calling?hl=es-419#function-calling-modes
    */
-  functionCallingMode: 'ANY' as const,
+  functionCallingMode: FunctionCallingConfigMode.ANY,
   
   /** Fallback a AUTO para preguntas aclaratorias */
-  fallbackMode: 'AUTO' as const,
+  fallbackMode: FunctionCallingConfigMode.AUTO,
 } as const;
 
 /**
@@ -69,20 +71,10 @@ FLUJO:
 }
 
 /**
- * Tipos de configuración de Gemini
+ * Re-export del SDK para mayor claridad
  */
-export type GeminiFunctionCallingMode = 'ANY' | 'AUTO' | 'NONE';
-
-/**
- * Configuración de tool_config para Gemini API
- * Ref: https://ai.google.dev/api/generate-content#toolconfig
- */
-export interface GeminiToolConfig {
-  functionCallingConfig: {
-    mode: GeminiFunctionCallingMode;
-    allowedFunctionNames?: string[];
-  };
-}
+export { FunctionCallingConfigMode } from '@google/genai';
+export type GeminiFunctionCallingMode = typeof FunctionCallingConfigMode[keyof typeof FunctionCallingConfigMode];
 
 /**
  * Crea la configuración de herramientas para Gemini
@@ -90,10 +82,10 @@ export interface GeminiToolConfig {
  * @param allowedFunctions Lista opcional de funciones permitidas (solo con mode ANY)
  */
 export function createGeminiToolConfig(
-  mode: GeminiFunctionCallingMode = 'ANY',
+  mode: GeminiFunctionCallingMode = FunctionCallingConfigMode.ANY,
   allowedFunctions?: string[]
-): GeminiToolConfig {
-  const config: GeminiToolConfig = {
+) {
+  const config: any = {
     functionCallingConfig: { mode },
   };
 

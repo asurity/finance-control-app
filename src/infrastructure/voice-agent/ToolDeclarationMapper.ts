@@ -59,19 +59,72 @@ export class ToolDeclarationMapper {
 
   /**
    * Convierte una declaración agnóstica al formato Gemini Function Declaration
+   * Gemini requiere tipos en MAYÚSCULA (STRING, NUMBER, BOOLEAN, ARRAY, OBJECT)
    * @see https://ai.google.dev/gemini-api/docs/function-calling
    */
   static toGemini(tool: AIToolDeclaration): Record<string, unknown> {
-    // Gemini usa un formato similar pero con FunctionDeclaration wrapper
     return {
       name: tool.name,
       description: tool.description,
       parameters: {
         type: 'OBJECT',
-        properties: tool.parameters.properties,
+        properties: ToolDeclarationMapper.convertPropertiesToGemini(tool.parameters.properties),
         required: tool.parameters.required,
       },
     };
+  }
+
+  /**
+   * Convierte recursivamente las propiedades de parámetros al formato Gemini
+   * OpenAI usa minúsculas (string, number), Gemini usa MAYÚSCULAS (STRING, NUMBER)
+   */
+  private static convertPropertiesToGemini(
+    properties: Record<string, unknown>
+  ): Record<string, unknown> {
+    const geminiProperties: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(properties)) {
+      if (typeof value !== 'object' || value === null) {
+        geminiProperties[key] = value;
+        continue;
+      }
+
+      const prop = value as Record<string, unknown>;
+      const geminiProp: Record<string, unknown> = { ...prop };
+
+      // Convertir tipo a mayúscula
+      if (typeof prop.type === 'string') {
+        geminiProp.type = prop.type.toUpperCase();
+      }
+
+      // Recursión para propiedades anidadas (arrays, objects)
+      if (prop.items && typeof prop.items === 'object') {
+        const items = prop.items as Record<string, unknown>;
+        geminiProp.items = {
+          ...items,
+          type: typeof items.type === 'string' ? items.type.toUpperCase() : items.type,
+        };
+        if (items.properties) {
+          const updatedItems = geminiProp.items as Record<string, unknown>;
+          geminiProp.items = {
+            ...updatedItems,
+            properties: ToolDeclarationMapper.convertPropertiesToGemini(
+              items.properties as Record<string, unknown>
+            ),
+          };
+        }
+      }
+
+      if (prop.properties) {
+        geminiProp.properties = ToolDeclarationMapper.convertPropertiesToGemini(
+          prop.properties as Record<string, unknown>
+        );
+      }
+
+      geminiProperties[key] = geminiProp;
+    }
+
+    return geminiProperties;
   }
 
   /**
