@@ -12,6 +12,7 @@
 
 import type { IAIRealtimeProvider, AIProviderType } from '@/domain/ports/IAIRealtimeProvider';
 import { OpenAIRealtimeProvider } from './OpenAIRealtimeProvider';
+import { GeminiTextProvider } from './GeminiTextProvider';
 
 export class AIProviderFactory {
   /**
@@ -23,11 +24,7 @@ export class AIProviderFactory {
         return new OpenAIRealtimeProvider();
 
       case 'gemini':
-        throw new Error(
-          'Gemini provider no está implementado aún. ' +
-          'Implementar GeminiRealtimeProvider con WebSocket Live API. ' +
-          'Ver: https://ai.google.dev/gemini-api/docs/live'
-        );
+        return new GeminiTextProvider();
 
       case 'claude':
         throw new Error(
@@ -47,7 +44,7 @@ export class AIProviderFactory {
    * Retorna la lista de proveedores actualmente soportados
    */
   static getSupportedProviders(): AIProviderType[] {
-    return ['openai'];
+    return ['openai', 'gemini'];
   }
 
   /**
