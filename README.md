@@ -7,6 +7,7 @@ Sistema integral de control financiero para gestión de negocios y finanzas pers
 ## 🎯 Características Principales
 
 - ✅ **Multi-organización**: Gestión financiera para varios negocios + finanzas personales simultáneamente
+- 🎤 **Asistente de Voz con IA**: Registro de transacciones por comandos de voz usando Gemini 2.5 Flash-Lite + Web Speech API (STT/TTS gratis)
 - 💳 **Control de Tarjetas de Crédito**: Gestión completa con límites, fechas de corte, intereses y cuotas
 - 📊 **Dashboard Inteligente**: KPIs en tiempo real, gráficos de evolución de saldo, gastos por categoría, proyección financiera y resumen de deudas
 - 🔔 **Sistema de Alertas**: Notificaciones proactivas para presupuestos, pagos y gastos inusuales
@@ -18,7 +19,74 @@ Sistema integral de control financiero para gestión de negocios y finanzas pers
 - 🗂️ **Sub-categorías**: Jerarquía padre/hijo con vista tree en presupuestos
 - 🚀 **Onboarding Guiado**: Wizard de configuración inicial para nuevos usuarios
 
-## 🏗️ Arquitectura
+## � Asistente de Voz con IA
+
+El sistema incluye un **asistente de voz conversacional** para registro rápido de transacciones por comandos de voz.
+
+### Arquitectura del Voice Agent
+
+```
+┌──────────────────┐
+│ Browser          │
+│                  │
+│ ┌──────────────┐ │  texto transcrito    ┌───────────────┐
+│ │Web Speech API│─┼─────────────────────►│ Next.js API   │
+│ │ (STT gratis) │ │  POST /api/voice/    │ /api/voice/   │
+│ └──────────────┘ │  gemini              │ gemini        │
+│                  │                      │               │
+│ ┌──────────────┐ │  ◄── JSON response   │  ┌─────────┐  │
+│ │speechSynthesis│◄┼──────────────────────┼──│ Gemini  │  │
+│ │ (TTS gratis) │ │  {functionCall|text} │  │2.5 Flash│  │
+│ └──────────────┘ │                      │  │  Lite   │  │
+│                  │                      │  └─────────┘  │
+│ ┌──────────────┐ │                      └───────────────┘
+│ │Tool Execution│ │  (local, function calling)
+│ │ Registry     │ │
+│ └──────────────┘ │
+└──────────────────┘
+```
+
+### Características del Voice Agent
+
+- **STT (Speech-to-Text)**: Web Speech API nativa del navegador - **GRATIS**
+- **TTS (Text-to-Speech)**: speechSynthesis nativa - **GRATIS**
+- **IA**: Gemini 2.5 Flash-Lite con function calling - **$0.00 - $1.50/mes** (tier gratuito)
+- **Multi-turno**: Conversaciones contextuales (IA pregunta si falta información)
+- **Push-to-Talk**: Control manual de grabación (15s máximo)
+- **Validación inteligente**: Antes de ejecutar, IA valida que tenga toda la información necesaria
+- **Ahorro vs OpenAI**: **97-100%** de reducción de costos ($50-100/mes → $0-1.50/mes)
+
+### Comandos de Ejemplo
+
+```
+🎤 "Gasté 15 mil en almuerzo en mi visa"
+   → Registra gasto de $15.000 en categoría Alimentación, cuenta Visa
+   → Respuesta: "Registrado" ✓
+
+🎤 "Ingreso de 500 mil por nómina en cuenta corriente"
+   → Registra ingreso de $500.000
+   → Respuesta: "Listo" ✓
+
+🎤 "Gasté 10 mil" (info incompleta)
+   → IA pregunta: "¿En qué cuenta?"
+   🎤 "Visa"
+   → Ejecuta transacción completa
+```
+
+### Requisitos del Voice Agent
+
+- **Navegador**: Chrome o Edge (Web Speech API requerida)
+- **Micrófono**: Funcional con permisos habilitados
+- **API Key**: `GEMINI_API_KEY` configurada en `.env.local` (obtener en https://aistudio.google.com/apikey)
+
+### Documentación Voice Agent
+
+- [Plan de Migración a Gemini](./PLAN_MIGRACION_GEMINI.md)
+- [Checklist de Integración](./GEMINI_INTEGRATION_CHECKLIST.md)
+- [Instrucciones de Variables de Entorno](./INSTRUCCIONES_ENV.md)
+- [Arquitectura de Voz (Fase 7)](./FASE_7_VOICE_PERSISTENCE.md)
+
+## �🏗️ Arquitectura
 
 Este proyecto sigue los principios de **Clean Architecture** con las siguientes capas:
 
@@ -44,6 +112,7 @@ Este proyecto sigue los principios de **Clean Architecture** con las siguientes 
 - **Lenguaje**: TypeScript 5
 - **Base de Datos**: Firebase Firestore
 - **Autenticación**: Firebase Auth
+- **IA/Voice Agent**: Gemini 2.5 Flash-Lite + Web Speech API
 - **UI**: Shadcn/ui + TailwindCSS
 - **Estado**: React Query (TanStack Query)
 - **Formularios**: React Hook Form + Zod
@@ -138,9 +207,19 @@ npm run test:coverage    # Generar reporte de cobertura
 
 ## 📖 Documentación
 
+### Arquitectura y Diseño
 - [Clean Architecture](./docs/clean-architecture.md)
 - [Mejoras de Autenticación](./docs/mejoras-autenticacion.md)
-- [Despliegue](./DEPLOYMENT.md)
+- [Permisos y Roles](./docs/permisos-roles.md)
+
+### Voice Agent (Asistente de Voz)
+- [Plan de Migración a Gemini](./PLAN_MIGRACION_GEMINI.md)
+- [Checklist de Integración Gemini](./GEMINI_INTEGRATION_CHECKLIST.md)
+- [Instrucciones de Variables de Entorno](./INSTRUCCIONES_ENV.md)
+- [Fase 7: Voice Persistence](./FASE_7_VOICE_PERSISTENCE.md)
+
+### Despliegue y Configuración
+- [Guía de Despliegue](./DEPLOYMENT.md)
 - [Plan de Upgrade](./TODO_UPGRADE.md)
 
 ## 🔐 Seguridad
