@@ -16,10 +16,65 @@ const CreateExpenseArgsSchema = z.object({
   description: z.string().min(1, 'La descripción es requerida'),
   categoryId: z.string().min(1, 'El ID de categoría es requerido'),
   accountId: z.string().min(1, 'El ID de cuenta es requerido'),
+  date: z.string().optional(), // Fecha en formato ISO o relativa (ej: "ayer", "hace 2 días")
   notes: z.string().optional(),
 });
 
 type CreateExpenseArgs = z.infer<typeof CreateExpenseArgsSchema>;
+
+/**
+ * Parsea una fecha relativa o ISO a un objeto Date
+ * Soporta: "hoy", "ayer", "hace X días", "hace X semanas", formatos ISO
+ */
+function parseRelativeDate(dateString?: string): Date {
+  if (!dateString) return new Date();
+  
+  const today = new Date();
+  const normalizedDate = dateString.toLowerCase().trim();
+  
+  // Hoy
+  if (normalizedDate === 'hoy') {
+    return today;
+  }
+  
+  // Ayer
+  if (normalizedDate === 'ayer') {
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    return yesterday;
+  }
+  
+  // Hace X días
+  const daysMatch = normalizedDate.match(/hace\s+(\d+)\s+d[ií]as?/);
+  if (daysMatch) {
+    const daysAgo = parseInt(daysMatch[1]);
+    const date = new Date(today);
+    date.setDate(date.getDate() - daysAgo);
+    return date;
+  }
+  
+  // Hace X semanas
+  const weeksMatch = normalizedDate.match(/hace\s+(\d+)\s+semanas?/);
+  if (weeksMatch) {
+    const weeksAgo = parseInt(weeksMatch[1]);
+    const date = new Date(today);
+    date.setDate(date.getDate() - (weeksAgo * 7));
+    return date;
+  }
+  
+  // Intentar parsear como fecha ISO
+  try {
+    const parsedDate = new Date(dateString);
+    if (!isNaN(parsedDate.getTime())) {
+      return parsedDate;
+    }
+  } catch (error) {
+    // Ignorar error de parseo
+  }
+  
+  // Por defecto, retornar hoy
+  return today;
+}
 
 /**
  * Tool para crear un gasto vía comando de voz
@@ -48,6 +103,10 @@ export const createExpenseTool: VoiceTool = {
           type: 'string',
           description: 'ID de la cuenta desde la que se realiza el gasto. Usar las cuentas disponibles del contexto del usuario.',
         },
+        date: {
+          type: 'string',
+          description: 'Fecha del gasto. Si el usuario menciona "ayer", usar "ayer". Si dice "hace 3 días", usar "hace 3 días". Si no menciona nada, omitir este campo (se asume hoy). Ejemplos: "ayer", "hoy", "hace 2 días", "hace 1 semana".',
+        },
         notes: {
           type: 'string',
           description: 'Notas adicionales opcionales sobre el gasto',
@@ -68,6 +127,9 @@ export const createExpenseTool: VoiceTool = {
       // Obtener el Use Case del DIContainer
       const createTransactionUseCase = context.container.getCreateTransactionUseCase();
 
+      // Parsear la fecha (si se proporciona)
+      const transactionDate = parseRelativeDate(validatedArgs.date);
+
       // Ejecutar el Use Case
       const result = await createTransactionUseCase.execute({
         type: 'EXPENSE',
@@ -76,7 +138,7 @@ export const createExpenseTool: VoiceTool = {
         categoryId: validatedArgs.categoryId,
         accountId: validatedArgs.accountId,
         userId: context.userId,
-        date: new Date(),
+        date: transactionDate,
         notes: validatedArgs.notes,
       });
 

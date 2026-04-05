@@ -94,6 +94,7 @@ import { OnboardingWizard } from '@/presentation/components/features/onboarding/
 import { useAccounts } from '@/application/hooks/useAccounts';
 
 type DashboardPeriod = 'activePeriod' | 'week' | 'month' | 'quarter' | 'year';
+type HooksPeriod = 'week' | 'month' | 'quarter' | 'year';
 
 export default function DashboardPage() {
   const [period, setPeriod] = useState<DashboardPeriod>('activePeriod');
@@ -125,9 +126,13 @@ export default function DashboardPage() {
     };
   }, [activePeriodsData]);
   
-  const { data: stats, isLoading, error, refetch, isFetching } = useDashboardStats(period);
-  const { data: balanceHistory, isLoading: isLoadingBalance } = useBalanceHistory(period);
-  const { data: expensesByCategory, isLoading: isLoadingExpenses } = useExpensesByCategory(period);
+  // Convertir 'activePeriod' a un periodo válido para los hooks
+  // Los hooks esperan 'week' | 'month' | 'quarter' | 'year'
+  const hooksPeriod: HooksPeriod = period === 'activePeriod' ? 'month' : period;
+  
+  const { data: stats, isLoading, error, refetch, isFetching } = useDashboardStats(hooksPeriod);
+  const { data: balanceHistory, isLoading: isLoadingBalance } = useBalanceHistory(hooksPeriod);
+  const { data: expensesByCategory, isLoading: isLoadingExpenses } = useExpensesByCategory(hooksPeriod);
   const { data: recentTransactions, isLoading: isLoadingTransactions } = useRecentTransactions(5);
   const { data: unreadAlerts, isLoading: isLoadingAlerts } = useUnreadAlerts(3);
   const { data: dailyWeeklyStats, isLoading: isLoadingDailyWeekly } = useDailyWeeklyStats();
@@ -401,7 +406,7 @@ export default function DashboardPage() {
               <h4 className="text-sm font-medium text-muted-foreground mb-3">
                 Acumulado del Período
               </h4>
-              <PeriodBalanceChart data={stats.dailyAccumulations} period={period} />
+              <PeriodBalanceChart data={stats.dailyAccumulations} period={hooksPeriod} />
             </div>
           )}
         </div>

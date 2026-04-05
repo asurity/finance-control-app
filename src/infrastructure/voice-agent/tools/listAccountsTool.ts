@@ -41,22 +41,19 @@ export const listAccountsTool: VoiceTool = {
         };
       }
 
-      // Formatear lista de cuentas
-      const accountsList = accounts
-        .map(acc => {
-          const balance = new Intl.NumberFormat('es-CL', {
-            style: 'currency',
-            currency: 'CLP',
-            minimumFractionDigits: 0,
-          }).format(acc.balance);
-          return `${acc.name}: ${balance}`;
-        })
-        .join(', ');
+      // Formatear para que el modelo use los IDs correctamente
+      // Devolvemos un array simple con id, name, balance
+      const accountsForAI = accounts.map(acc => ({
+        id: acc.id,
+        name: acc.name,
+        type: acc.type,
+        balance: acc.balance,
+      }));
 
       return {
         success: true,
-        data: accounts,
-        message: `Tus cuentas: ${accountsList}`,
+        data: accountsForAI,
+        message: `Encontré ${accounts.length} cuentas disponibles. Usa el campo 'id' para create_expense.`,
       };
     } catch (error) {
       console.error('Error en listAccountsTool:', error);

@@ -38,8 +38,8 @@ export function FloatingActionButton({
         />
       )}
 
-      {/* Contenedor del FAB */}
-      <div className={cn('fixed bottom-6 right-6 z-50 lg:hidden', className)}>
+      {/* Contenedor del FAB - posicionado encima del VoiceButton */}
+      <div className={cn('fixed bottom-24 right-6 z-50 lg:hidden', className)}>
         {/* Opciones del menú */}
         <div
           className={cn(

@@ -65,9 +65,6 @@ export default function TransactionsPage() {
   // Update filters when budget period loads
   useEffect(() => {
     if (activeBudgetPeriod) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[TransactionsPage] Setting filters to active period:', activeBudgetPeriod);
-      }
       setFilters(prev => ({
         ...prev,
         dateRange: {

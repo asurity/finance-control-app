@@ -28,6 +28,9 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
 
   private state: AIProviderState = 'idle';
 
+  // Contador de function calls pendientes para evitar transición prematura a 'ready'
+  private pendingFunctionCalls = 0;
+
   // Event listeners
   private onStateChangeCallback?: (state: AIProviderState) => void;
   private onFunctionCallCallback?: (call: AIFunctionCall) => void;
@@ -84,7 +87,6 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
         if (remoteStream) {
           const audioTrack = remoteStream.getAudioTracks()[0];
           if (audioTrack) {
-            console.log('[OpenAIRealtimeProvider] Audio TTS track recibido');
             if (this.onAudioResponseCallback) {
               this.onAudioResponseCallback(audioTrack);
             }
@@ -119,25 +121,28 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
       const offer = await this.peerConnection.createOffer();
       await this.peerConnection.setLocalDescription(offer);
 
-      // 8. Intercambiar SDP con OpenAI
+      // 8. Esperar ICE gathering completo (WHIP compliance)
+      await this.waitForIceGatheringComplete();
+
+      // 9. Intercambiar SDP con OpenAI (usar localDescription con ICE candidates)
       const answer = await this.exchangeSDPWithOpenAI(
         config.ephemeralToken,
-        offer.sdp!
+        this.peerConnection.localDescription!.sdp
       );
 
-      // 9. Establecer remote description
+      // 10. Establecer remote description
       await this.peerConnection.setRemoteDescription({
         type: 'answer',
         sdp: answer,
       });
 
-      // 10. Esperar DataChannel abierto
+      // 11. Esperar DataChannel abierto
       await this.waitForDataChannelOpen();
 
-      // 11. Configurar sesión con tools y config
+      // 12. Configurar sesión con tools y config
       this.sendSessionUpdate(config);
 
-      // 12. Listo para recibir push-to-talk
+      // 13. Listo para recibir push-to-talk
       this.setState('ready');
     } catch (error) {
       this.handleError(error as Error);
@@ -147,6 +152,7 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
 
   disconnect(): void {
     this.stopRecordingTimers();
+    this.pendingFunctionCalls = 0;
 
     if (this.dataChannel) {
       this.dataChannel.close();
@@ -215,6 +221,11 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
     });
 
     this.sendEvent({ type: 'response.create' });
+
+    // Decrementar contador de function calls pendientes
+    this.pendingFunctionCalls = Math.max(0, this.pendingFunctionCalls - 1);
+    // Transicionar a ready si ya no hay function calls pendientes
+    this.transitionToReadyIfDone();
   }
 
   getState(): AIProviderState {
@@ -237,20 +248,55 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
     ephemeralToken: string,
     offer: string
   ): Promise<string> {
-    const response = await fetch('https://api.openai.com/v1/realtime', {
+    const formData = new FormData();
+    formData.set('sdp', offer);
+
+    const response = await fetch('https://api.openai.com/v1/realtime/calls', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${ephemeralToken}`,
-        'Content-Type': 'application/sdp',
+        // No set Content-Type manually; browser sets multipart/form-data with boundary
       },
-      body: offer,
+      body: formData,
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI SDP exchange failed: ${response.statusText}`);
+      const errorBody = await response.text().catch(() => '');
+      console.error('[OpenAIRealtimeProvider] SDP exchange error:', response.status, errorBody);
+      throw new Error(`OpenAI SDP exchange failed: ${response.status} ${errorBody}`);
     }
 
     return await response.text();
+  }
+
+  private waitForIceGatheringComplete(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.peerConnection) {
+        reject(new Error('No peer connection'));
+        return;
+      }
+
+      if (this.peerConnection.iceGatheringState === 'complete') {
+        resolve();
+        return;
+      }
+
+      const timeout = setTimeout(() => {
+        this.peerConnection?.removeEventListener('icegatheringstatechange', checkState);
+        // Resolve anyway — partial candidates may still work
+        resolve();
+      }, 5000);
+
+      const checkState = () => {
+        if (this.peerConnection?.iceGatheringState === 'complete') {
+          clearTimeout(timeout);
+          this.peerConnection.removeEventListener('icegatheringstatechange', checkState);
+          resolve();
+        }
+      };
+
+      this.peerConnection.addEventListener('icegatheringstatechange', checkState);
+    });
   }
 
   private waitForDataChannelOpen(): Promise<void> {
@@ -288,7 +334,7 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
     });
 
     this.dataChannel.addEventListener('close', () => {
-      console.log('[OpenAIRealtimeProvider] DataChannel closed');
+      // DataChannel closed - connection ended
     });
   }
 
@@ -322,6 +368,7 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
         break;
 
       case 'response.function_call_arguments.done':
+        this.pendingFunctionCalls++;
         this.setState('executing');
         if (this.onFunctionCallCallback) {
           this.onFunctionCallCallback({
@@ -375,7 +422,8 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
         break;
 
       default:
-        console.log('[OpenAIRealtimeProvider] Event:', event.type);
+        // Event received: event.type
+        break;
     }
   }
 
@@ -384,6 +432,10 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
    * Permite al usuario hacer otro push-to-talk.
    */
   private transitionToReadyIfDone(): void {
+    // No transicionar si hay function calls pendientes
+    if (this.pendingFunctionCalls > 0) {
+      return;
+    }
     if (this.state === 'processing' || this.state === 'executing') {
       this.setState('ready');
     }
@@ -398,20 +450,26 @@ export class OpenAIRealtimeProvider implements IAIRealtimeProvider {
     this.sendEvent({
       type: 'session.update',
       session: {
-        modalities: config.modalities || VOICE_AGENT_CONFIG.modalities,
+        type: 'realtime',
+        output_modalities: ['audio'],
         instructions: config.systemInstructions || buildSystemInstructions(),
-        voice: config.voice || VOICE_AGENT_CONFIG.voice || 'alloy',
-        input_audio_format: 'pcm16',
-        output_audio_format: 'pcm16',
-        input_audio_transcription: {
-          model: 'whisper-1',
+        audio: {
+          input: {
+            format: { type: 'audio/pcm', rate: 24000 },
+            transcription: {
+              model: 'whisper-1',
+            },
+            // Push-to-talk: deshabilitar VAD, control manual
+            turn_detection: null,
+          },
+          output: {
+            format: { type: 'audio/pcm', rate: 24000 },
+            voice: (config.voice || VOICE_AGENT_CONFIG.voice || 'alloy') as string,
+          },
         },
-        // Push-to-talk: deshabilitar VAD, control manual
-        turn_detection: null,
         tools: openaiTools,
         tool_choice: 'auto',
-        temperature: config.temperature ?? 0.7,
-        max_response_output_tokens: config.maxTokens ?? 300,
+        max_output_tokens: config.maxTokens ?? 300,
       },
     });
   }

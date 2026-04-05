@@ -64,12 +64,16 @@ export const listCategoriesTool: VoiceTool = {
         }
 
         const typeLabel = validatedArgs.type === 'income' ? 'ingresos' : 'gastos';
-        const categoriesList = categories.map(c => c.name).join(', ');
+        const categoriesForAI = categories.map(c => ({
+          id: c.id,
+          name: c.name,
+          type: c.type,
+        }));
 
         return {
           success: true,
-          data: categories,
-          message: `Categorías de ${typeLabel}: ${categoriesList}`,
+          data: categoriesForAI,
+          message: `Encontré ${categories.length} categorías de ${typeLabel}. Usa el campo 'id' para create_expense.`,
         };
       }
 
@@ -85,12 +89,16 @@ export const listCategoriesTool: VoiceTool = {
         };
       }
 
-      const categoriesList = allCategories.map(c => c.name).join(', ');
+      const categoriesForAI = allCategories.map(c => ({
+        id: c.id,
+        name: c.name,
+        type: c.type,
+      }));
 
       return {
         success: true,
-        data: allCategories,
-        message: `Tus categorías: ${categoriesList}`,
+        data: categoriesForAI,
+        message: `Encontré ${allCategories.length} categorías. Usa el campo 'id' para create_expense.`,
       };
     } catch (error) {
       console.error('Error en listCategoriesTool:', error);

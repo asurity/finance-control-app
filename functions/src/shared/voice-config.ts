@@ -1,27 +1,16 @@
 /**
  * Configuración del Voice Agent
- * Fase 1: Configuración completa del agente de voz
- * Fase Voice-Conversational: System instructions conversacionales + TTS
+ * Compartida entre Next.js y Firebase Functions
  */
 
 /**
  * Límites configurables del Voice Agent
- * Estos valores controlan el uso y costos del sistema de voz
  */
 export const VOICE_LIMITS = {
-  /** Máximo de comandos de voz por usuario por día */
-  maxCommandsPerDay: 1000,  // Aumentado para testing (cambiar a 10 en producción)
-  
-  /** Duración máxima de cada comando de voz en segundos */
+  maxCommandsPerDay: 1000,
   maxInputDurationSeconds: 15,
-  
-  /** Máximo de function calls permitidos por comando */
   maxFunctionCallsPerCommand: 3,
-  
-  /** Duración de silencio en ms para considerar que el usuario terminó de hablar */
   silenceDurationMs: 500,
-  
-  /** Máximo de turnos de conversación antes de rechazar comando incompleto */
   maxConversationTurns: 8,
 } as const;
 
@@ -29,28 +18,16 @@ export const VOICE_LIMITS = {
  * Configuración del modelo y modalidades del agente
  */
 export const VOICE_AGENT_CONFIG = {
-  /** Modelo de OpenAI Realtime API (GA) */
   model: 'gpt-realtime-mini',
-  
-  /** Modalidades: texto + audio (TTS habilitado para respuestas conversacionales) */
   modalities: ['text', 'audio'] as const,
-  
-  /** Voz del asistente */
   voice: 'alloy' as const,
-  
-  /** Temperatura para creatividad de respuestas (0-1) */
   temperature: 0.7,
-  
-  /** Máximo de tokens en la respuesta (50 = ~5 segundos de audio, minimalista) */
   maxTokens: 50,
-  
-  /** Push-to-talk: sin VAD, control manual del audio */
   turnDetection: null,
 } as const;
 
 /**
- * Genera las System Instructions del agente con contexto del usuario.
- * Modo CONVERSACIONAL: valida info antes de ejecutar, responde con voz.
+ * Genera las System Instructions del agente con contexto del usuario
  */
 export function buildSystemInstructions(
   userAccounts?: string[],
@@ -165,6 +142,36 @@ Este paso es OBLIGATORIO porque:
 Después de tener el organizationId, ejecuta:
 1. \`list_accounts\` → obtener cuentas disponibles de la organización
 2. \`list_categories\` → obtener categorías disponibles de la organización
+
+**CRÍTICO: CÓMO USAR LOS IDS DE CUENTAS Y CATEGORÍAS**
+
+Cuando ejecutes list_accounts y list_categories, recibirás un objeto con esta estructura:
+{
+  "success": true,
+  "data": [
+    { "id": "xrYBZDa5sO7IarPojoBz", "name": "Cuenta Corriente Itau (Pablo)", "type": "CHECKING", "balance": 0 },
+    { "id": "IjUIHQgtnvC8EmUmMwbT", "name": "Tarjeta de Crédito Black Legend (Pablo)", "type": "CREDIT_CARD", "balance": -995806 }
+  ],
+  "message": "Encontré 2 cuentas disponibles. Usa el campo 'id' para create_expense."
+}
+
+**REGLAS OBLIGATORIAS:**
+1. **USA EL CAMPO 'id' DEL ARRAY 'data'** — NO uses el 'name'
+2. **NUNCA uses el nombre de la cuenta o categoría como ID**
+3. **Busca en el array 'data' la cuenta/categoría que coincida con lo que mencionó el usuario**
+4. **Extrae el campo 'id' de ese objeto**
+
+**EJEMPLO CORRECTO:**
+Usuario dice: "Gasté 50000 en comida en mi tarjeta Black Legend"
+→ Buscas en 'data' el objeto con 'name' que contenga "Black Legend"
+→ Encuentras: { "id": "IjUIHQgtnvC8EmUmMwbT", "name": "Tarjeta de Crédito Black Legend (Pablo)", ... }
+→ **USAS**: accountId: "IjUIHQgtnvC8EmUmMwbT" ✅
+
+**EJEMPLO INCORRECTO:**
+→ **NO USES**: accountId: "Tarjeta de Crédito Black Legend (Pablo)" ❌
+→ **NO USES**: accountId: "Black Legend" ❌
+
+Lo mismo aplica para categoryId: busca en el array 'data' de list_categories y usa el campo 'id'.
 
 ### PASO 2: Analizar el comando y aplicar inferencia inteligente
 
@@ -289,8 +296,3 @@ Usuario: "Recibí 500000 de sueldo en mi cuenta corriente"
 - create_income: Registrar ingreso
 `.trim();
 }
-
-/**
- * System Instructions por defecto (sin contexto de usuario)
- */
-export const DEFAULT_SYSTEM_INSTRUCTIONS = buildSystemInstructions();

@@ -1,0 +1,1175 @@
+[
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d1279e0006a9dbd85a744e",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession",
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:46.436699Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "instanceId": "008c15ff0827f1e30ef0bae394998e2538affcecb09fc7d6bba15a6ebd4bea02e5a880de27d184605c0569b22bbf035aa19ebc59e93f98f8e992c1765a1cb4c5238dd782601e1ec92c4425136a96"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:46.443694050Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d1279e0007f5b5e6e2375d",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:46.521653Z",
+    "severity": "WARNING",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "008c15ff0827f1e30ef0bae394998e2538affcecb09fc7d6bba15a6ebd4bea02e5a880de27d184605c0569b22bbf035aa19ebc59e93f98f8e992c1765a1cb4c5238dd782601e1ec92c4425136a96",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:46.778457721Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d1279f000aa34f4ddac313",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:47.697167Z",
+    "severity": "INFO",
+    "labels": {
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "instanceId": "008c15ff0861845a4502d5c5714911b1887f1bca214819f2e959a5636f2e25c37b18706123022969f7d83b30ff2af702e9d6c41682ebeeaf3df5616fde50061e9934377c8ac1ebfd573a1fd6e4bf",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:47.774563438Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d1279f000bc70f14b64e52",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "location": "us-central1",
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:47.771855Z",
+    "severity": "WARNING",
+    "labels": {
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff0861845a4502d5c5714911b1887f1bca214819f2e959a5636f2e25c37b18706123022969f7d83b30ff2af702e9d6c41682ebeeaf3df5616fde50061e9934377c8ac1ebfd573a1fd6e4bf",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:48.110973543Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d127a0000df9913177e8fb",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:48.915857Z",
+    "severity": "INFO",
+    "labels": {
+      "instanceId": "008c15ff081580f76ab55d97b073033e339edbb2a9c7ce03e95a3534a2b34c4c95939bf84872cc6d40f7f6a616ecc5c14a3fae3dd59db4fe8b84397cc791b6158f37b0e658192ea31e6a9b98fea5",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:49.111750094Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d127a10000830a660b7b10",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession",
+        "location": "us-central1",
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:49.033546Z",
+    "severity": "WARNING",
+    "labels": {
+      "instanceId": "008c15ff081580f76ab55d97b073033e339edbb2a9c7ce03e95a3534a2b34c4c95939bf84872cc6d40f7f6a616ecc5c14a3fae3dd59db4fe8b84397cc791b6158f37b0e658192ea31e6a9b98fea5",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:49.111750094Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d127a20002bd516ef1c8e3",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession",
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:50.179537Z",
+    "severity": "INFO",
+    "labels": {
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff08cf2d9460df69ce06d3aa759cb673e5a11f4c34f245830dd0778b75c18f98be30e0ed5b2c74fe019f4dc4ca556aa7ba992ca51b90e843e26277f0e2d28083e21d5c7f6a1155042252b8",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:50.439933195Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d127a20003b570f9ef0a80",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625",
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:50.243056Z",
+    "severity": "WARNING",
+    "labels": {
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff08cf2d9460df69ce06d3aa759cb673e5a11f4c34f245830dd0778b75c18f98be30e0ed5b2c74fe019f4dc4ca556aa7ba992ca51b90e843e26277f0e2d28083e21d5c7f6a1155042252b8",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:50.439933195Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d127a30004e4eb8af49630",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "location": "us-central1",
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:51.320747Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff0803fd4da6861cc9555c3ea755faee20f5291af2f616e6d3f70a3d4f8fa41f3c06dc5a5de66b3ee0b9570356ace04b46b98567843b7f639dacd5d4251d7400f7f03d45f5a891dc79889a",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:51.440694751Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d127a30005de9b0c1932ba",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession",
+        "location": "us-central1",
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:51.384667Z",
+    "severity": "WARNING",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "008c15ff0803fd4da6861cc9555c3ea755faee20f5291af2f616e6d3f70a3d4f8fa41f3c06dc5a5de66b3ee0b9570356ace04b46b98567843b7f639dacd5d4251d7400f7f03d45f5a891dc79889a",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:51.440694751Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d127a50008a2f4c87d30ba",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:53.566004Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "008c15ff081aa53762b264ad51fcc7a17878929845f282f0b778b1973bcaefc3efec8ac3dd681f82307fa906cf3e16c595447ff4db3d9b4a0fd887b6936fd2f210483f0ffa07a723d3cb4d1d615e",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:53.773170513Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d127a50009b2a28c3c6dcf",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625",
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:53.635554Z",
+    "severity": "WARNING",
+    "labels": {
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff081aa53762b264ad51fcc7a17878929845f282f0b778b1973bcaefc3efec8ac3dd681f82307fa906cf3e16c595447ff4db3d9b4a0fd887b6936fd2f210483f0ffa07a723d3cb4d1d615e",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:53.773170513Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d127a7000e1299b781067a",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:55.922265Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff08d1d771766a8b018122bc585e483ff4c8d85c53c52f0333968e78960677f26acf1ee4d0ec125c4828d9d56167fd7ec50eb39cd329d4c971fdbcd0f1f84494045223ac57a92d67f95d09",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:56.101961611Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d127a7000f204f4006bb23",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:55.991311Z",
+    "severity": "WARNING",
+    "labels": {
+      "instanceId": "008c15ff08d1d771766a8b018122bc585e483ff4c8d85c53c52f0333968e78960677f26acf1ee4d0ec125c4828d9d56167fd7ec50eb39cd329d4c971fdbcd0f1f84494045223ac57a92d67f95d09",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:56.101961611Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d127aa0002d7db234ff1cb",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "location": "us-central1",
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:58.186331Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff08651a4d05ccb2be003f37f7b2005807401d6226a7b6f58f2dbcf180403575af2749408cb0d03a6ff4bb6badab2a3d3dbd4669b29d98312c926f1d570618c38c57d947fc793431b1e056",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:58.434827901Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d127aa0003def96fe3c847",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625",
+        "location": "us-central1",
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession"
+      }
+    },
+    "timestamp": "2026-04-04T15:00:58.253689Z",
+    "severity": "WARNING",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "008c15ff08651a4d05ccb2be003f37f7b2005807401d6226a7b6f58f2dbcf180403575af2749408cb0d03a6ff4bb6badab2a3d3dbd4669b29d98312c926f1d570618c38c57d947fc793431b1e056",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:00:58.434827901Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d127ad0009347be6706874",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625",
+        "location": "us-central1",
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:01.603259Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "instanceId": "008c15ff08532de392f88bbf266cfb179c8bc9cdd9c1baa534becbd735989262fbe8b7fc19bc3fa45a74c4de09a5a123f7feb4bffbee5f7cc762e886663e4511dd0d1d562b3aa97f2feaf4e817ac"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:01.767037204Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d127ad000a32087820766f",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "location": "us-central1",
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:01.668168Z",
+    "severity": "WARNING",
+    "labels": {
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff08532de392f88bbf266cfb179c8bc9cdd9c1baa534becbd735989262fbe8b7fc19bc3fa45a74c4de09a5a123f7feb4bffbee5f7cc762e886663e4511dd0d1d562b3aa97f2feaf4e817ac",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:01.767037204Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d127b0000f231c8e91800d",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:04.992028Z",
+    "severity": "INFO",
+    "labels": {
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "instanceId": "008c15ff083ff75e6dfba096840dd43231bdf80a1d450306efeabab3e1c22909186273c2d168c02b2059353b48df8dc5bfb6a364632ea29d441ff1ccd40b4ac66a9fe22ec7dcd7048a030031cef6",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:05.097144248Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d127b10000dad269dc66e2",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625",
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:05.056018Z",
+    "severity": "WARNING",
+    "labels": {
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff083ff75e6dfba096840dd43231bdf80a1d450306efeabab3e1c22909186273c2d168c02b2059353b48df8dc5bfb6a364632ea29d441ff1ccd40b4ac66a9fe22ec7dcd7048a030031cef6",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:05.097144248Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d127b40004d333517aee14",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:08.316211Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "008c15ff08d163678e6dfee3e8538caa63e7ceba6b4f72ab47a7709cc9d6305f136601021533444b3994c800160dff38d15a09a65af02bdefa3473635d72bdbfdfc96f607c08291d2db907a14240",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:08.429577335Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d127b40005cfec82ed7a36",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625",
+        "location": "us-central1",
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:08.380908Z",
+    "severity": "WARNING",
+    "labels": {
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff08d163678e6dfee3e8538caa63e7ceba6b4f72ab47a7709cc9d6305f136601021533444b3994c800160dff38d15a09a65af02bdefa3473635d72bdbfdfc96f607c08291d2db907a14240",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:08.429577335Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d127b8000c597360f065e5",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:12.809331Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "instanceId": "008c15ff08e42183a2b0fd2a6e421bcae975da256fd907ce25b61330fe75e3116d217533e84786a258cb205d85dc5ca13f7086ed7fb073e190ad0f7ebe7e4dec5529086201233472f899a759d149",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:13.090531681Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d127b8000d922011163229",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625",
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:12.889376Z",
+    "severity": "WARNING",
+    "labels": {
+      "instanceId": "008c15ff08e42183a2b0fd2a6e421bcae975da256fd907ce25b61330fe75e3116d217533e84786a258cb205d85dc5ca13f7086ed7fb073e190ad0f7ebe7e4dec5529086201233472f899a759d149",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:13.090531681Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d127bf0007dd3097cf898c",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:19.515376Z",
+    "severity": "INFO",
+    "labels": {
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "instanceId": "008c15ff08c81fb0a4945f54ec08436c6e2290dd1f3a80b828e8b49e9d26e3dc1cc520dec1ea04fc0ba734dd1036ef1b54d966c22e937d75363180bee2995149bd3b06e7b2ff86d711e15f588af6",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:19.749486105Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d127bf000874ac2bbab90a",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625",
+        "location": "us-central1",
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:19.554156Z",
+    "severity": "WARNING",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff08c81fb0a4945f54ec08436c6e2290dd1f3a80b828e8b49e9d26e3dc1cc520dec1ea04fc0ba734dd1036ef1b54d966c22e937d75363180bee2995149bd3b06e7b2ff86d711e15f588af6"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:19.749486105Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d127c700058f3082d5fa6e",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625",
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:27.364336Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff08ec063941fc524fcc052ffe584e13d1b45d720e728dd49357a27d81ce2734de65803c74fd8d93b9ee160bb0d9a04c05081795e13f1729fd8b8746551c97ca55e67be208fea575060692",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:27.411358890Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d127c700061c96fe4c1c2a",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625",
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:27.400534Z",
+    "severity": "WARNING",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "008c15ff08ec063941fc524fcc052ffe584e13d1b45d720e728dd49357a27d81ce2734de65803c74fd8d93b9ee160bb0d9a04c05081795e13f1729fd8b8746551c97ca55e67be208fea575060692",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:27.411358890Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d127d20009546e8f278f53",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:38.611438Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "instanceId": "008c15ff08d7b78596084ddbf91b93bf2e897aeef7bd68c389c6753815c8692b7d79837c599f60c59bfc9474af0e06583b41543ddcfd7e40be057dc24d4438b834990b951a68b1bf117784ab3393"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:38.733046466Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d127d2000a2122e6d201df",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "location": "us-central1",
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:38.663842Z",
+    "severity": "WARNING",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "008c15ff08d7b78596084ddbf91b93bf2e897aeef7bd68c389c6753815c8692b7d79837c599f60c59bfc9474af0e06583b41543ddcfd7e40be057dc24d4438b834990b951a68b1bf117784ab3393",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:38.733046466Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d127df00006729569ae11a",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:51.026409Z",
+    "severity": "INFO",
+    "labels": {
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff08d0d45841fade0a2ba4e0b9a9df8efb7684fe94a3205d34e99af48c0a5c83332910f98dfef2ddcddd4eccf2cf59a0098c0527b982856d289c6d30f80b6b28abb416a056678528f261b1",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:51.061034140Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d127df00013e9be88715cc",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625",
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep"
+      }
+    },
+    "timestamp": "2026-04-04T15:01:51.081563Z",
+    "severity": "WARNING",
+    "labels": {
+      "instanceId": "008c15ff08d0d45841fade0a2ba4e0b9a9df8efb7684fe94a3205d34e99af48c0a5c83332910f98dfef2ddcddd4eccf2cf59a0098c0527b982856d289c6d30f80b6b28abb416a056678528f261b1",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:01:51.390377200Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d127f0000b747947769b47",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625",
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep"
+      }
+    },
+    "timestamp": "2026-04-04T15:02:08.750713Z",
+    "severity": "INFO",
+    "labels": {
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "instanceId": "008c15ff08f7a92e5c0a9814cf87ffa1f6051be634662aef6c82723bac31aafc20d8e4ea4dd6a83c545e6ef1239e9f14458a131382b2920be97052748ff09578cd3f3917eb57854149d2fcf26ca2",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:02:08.760195789Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d127f0000c5c370726e91c",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625",
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep"
+      }
+    },
+    "timestamp": "2026-04-04T15:02:08.810039Z",
+    "severity": "WARNING",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff08f7a92e5c0a9814cf87ffa1f6051be634662aef6c82723bac31aafc20d8e4ea4dd6a83c545e6ef1239e9f14458a131382b2920be97052748ff09578cd3f3917eb57854149d2fcf26ca2"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:02:09.093759600Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d1280a00075d5a5db8bd5c",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-04T15:02:34.482650Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "instanceId": "008c15ff082ab45d10f85d60a0025598ba7620d398930f86b46284149073774acc793d54c8b9284f5153f5b687d359b777df78aa5a814ee8b5ab560d075a601bffe2e80b2edae14c30aa1131e7ff",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:02:34.489496731Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d1280a0008783f8f179089",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession",
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625"
+      }
+    },
+    "timestamp": "2026-04-04T15:02:34.555071Z",
+    "severity": "WARNING",
+    "labels": {
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff082ab45d10f85d60a0025598ba7620d398930f86b46284149073774acc793d54c8b9284f5153f5b687d359b777df78aa5a814ee8b5ab560d075a601bffe2e80b2edae14c30aa1131e7ff",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:02:34.828868501Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d12824000579d000ed0724",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625"
+      }
+    },
+    "timestamp": "2026-04-04T15:03:00.358864Z",
+    "severity": "INFO",
+    "labels": {
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff08d6ffc1869375fca9d196e4545e6850e3f28555b7dbd05fdf575ccdb5387ba8f9eaa9f60a90f37ae3539875c90cc930161102e68d59402eeb0f9c01c12254a1d8da632df432e150c2d1",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:03:00.365879091Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d128240006495ebf993933",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-04T15:03:00.411998Z",
+    "severity": "WARNING",
+    "labels": {
+      "instanceId": "008c15ff08d6ffc1869375fca9d196e4545e6850e3f28555b7dbd05fdf575ccdb5387ba8f9eaa9f60a90f37ae3539875c90cc930161102e68d59402eeb0f9c01c12254a1d8da632df432e150c2d1",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "goog-managed-by": "cloudfunctions"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:03:00.697346402Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d1284d000a43e3435fcf7f",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625",
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep"
+      }
+    },
+    "timestamp": "2026-04-04T15:03:41.672739Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "instanceId": "008c15ff083317f468f7a57b0bbd21e19edad686aac6a130c1086848ec21c3a78719f1a49ca1351aee08c1c22c9dfbe59ddc699c23b710a19a00c773540e9c56db1d77c6eda43d95a4e661c668cb"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:03:41.681855918Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d1284d000bb0b2b073c17a",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "us-central1",
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession",
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625"
+      }
+    },
+    "timestamp": "2026-04-04T15:03:41.766130Z",
+    "severity": "WARNING",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff083317f468f7a57b0bbd21e19edad686aac6a130c1086848ec21c3a78719f1a49ca1351aee08c1c22c9dfbe59ddc699c23b710a19a00c773540e9c56db1d77c6eda43d95a4e661c668cb"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:03:42.019161370Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "69d1287c0001a86fb8333db7",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession",
+        "location": "us-central1",
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession"
+      }
+    },
+    "timestamp": "2026-04-04T15:04:28.108655Z",
+    "severity": "INFO",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff082762205d93ea1be998d7b3870899aa7e5468ea571f934a23368fabba10d9dc2fe12522df6002e955d8dba6879f7087c4c5927f7571f7c97c2ba5dbc40e2adb5912b94c9caa471bc573",
+      "scaling_reason": "DEPLOYMENT_ROLLOUT"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:04:28.114581501Z"
+  },
+  {
+    "textPayload": "Could not fetch secret \"projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY/versions/1\" for environment variable \"OPENAI_API_KEY\". Instance startup will now abort: Secret Version [projects/207319380404/secrets/OPENAI_API_KEY/versions/1] is in DISABLED state.",
+    "insertId": "69d1287c000271d22777642b",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "voicesession",
+        "project_id": "cuentas-financieras-0625",
+        "location": "us-central1",
+        "service_name": "voicesession",
+        "revision_name": "voicesession-00001-sep"
+      }
+    },
+    "timestamp": "2026-04-04T15:04:28.160210Z",
+    "severity": "WARNING",
+    "labels": {
+      "goog-managed-by": "cloudfunctions",
+      "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+      "instanceId": "008c15ff082762205d93ea1be998d7b3870899aa7e5468ea571f934a23368fabba10d9dc2fe12522df6002e955d8dba6879f7087c4c5927f7571f7c97c2ba5dbc40e2adb5912b94c9caa471bc573"
+    },
+    "logName": "projects/cuentas-financieras-0625/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-04-04T15:04:28.450291227Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {
+        "code": 9,
+        "message": "Ready condition status changed to False for Revision voicesession-00001-sep with message: The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=cuentas-financieras-0625&resource=cloud_run_revision/service_name/voicesession/revision_name/voicesession-00001-sep&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22voicesession%22%0Aresource.labels.revision_name%3D%22voicesession-00001-sep%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start"
+      },
+      "serviceName": "run.googleapis.com",
+      "methodName": "/InternalServices.CreateInternalService",
+      "resourceName": "namespaces/cuentas-financieras-0625/revisions/voicesession-00001-sep",
+      "response": {
+        "metadata": {
+          "name": "voicesession-00001-sep",
+          "namespace": "207319380404",
+          "selfLink": "/apis/serving.knative.dev/v1/namespaces/207319380404/revisions/voicesession-00001-sep",
+          "uid": "6a62d7a5-97fe-484a-bcb9-f8c5604dd166",
+          "resourceVersion": "AAZOo8E7IDI",
+          "generation": 1,
+          "creationTimestamp": "2026-04-04T15:00:29.312519Z",
+          "labels": {
+            "firebase-functions-hash": "e26e4b16d480ad0532c63036aa722590eb05c260",
+            "goog-managed-by": "cloudfunctions",
+            "serving.knative.dev/configuration": "voicesession",
+            "serving.knative.dev/configurationGeneration": "1",
+            "serving.knative.dev/service": "voicesession",
+            "serving.knative.dev/serviceUid": "71fe1af3-443c-4b58-90b1-53b9b69a28b5",
+            "goog-cloudfunctions-runtime": "nodejs22",
+            "serving.knative.dev/route": "voicesession",
+            "cloud.googleapis.com/location": "us-central1",
+            "run.googleapis.com/startupProbeType": "Default"
+          },
+          "annotations": {
+            "autoscaling.knative.dev/maxScale": "10",
+            "run.googleapis.com/client-name": "cloudfunctions",
+            "cloudfunctions.googleapis.com/trigger-type": "HTTP_TRIGGER",
+            "run.googleapis.com/secrets": "secret-8d99db1c-30b3-368a-aa5d-292e67e4d6e7:projects/cuentas-financieras-0625/secrets/OPENAI_API_KEY",
+            "serving.knative.dev/creator": "service-207319380404@gcf-admin-robot.iam.gserviceaccount.com",
+            "run.googleapis.com/build-source-location": "{\"worker\":\"gs://gcf-v2-sources-207319380404-us-central1/voiceSession/function-source.zip#1775314784442093\"}",
+            "run.googleapis.com/build-id": "{\"worker\":\"86c54390-f9ad-4ee4-9f69-ffbc6440e473\"}",
+            "run.googleapis.com/build-function-target": "{\"worker\":\"voiceSession\"}",
+            "run.googleapis.com/operation-id": "d731deed-b44e-4560-951e-0c28c1e8c572",
+            "run.googleapis.com/startup-cpu-boost": "true",
+            "run.googleapis.com/base-images": "{\"worker\":\"us-central1-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/nodejs22\"}"
+          },
+          "ownerReferences": [
+            {
+              "kind": "Configuration",
+              "name": "voicesession",
+              "uid": "1a22fc0a-4719-4b64-badf-c354c49773ff",
+              "apiVersion": "serving.knative.dev/v1",
+              "controller": true,
+              "blockOwnerDeletion": true
+            }
+          ]
+        },
+        "apiVersion": "serving.knative.dev/v1",
+        "kind": "Revision",
+        "spec": {
+          "containerConcurrency": 80,
+          "timeoutSeconds": 30,
+          "serviceAccountName": "207319380404-compute@developer.gserviceaccount.com",
+          "containers": [
+            {
+              "name": "worker",
+              "image": "us-central1-docker.pkg.dev/cuentas-financieras-0625/gcf-artifacts/cuentas--financieras--0625__us--central1__voice_session@sha256:b77c0d0e6eb68c11fd96f2e14a61ef0c015399aa6f12deef3bc8585e761d4355",
+              "ports": [
+                {
+                  "name": "http1",
+                  "containerPort": 8080
+                }
+              ],
+              "env": [
+                {
+                  "name": "FIREBASE_CONFIG",
+                  "value": "{\"projectId\":\"cuentas-financieras-0625\",\"storageBucket\":\"cuentas-financieras-0625.firebasestorage.app\"}"
+                },
+                {
+                  "name": "GCLOUD_PROJECT",
+                  "value": "cuentas-financieras-0625"
+                },
+                {
+                  "name": "EVENTARC_CLOUD_EVENT_SOURCE",
+                  "value": "projects/cuentas-financieras-0625/locations/us-central1/services/voiceSession"
+                },
+                {
+                  "name": "FUNCTION_TARGET",
+                  "value": "voiceSession"
+                },
+                {
+                  "name": "LOG_EXECUTION_ID",
+                  "value": "true"
+                },
+                {
+                  "name": "OPENAI_API_KEY",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "1",
+                      "name": "secret-8d99db1c-30b3-368a-aa5d-292e67e4d6e7"
+                    }
+                  }
+                }
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "1",
+                  "memory": "256Mi"
+                }
+              },
+              "startupProbe": {
+                "timeoutSeconds": 240,
+                "periodSeconds": 240,
+                "failureThreshold": 1,
+                "tcpSocket": {
+                  "port": 8080
+                }
+              }
+            }
+          ],
+          "runtimeClassName": "run.googleapis.com/linux-base-image-update"
+        },
+        "status": {
+          "observedGeneration": 1,
+          "conditions": [
+            {
+              "type": "Ready",
+              "status": "False",
+              "reason": "HealthCheckContainerError",
+              "message": "The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=cuentas-financieras-0625&resource=cloud_run_revision/service_name/voicesession/revision_name/voicesession-00001-sep&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22voicesession%22%0Aresource.labels.revision_name%3D%22voicesession-00001-sep%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start",
+              "lastTransitionTime": "2026-04-04T15:04:48.777266Z"
+            },
+            {
+              "type": "ContainerHealthy",
+              "status": "False",
+              "reason": "HealthCheckContainerError",
+              "message": "The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=cuentas-financieras-0625&resource=cloud_run_revision/service_name/voicesession/revision_name/voicesession-00001-sep&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22voicesession%22%0Aresource.labels.revision_name%3D%22voicesession-00001-sep%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start",
+              "lastTransitionTime": "2026-04-04T15:04:48.777266Z"
+            },
+            {
+              "type": "ContainerReady",
+              "status": "True",
+              "message": "Container image import completed in 2.33s.",
+              "lastTransitionTime": "2026-04-04T15:00:32.432538Z"
+            },
+            {
+              "type": "ResourcesAvailable",
+              "status": "True",
+              "message": "Provisioning imported containers completed in 13.85s. Checking container health. This will wait for up to 4m for the configured startup probe, including an initial delay of 0s.",
+              "lastTransitionTime": "2026-04-04T15:00:46.286761Z"
+            },
+            {
+              "type": "Retry",
+              "status": "True",
+              "reason": "ImmediateRetry",
+              "message": "System will retry after 00:00 from lastTransitionTime for attempt 0.",
+              "lastTransitionTime": "2026-04-04T15:04:48.777266Z",
+              "severity": "Info"
+            }
+          ],
+          "logUrl": "https://console.cloud.google.com/logs/viewer?project=cuentas-financieras-0625&resource=cloud_run_revision/service_name/voicesession/revision_name/voicesession-00001-sep&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22voicesession%22%0Aresource.labels.revision_name%3D%22voicesession-00001-sep%22",
+          "imageDigest": "us-central1-docker.pkg.dev/cuentas-financieras-0625/gcf-artifacts/cuentas--financieras--0625__us--central1__voice_session@sha256:b77c0d0e6eb68c11fd96f2e14a61ef0c015399aa6f12deef3bc8585e761d4355",
+          "containerStatuses": [
+            {
+              "name": "worker",
+              "imageDigest": "us-central1-docker.pkg.dev/cuentas-financieras-0625/gcf-artifacts/cuentas--financieras--0625__us--central1__voice_session@sha256:b77c0d0e6eb68c11fd96f2e14a61ef0c015399aa6f12deef3bc8585e761d4355"
+            }
+          ]
+        },
+        "@type": "type.googleapis.com/google.cloud.run.v1.Revision"
+      }
+    },
+    "insertId": "xaosbxdvcak",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cuentas-financieras-0625",
+        "configuration_name": "voicesession",
+        "revision_name": "voicesession-00001-sep",
+        "service_name": "voicesession",
+        "location": "us-central1"
+      }
+    },
+    "timestamp": "2026-04-04T15:04:48.789634Z",
+    "severity": "ERROR",
+    "logName": "projects/cuentas-financieras-0625/logs/cloudaudit.googleapis.com%2Fsystem_event",
+    "receiveTimestamp": "2026-04-04T15:04:49.145099637Z"
+  }
+]

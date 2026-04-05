@@ -95,6 +95,9 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
   // Refs para mantener valores actualizados en callbacks (evita stale closures)
   const userRef = useRef(user);
   const orgIdRef = useRef(currentOrgId);
+  // Ref para handleFunctionCall (evita stale closure en setupProviderListeners)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleFunctionCallRef = useRef<((functionCall: any) => Promise<void>) | null>(null);
   
   // Actualizar refs cuando cambian los valores
   useEffect(() => {
@@ -176,7 +179,9 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     });
 
     provider.onFunctionCall(async (functionCall: AIFunctionCall) => {
-      await handleFunctionCall(functionCall);
+      if (handleFunctionCallRef.current) {
+        await handleFunctionCallRef.current(functionCall);
+      }
     });
 
     provider.onAudioResponse((audioTrack: MediaStreamTrack) => {
@@ -195,6 +200,14 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     
     if (!currentUser || !currentOrg || !providerRef.current) {
       console.error('[VoiceProvider] handleFunctionCall: Missing user or orgId');
+      // Enviar error de vuelta al modelo para que no se quede esperando
+      if (providerRef.current) {
+        providerRef.current.sendFunctionResult(functionCall.callId, {
+          success: false,
+          message: 'Contexto de usuario no disponible. Intenta de nuevo.',
+        });
+      }
+      setError('Contexto de usuario no disponible');
       return;
     }
 
@@ -208,8 +221,6 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
         throw new Error(`Tool no encontrado: ${functionCall.name}`);
       }
 
-      console.log('[VoiceProvider] Ejecutando tool:', functionCall.name, 'con args:', functionCall.arguments);
-
       const container = DIContainer.getInstance();
       container.setOrgId(currentOrg);
       
@@ -219,16 +230,22 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
         container,
       });
 
-      console.log('[VoiceProvider] Tool ejecutado exitosamente:', functionCall.name, result);
-
       // Enviar resultado de vuelta a la IA
-      providerRef.current.sendFunctionResult(functionCall.callId, result);
+      // Para tools de ACCIÓN (create_*): solo el mensaje para respuesta de voz
+      // Para tools de CONTEXTO (list_*, get_*): JSON completo con datos
+      const isActionTool = functionCall.name.startsWith('create_') || functionCall.name.startsWith('update_') || functionCall.name.startsWith('delete_');
+      
+      const outputForAI = result.success && isActionTool
+        ? result.message // Solo mensaje para acciones exitosas
+        : result; // JSON completo para contexto o errores
+      
+      providerRef.current.sendFunctionResult(functionCall.callId, outputForAI);
 
       // Invalidar React Query cache si el tool modificó datos
       invalidateCacheForTool(functionCall.name, currentOrg);
 
-      // Toast de confirmación
-      if (result.success) {
+      // Toast de confirmación SOLO para tools de acción (no contexto)
+      if (result.success && isActionTool) {
         showSuccessToast(functionCall.name, result.message);
       }
 
@@ -268,6 +285,11 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
       // NO poner error state — la sesión sigue activa para retry
     }
   }, [transcript, logCommand]);
+
+  // Mantener ref actualizado para evitar stale closures en listeners del provider
+  useEffect(() => {
+    handleFunctionCallRef.current = handleFunctionCall;
+  }, [handleFunctionCall]);
 
   const showSuccessToast = useCallback((toolName: string, message: string) => {
     const toastConfig: Record<string, { icon: string; title: string }> = {
@@ -331,7 +353,10 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     try {
       const idToken = await firebaseUser.getIdToken();
       
-      const res = await fetch('/api/voice/session', {
+      // URL de la función de voz (Firebase Cloud Function)
+      const voiceSessionUrl = process.env.NEXT_PUBLIC_VOICE_SESSION_URL || '/api/voice/session';
+      
+      const res = await fetch(voiceSessionUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -363,7 +388,6 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
       });
 
       setIsSessionActive(true);
-      console.log('[VoiceProvider] Sesión conectada');
 
     } catch (err) {
       console.error('[VoiceProvider] Error conectando sesión:', err);
@@ -416,14 +440,44 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
 
   /**
    * Pre-conectar sesión sin iniciar grabación
-   * Útil para mejorar UX: precargar conexión al abrir modal
+   * Se llama automáticamente al cargar la página cuando user/org están disponibles
+   * y también al abrir el modal como fallback
    */
   const prepareSession = useCallback(async () => {
-    // Solo conectar si no hay sesión activa
-    if (!isSessionActive && !providerRef.current) {
-      await connectSession();
+    // Si ya hay sesión activa, no hacer nada
+    if (isSessionActive) return;
+    
+    // Si hay un provider roto (de un intento fallido previo), limpiarlo
+    if (providerRef.current && !isSessionActive) {
+      providerRef.current.disconnect();
+      providerRef.current = null;
     }
+    
+    await connectSession();
   }, [isSessionActive, connectSession]);
+
+  // Auto-conectar sesión cuando user y org están disponibles (mejora UX: sin "Conectando" al abrir modal)
+  const autoConnectAttemptedRef = useRef(false);
+  useEffect(() => {
+    if (
+      user && 
+      firebaseUser && 
+      currentOrgId && 
+      APP_CONFIG.enableVoiceAgent && 
+      !isSessionActive && 
+      !autoConnectAttemptedRef.current
+    ) {
+      autoConnectAttemptedRef.current = true;
+      prepareSession().catch((err) => {
+        // Silenciar error en auto-conexión (no bloquear la app)
+        console.warn('[VoiceProvider] Auto-conexión fallida (no crítico):', err.message);
+      });
+    }
+    // Resetear intento si el usuario cambia
+    if (!user || !currentOrgId) {
+      autoConnectAttemptedRef.current = false;
+    }
+  }, [user, firebaseUser, currentOrgId, isSessionActive, prepareSession]);
 
   /**
    * Detener grabación (push-to-talk UP)
@@ -434,11 +488,9 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     
     // Solo detener si estamos grabando (evita múltiples llamadas)
     if (state !== 'recording') {
-      console.log('[VoiceProvider] stopRecording ignorado - no estamos en estado recording (estado actual:', state, ')');
       return;
     }
 
-    console.log('[VoiceProvider] Deteniendo grabación y solicitando respuesta...');
     providerRef.current.stopAudioCaptureAndProcess();
 
     // Agregar transcripción del usuario al historial (se actualiza cuando llega el transcript final)
@@ -499,7 +551,6 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     user && 
     currentOrgId && 
     commandsRemainingToday > 0 &&
-    prepareSession,
     state !== 'error'
   );
 
@@ -513,6 +564,7 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     startRecording,
     stopRecording,
     endSession,
+    prepareSession,
     transcript,
     response,
     error,

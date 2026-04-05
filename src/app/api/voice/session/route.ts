@@ -190,20 +190,27 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        const openaiResponse = await fetch('https://api.openai.com/v1/realtime/sessions', {
+        const openaiResponse = await fetch('https://api.openai.com/v1/realtime/client_secrets', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${openaiApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: VOICE_AGENT_CONFIG.model,
-            modalities: VOICE_AGENT_CONFIG.modalities,
-            voice: VOICE_AGENT_CONFIG.voice,
-            instructions: buildSystemInstructions(),
-            temperature: VOICE_AGENT_CONFIG.temperature,
-            max_response_output_tokens: VOICE_AGENT_CONFIG.maxTokens,
-            turn_detection: VOICE_AGENT_CONFIG.turnDetection,
+            session: {
+              type: 'realtime',
+              model: VOICE_AGENT_CONFIG.model,
+              instructions: buildSystemInstructions(),
+              max_output_tokens: VOICE_AGENT_CONFIG.maxTokens,
+              audio: {
+                input: {
+                  turn_detection: VOICE_AGENT_CONFIG.turnDetection,
+                },
+                output: {
+                  voice: VOICE_AGENT_CONFIG.voice,
+                },
+              },
+            },
           }),
         });
 
@@ -219,7 +226,7 @@ export async function POST(request: NextRequest) {
         const sessionData = await openaiResponse.json();
 
         return NextResponse.json({
-          ephemeralToken: sessionData.client_secret?.value || sessionData.client_secret,
+          ephemeralToken: sessionData.value,
           expiresAt: sessionData.expires_at,
           commandsRemaining: rateLimitCheck.remaining,
           maxDuration: VOICE_LIMITS.maxInputDurationSeconds,

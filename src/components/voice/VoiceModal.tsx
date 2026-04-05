@@ -49,7 +49,6 @@ export function VoiceModal({ isOpen, onClose }: VoiceModalProps) {
   // Pre-conectar sesión cuando se abre el modal (mejora UX - sin "Conectando" al presionar PTT)
   useEffect(() => {
     if (isOpen && !isSessionActive) {
-      console.log('[VoiceModal] Precargando sesión de voz...');
       prepareSession().catch((err) => {
         console.error('[VoiceModal] Error precargando sesión:', err);
       });
@@ -61,7 +60,6 @@ export function VoiceModal({ isOpen, onClose }: VoiceModalProps) {
     const audio = audioRef.current;
     if (!audio || !audioStream) return;
 
-    console.log('[VoiceModal] Reproduciendo audio TTS de la IA');
     audio.srcObject = audioStream;
     
     audio.play()
