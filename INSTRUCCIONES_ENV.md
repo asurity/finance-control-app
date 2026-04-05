@@ -33,18 +33,26 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=tu-sender-id
 NEXT_PUBLIC_FIREBASE_APP_ID=tu-app-id
 NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
 
-# OpenAI Configuration (REQUERIDO para Voice Agent)
+# OpenAI Configuration (LEGACY - Fase de migración)
 OPENAI_API_KEY=YOUR_OPENAI_API_KEY_HERE
+
+# Gemini Configuration (REQUERIDO para Voice Agent)
+GEMINI_API_KEY=AIza-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 # Voice Agent Configuration (REQUERIDO)
 NEXT_PUBLIC_ENABLE_VOICE_AGENT=true
-NEXT_PUBLIC_AI_PROVIDER=openai
+NEXT_PUBLIC_AI_PROVIDER=gemini
 ```
 
-3. **Obtener tu OpenAI API Key**:
+3. **Obtener tu Gemini API Key** (RECOMENDADO - Más económico):
+   - Ve a: https://aistudio.google.com/apikey
+   - Crea una nueva API Key (empieza con `AIza...`)
+   - Cópiala y pégala en `.env.local` como `GEMINI_API_KEY`
+   
+   **OPCIONAL - OpenAI API Key** (Legacy):
    - Ve a: https://platform.openai.com/api-keys
    - Crea una nueva API Key (empieza con `sk-proj-...`)
-   - Cópiala y pégala en `.env.local`
+   - Solo necesaria si mantienes `NEXT_PUBLIC_AI_PROVIDER=openai`
 
 4. **Reiniciar el servidor**:
    ```bash
@@ -72,7 +80,12 @@ Para verificar que las variables están cargadas correctamente:
 ```bash
 # En PowerShell:
 cd "c:\Proyectos Asurity\finance-control-app"
-node -e "require('dotenv').config({ path: '.env.local' }); console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? 'CONFIGURADA ✓' : 'NO CONFIGURADA ✗')"
+node -e "require('dotenv').config({ path: '.env.local' }); console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'CONFIGURADA ✓' : 'NO CONFIGURADA ✗')"
 ```
 
-Debería mostrar: `OPENAI_API_KEY: CONFIGURADA ✓`
+Debería mostrar: `GEMINI_API_KEY: CONFIGURADA ✓`
+
+**Verificación Legacy (OpenAI):**
+```bash
+node -e "require('dotenv').config({ path: '.env.local' }); console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? 'CONFIGURADA ✓' : 'NO CONFIGURADA ✗')"
+```
