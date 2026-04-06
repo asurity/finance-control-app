@@ -5,6 +5,11 @@
  * Soporta push-to-talk (turn_detection: null) y multi-turno.
  * 
  * Refactorizado desde RealtimeClient para cumplir la interfaz agnóstica.
+ * 
+ * @deprecated Migrado a GeminiTextProvider para reducción de costos (97-100%).
+ *             Se mantiene para rollback de emergencia. Se eliminará en v2.0
+ *             después del período de estabilización de Gemini.
+ *             Usar 'gemini' como provider en vez de 'openai'.
  */
 
 import type {

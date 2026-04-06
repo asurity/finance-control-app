@@ -1,15 +1,8 @@
 # Configuración de Variables de Entorno - Sistema de Voz
 
-## ❌ Error Actual
+## ✅ Configuración Actual (Gemini)
 
-```
-POST http://localhost:3000/api/voice/session/ 500 (Internal Server Error)
-Access to fetch at 'https://api.openai.com/v1/realtime' has been blocked by CORS
-```
-
-## ✅ Solución
-
-El sistema de voz **requiere** que exista un archivo `.env.local` con la configuración de OpenAI API.
+El sistema de voz utiliza **Gemini 2.5 Flash-Lite** como proveedor de IA principal, con reducción de costos del 97-100% respecto a OpenAI.
 
 ### Pasos para configurar:
 
@@ -21,7 +14,7 @@ cd "c:\Proyectos Asurity\finance-control-app"
 Copy-Item .env.local.example .env.local
 ```
 
-2. **Editar `.env.local`** y agregar tu API Key de OpenAI:
+2. **Editar `.env.local`** y agregar tu API Key de Gemini:
 
 ```env
 # Firebase Configuration (ya deberías tenerlas configuradas)
@@ -33,25 +26,28 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=tu-sender-id
 NEXT_PUBLIC_FIREBASE_APP_ID=tu-app-id
 NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
 
-# OpenAI Configuration (LEGACY - Fase de migración)
-OPENAI_API_KEY=YOUR_OPENAI_API_KEY_HERE
-
 # Gemini Configuration (REQUERIDO para Voice Agent)
 GEMINI_API_KEY=AIza-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 # Voice Agent Configuration (REQUERIDO)
 NEXT_PUBLIC_ENABLE_VOICE_AGENT=true
 NEXT_PUBLIC_AI_PROVIDER=gemini
-```
 
-3. **Obtener tu Gemini API Key** (RECOMENDADO - Más económico):
+# --- LEGACY: Solo para rollback ---
+# OpenAI Configuration (DEPRECADO - Solo mantener si necesitas rollback)
+# OPENAI_API_KEY=YOUR_OPENAI_API_KEY_HERE
+```
+QUERIDO):
    - Ve a: https://aistudio.google.com/apikey
    - Crea una nueva API Key (empieza con `AIza...`)
    - Cópiala y pégala en `.env.local` como `GEMINI_API_KEY`
+   - **Costo**: $0.00/mes (tier gratuito) o ~$0.05/día con uso intensivo
    
-   **OPCIONAL - OpenAI API Key** (Legacy):
+   **Solo para Rollback - OpenAI API Key** (DEPRECADO):
+   - ⚠️ Solo necesaria si cambias `NEXT_PUBLIC_AI_PROVIDER=openai` temporalmente
    - Ve a: https://platform.openai.com/api-keys
    - Crea una nueva API Key (empieza con `sk-proj-...`)
+   - **Costo**: $50-100/mes (97-100% más caro que Gemini)
    - Solo necesaria si mantienes `NEXT_PUBLIC_AI_PROVIDER=openai`
 
 4. **Reiniciar el servidor**:
