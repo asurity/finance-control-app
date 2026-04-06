@@ -4,10 +4,10 @@
  */
 
 export type {
-  IAIRealtimeProvider,
-  AIProviderState,
-  AIFunctionCall,
-  AIToolDeclaration,
-  AISessionConfig,
-  AIProviderType,
-} from './IAIRealtimeProvider';
+  IVoiceProvider,
+  VoiceProviderState,
+  FunctionCall,
+  ToolDeclaration,
+  VoiceSessionConfig,
+  VoiceProviderType,
+} from './IVoiceProvider';

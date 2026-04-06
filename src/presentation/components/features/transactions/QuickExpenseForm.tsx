@@ -35,9 +35,13 @@ import { Badge } from '@/components/ui/badge';
 import { CreateTransactionSchema } from '@/application/validators/transactionValidator';
 
 // Helper para parsear fecha del input sin problemas de timezone
-const parseLocalDate = (dateString: string): Date => {
-  const [year, month, day] = dateString.split('-').map(Number);
-  return new Date(year, month - 1, day);
+const parseLocalDate = (dateString: string): Date | undefined => {
+  if (!dateString) return undefined;
+  const parts = dateString.split('-');
+  if (parts.length !== 3) return undefined;
+  const [year, month, day] = parts.map(Number);
+  const date = new Date(year, month - 1, day);
+  return isNaN(date.getTime()) ? undefined : date;
 };
 import { useTransactions } from '@/application/hooks/useTransactions';
 import { useAccounts } from '@/application/hooks/useAccounts';

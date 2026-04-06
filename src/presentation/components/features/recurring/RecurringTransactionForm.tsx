@@ -317,7 +317,16 @@ export function RecurringTransactionForm({
                 <Input
                   type="date"
                   value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
-                  onChange={(e) => field.onChange(new Date(e.target.value))}
+                  onChange={(e) => {
+                    if (!e.target.value) {
+                      field.onChange(new Date());
+                      return;
+                    }
+                    const date = new Date(e.target.value + 'T00:00:00');
+                    if (!isNaN(date.getTime())) {
+                      field.onChange(date);
+                    }
+                  }}
                 />
               </FormControl>
               <FormDescription>¿Cuándo inicia esta recurrencia?</FormDescription>
@@ -355,7 +364,16 @@ export function RecurringTransactionForm({
                   <Input
                     type="date"
                     value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
-                    onChange={(e) => field.onChange(new Date(e.target.value))}
+                    onChange={(e) => {
+                      if (!e.target.value) {
+                        field.onChange(undefined);
+                        return;
+                      }
+                      const date = new Date(e.target.value + 'T00:00:00');
+                      if (!isNaN(date.getTime())) {
+                        field.onChange(date);
+                      }
+                    }}
                   />
                 </FormControl>
                 <FormDescription>La recurrencia terminará en esta fecha</FormDescription>

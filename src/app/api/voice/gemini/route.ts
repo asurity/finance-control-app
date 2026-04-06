@@ -13,6 +13,7 @@ import { GoogleGenAI } from '@google/genai';
 import { adminAuth } from '@/lib/firebase/admin';
 import { VoiceToolRegistry } from '@/infrastructure/voice-agent/VoiceToolRegistry';
 import { ToolDeclarationMapper } from '@/infrastructure/voice-agent/ToolDeclarationMapper';
+// no AIToolDeclaration import
 import { 
   GEMINI_VOICE_CONFIG, 
   buildGeminiSystemInstructions,
@@ -20,7 +21,7 @@ import {
   FunctionCallingConfigMode,
   type GeminiFunctionCallingMode,
 } from '@/infrastructure/voice-agent/gemini-config';
-import type { AIToolDeclaration } from '@/domain/ports/IAIRealtimeProvider';
+import type { ToolDeclaration } from '@/domain/ports/IVoiceProvider';
 
 /**
  * Request body esperado
@@ -34,6 +35,12 @@ interface GeminiVoiceRequest {
   turnIndex?: number;
   /** Modo de function calling (ANY, AUTO, NONE) */
   functionCallingMode?: GeminiFunctionCallingMode;
+  /** Contexto pre-cargado (cuentas y categorías) */
+  context?: {
+    accounts: Array<{ id: string; name: string; balance: number }>;
+    categories: Array<{ id: string; name: string; type: string }>;
+    defaultAccountId: string | null;
+  };
 }
 
 /**
@@ -117,7 +124,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Parsear body
     const body: GeminiVoiceRequest = await request.json();
-    const { text, conversationHistory = [], turnIndex = 0, functionCallingMode } = body;
+    const { text, conversationHistory = [], turnIndex = 0, functionCallingMode, context } = body;
 
     if (!text || text.trim().length === 0) {
       return NextResponse.json(
@@ -127,6 +134,13 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`[API /voice/gemini] Turno ${turnIndex} - Texto:`, text.substring(0, 100));
+    if (context) {
+      console.log('[API /voice/gemini] Contexto recibido:', {
+        accounts: context.accounts.length,
+        categories: context.categories.length,
+        defaultAccount: context.defaultAccountId,
+      });
+    }
 
     // 3. Obtener tools disponibles
     const registry = VoiceToolRegistry.getInstance();
@@ -141,7 +155,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Convertir a format agnóstico
-    const agnosticTools: AIToolDeclaration[] = tools.map(tool => ({
+    const agnosticTools: ToolDeclaration[] = tools.map(tool => ({
       name: tool.declaration.name,
       description: tool.declaration.description,
       parameters: {
@@ -175,14 +189,33 @@ export async function POST(request: NextRequest) {
 
     console.log(`[API /voice/gemini] Function calling mode: ${mode}`);
 
-    // 6. Llamar a Gemini API
+    // 6. Construir system instruction con contexto si está disponible
+    let systemInstruction = buildGeminiSystemInstructions();
+    
+    if (context) {
+      systemInstruction += `\n\nCONTEXTO DEL USUARIO:\n`;
+      systemInstruction += `Cuentas disponibles:\n`;
+      context.accounts.forEach(acc => {
+        systemInstruction += `- ${acc.name} (ID: ${acc.id}, Saldo: $${acc.balance})\n`;
+      });
+      systemInstruction += `\nCategorías disponibles:\n`;
+      context.categories.forEach(cat => {
+        systemInstruction += `- ${cat.name} (ID: ${cat.id})\n`;
+      });
+      if (context.defaultAccountId) {
+        const defaultAccount = context.accounts.find(a => a.id === context.defaultAccountId);
+        systemInstruction += `\nCuenta preferida: ${defaultAccount?.name || context.defaultAccountId}\n`;
+      }
+    }
+
+    // 7. Llamar a Gemini API
     const client = getGeminiClient();
 
     const response = await client.models.generateContent({
       model: GEMINI_VOICE_CONFIG.model,
       contents,
       config: {
-        systemInstruction: buildGeminiSystemInstructions(),
+        systemInstruction,
         tools: [{ functionDeclarations: geminiTools }],
         toolConfig: createGeminiToolConfig(mode),
         temperature: GEMINI_VOICE_CONFIG.temperature,

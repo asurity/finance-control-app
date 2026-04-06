@@ -13,23 +13,27 @@ export type {
   OpenAIParameterSchema,
 } from './types';
 
-// Tipos agnósticos (domain ports)
+// Tipos nuevos (domain ports - IVoiceProvider)
 export type {
-  IAIRealtimeProvider,
-  AIProviderState,
-  AIFunctionCall,
-  AIToolDeclaration,
-  AISessionConfig,
-  AIProviderType,
-} from '@/domain/ports/IAIRealtimeProvider';
+  IVoiceProvider,
+  VoiceProviderState,
+  FunctionCall,
+  ToolDeclaration,
+  VoiceSessionConfig,
+  VoiceProviderType,
+} from '@/domain/ports/IVoiceProvider';
 
-// Proveedores
-export { OpenAIRealtimeProvider } from './OpenAIRealtimeProvider';
-export { AIProviderFactory } from './AIProviderFactory';
+// Backward compatibility types (deprecated)
+// Removed because they don't exist in IVoiceProvider anymore.
+
+// Proveedor activo
+export { GeminiVoiceProvider } from './GeminiVoiceProvider';
+
+// Factory
+export { VoiceProviderFactory } from './VoiceProviderFactory';
+
+// Mappers
 export { ToolDeclarationMapper } from './ToolDeclarationMapper';
-
-// Backward compat
-export { RealtimeClient } from './RealtimeClient';
 
 // Configuración
 export {

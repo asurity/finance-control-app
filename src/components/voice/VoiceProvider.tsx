@@ -19,13 +19,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/hooks/useOrganization';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useVoiceUsageLogger } from '@/application/hooks/useVoiceUsageLogger';
-import { AIProviderFactory } from '@/infrastructure/voice-agent/AIProviderFactory';
-import type { IAIRealtimeProvider, AIProviderState, AIFunctionCall } from '@/domain/ports/IAIRealtimeProvider';
+import { useVoiceLogger } from '@/application/hooks/useVoiceLogger';
+import { VoiceProviderFactory } from '@/infrastructure/voice-agent/VoiceProviderFactory';
+import type { IVoiceProvider, VoiceProviderState, FunctionCall } from '@/domain/ports/IVoiceProvider';
 import { VoiceToolRegistry } from '@/infrastructure/voice-agent/VoiceToolRegistry';
 import { registerAllTools } from '@/infrastructure/voice-agent/tools';
-import { DIContainer } from '@/infrastructure/di/DIContainer';
 import { APP_CONFIG } from '@/lib/constants/config';
+import { VoiceErrorHandler, type VoiceError } from '@/infrastructure/voice-agent/VoiceErrorHandler';
+import { VoiceStateMachine, type VoiceState } from '@/infrastructure/voice-agent/VoiceStateMachine';
+import { VoiceToolExecutor } from '@/infrastructure/voice-agent/VoiceToolExecutor';
+import { voiceMetrics, startTimer, VOICE_METRICS } from '@/infrastructure/voice-agent/VoiceMetrics';
 import type { ConversationMessage } from './VoiceConversationHistory';
 
 /**
@@ -49,6 +52,7 @@ interface VoiceContextType {
   isAvailable: boolean;
   isSessionActive: boolean;
   isModalOpen: boolean;
+  currentExecutingTool: string | null;
 
   // Acciones
   openModal: () => void;
@@ -61,16 +65,11 @@ interface VoiceContextType {
   // Datos
   transcript: string;
   response: string;
-  error: string | null;
+  error: VoiceError | null;
   commandsRemainingToday: number;
   recordingTimeLeft: number;
   conversationHistory: ConversationMessage[];
   audioStream: MediaStream | null;
-
-  // Backward compat (deprecados)
-  startCommand: () => Promise<void>;
-  cancelCommand: () => void;
-  forceCommitAudio: () => void;
 }
 
 const VoiceContext = createContext<VoiceContextType | undefined>(undefined);
@@ -87,10 +86,14 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
   const { user, firebaseUser } = useAuth();
   const { currentOrgId } = useOrganization();
   const queryClient = useQueryClient();
-  const { logCommand } = useVoiceUsageLogger();
+  const { logCommand, logError } = useVoiceLogger();
 
+  // State machine centralizado
+  const stateMachineRef = useRef(new VoiceStateMachine());
+  const toolExecutorRef = useRef(new VoiceToolExecutor());
+  
   // Proveedor de IA (singleton por sesión)
-  const providerRef = useRef<IAIRealtimeProvider | null>(null);
+  const providerRef = useRef<IVoiceProvider | null>(null);
   
   // Refs para mantener valores actualizados en callbacks (evita stale closures)
   const userRef = useRef(user);
@@ -105,13 +108,27 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     orgIdRef.current = currentOrgId;
   }, [user, currentOrgId]);
   
-  // Estado del agente
-  const [state, setState] = useState<VoiceAgentState>('idle');
-  const [transcript, setTranscript] = useState('');
-  const [response, setResponse] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  // Estado centralizado en state machine
+  const [machineState, setMachineState] = useState<VoiceState>(stateMachineRef.current.getState());
+  
+  // Suscribirse a cambios del state machine
+  useEffect(() => {
+    const unsubscribe = stateMachineRef.current.subscribe(setMachineState);
+    return unsubscribe;
+  }, []);
+  
+  // Derivar valores del state machine
+  const state = machineState.status as VoiceAgentState;
+  const transcript = machineState.status === 'recording' || machineState.status === 'processing' 
+    ? machineState.transcript 
+    : '';
+  const response = machineState.status === 'responding' ? machineState.response : '';
+  const error = machineState.status === 'error' ? machineState.error : null;
+  const recordingTimeLeft = machineState.status === 'recording' ? machineState.timeLeft : 15;
+  const currentExecutingTool = machineState.status === 'executing' ? machineState.toolName : null;
+  
+  // Estado adicional (no gestionado por state machine)
   const [commandsRemainingToday, setCommandsRemainingToday] = useState(10);
-  const [recordingTimeLeft, setRecordingTimeLeft] = useState(15);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
@@ -151,107 +168,168 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
 
   /**
    * Registra listeners en el proveedor de IA
+   * Mapea eventos del provider a eventos del state machine
    */
-  const setupProviderListeners = useCallback((provider: IAIRealtimeProvider) => {
-    provider.onStateChange((providerState: AIProviderState) => {
-      setState(providerState as VoiceAgentState);
-    });
-
-    provider.onTranscript((text: string) => {
-      setTranscript(text);
-    });
-
-    provider.onTextResponse((text: string, isFinal: boolean) => {
-      setResponse((prev) => (isFinal ? text : prev + text));
-      if (isFinal && text.trim()) {
-        addMessage('assistant', text);
+  const setupProviderListeners = useCallback((provider: IVoiceProvider) => {
+    const machine = stateMachineRef.current;
+    
+    provider.onStateChange((providerState: VoiceProviderState) => {
+      // Mapear estados del provider a eventos del state machine
+      if (providerState === 'connecting') {
+        machine.send({ type: 'CONNECT' });
+      } else if (providerState === 'ready') {
+        machine.send({ type: 'CONNECTED' });
       }
     });
 
-    provider.onError((err: Error) => {
-      console.error('[VoiceProvider] Error:', err);
-      setError(err.message);
-      setState('error');
+    provider.onTranscript((text: string) => {
+      machine.send({
+        type: 'TRANSCRIPT_UPDATE',
+        transcript: text,
+        timeLeft: recordingTimeLeft,
+      });
+    });
+
+    provider.onResponse((text: string) => {
+      // Todas las respuestas son finales en la interfaz simplificada
+      if (text.trim()) {
+        addMessage('assistant', text);
+        machine.send({ type: 'RESPONSE', text });
+        
+        // Volver a ready después de mostrar la respuesta
+        setTimeout(() => {
+          machine.send({ type: 'READY' });
+        }, 100);
+      }
+    });
+
+    provider.onError((voiceError: VoiceError) => {
+      console.error('[VoiceProvider] Error:', voiceError);
+      machine.send({ type: 'ERROR', error: voiceError });
+      
+      // Toast con recovery action si existe
+      toast.error(voiceError.message, {
+        description: voiceError.description,
+        action: voiceError.recoveryAction ? {
+          label: voiceError.recoveryAction.label,
+          onClick: voiceError.recoveryAction.handler,
+        } : undefined,
+      });
+      
+      // Log error
+      logError(voiceError.code, voiceError.message).catch(console.error);
     });
 
     provider.onRecordingTimeUpdate((timeLeft: number) => {
-      setRecordingTimeLeft(timeLeft);
+      // Actualizar timeLeft en el estado de recording
+      const currentState = machine.getState();
+      if (currentState.status === 'recording') {
+        machine.send({
+          type: 'TRANSCRIPT_UPDATE',
+          transcript: currentState.transcript,
+          timeLeft,
+        });
+      }
     });
 
-    provider.onFunctionCall(async (functionCall: AIFunctionCall) => {
+    provider.onFunctionCall(async (functionCall: FunctionCall) => {
       if (handleFunctionCallRef.current) {
         await handleFunctionCallRef.current(functionCall);
       }
     });
 
-    provider.onAudioResponse((audioTrack: MediaStreamTrack) => {
-      const stream = new MediaStream([audioTrack]);
-      setAudioStream(stream);
-    });
+    /*
+    // TODO: Consider removing if audio output is fully removed from provider
+    if ('onAudioResponse' in provider) {
+      (provider as any).onAudioResponse((audioTrack: MediaStreamTrack) => {
+        const stream = new MediaStream([audioTrack]);
+        setAudioStream(stream);
+      });
+    }
+    */
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addMessage]);
+  }, [addMessage, logError]);
 
   /**
-   * Maneja la ejecución de function calls
+   * Maneja la ejecución de function calls usando VoiceToolExecutor
    */
-  const handleFunctionCall = useCallback(async (functionCall: AIFunctionCall) => {
+  const handleFunctionCall = useCallback(async (functionCall: FunctionCall) => {
     const currentUser = userRef.current;
     const currentOrg = orgIdRef.current;
+    const machine = stateMachineRef.current;
+    const toolExecutor = toolExecutorRef.current;
+    const endTimer = startTimer(VOICE_METRICS.TOOL_EXECUTION_DURATION_MS.replace('_duration_ms', ''));
     
     if (!currentUser || !currentOrg || !providerRef.current) {
       console.error('[VoiceProvider] handleFunctionCall: Missing user or orgId');
-      // Enviar error de vuelta al modelo para que no se quede esperando
+      
+      // Enviar error de vuelta al modelo
       if (providerRef.current) {
         providerRef.current.sendFunctionResult(functionCall.callId, {
           success: false,
           message: 'Contexto de usuario no disponible. Intenta de nuevo.',
         });
       }
-      setError('Contexto de usuario no disponible');
+      
+      const voiceError = VoiceErrorHandler.handle(new Error('Contexto de usuario no disponible'));
+      machine.send({ type: 'ERROR', error: voiceError });
+      
+      toast.error(voiceError.message, {
+        description: voiceError.description,
+      });
+      
+      voiceMetrics.track(VOICE_METRICS.TOOL_ERROR, 1, { 
+        toolName: functionCall.name,
+        error: 'Missing user context' 
+      });
+      
       return;
     }
 
-    setState('executing');
+    // Transición a estado executing con tool info
+    const toolLabel = getToolLabel(functionCall.name);
+    machine.send({
+      type: 'FUNCTION_CALL',
+      toolName: functionCall.name,
+      toolLabel,
+    });
 
     try {
-      const registry = VoiceToolRegistry.getInstance();
-      const tool = registry.getByName(functionCall.name);
-
-      if (!tool) {
-        throw new Error(`Tool no encontrado: ${functionCall.name}`);
-      }
-
-      const container = DIContainer.getInstance();
-      container.setOrgId(currentOrg);
-      
-      const result = await tool.execute(functionCall.arguments, {
+      // Ejecutar tool usando VoiceToolExecutor
+      const executionResult = await toolExecutor.execute(functionCall, {
         userId: currentUser.id,
         orgId: currentOrg,
-        container,
       });
 
+      // Formatear resultado para el modelo
+      const outputForAI = toolExecutor.formatResult(executionResult);
+      
       // Enviar resultado de vuelta a la IA
-      // Para tools de ACCIÓN (create_*): solo el mensaje para respuesta de voz
-      // Para tools de CONTEXTO (list_*, get_*): JSON completo con datos
-      const isActionTool = functionCall.name.startsWith('create_') || functionCall.name.startsWith('update_') || functionCall.name.startsWith('delete_');
-      
-      const outputForAI = result.success && isActionTool
-        ? result.message // Solo mensaje para acciones exitosas
-        : result; // JSON completo para contexto o errores
-      
       providerRef.current.sendFunctionResult(functionCall.callId, outputForAI);
 
-      // Invalidar React Query cache si el tool modificó datos
-      invalidateCacheForTool(functionCall.name, currentOrg);
+      // Invalidar cache de React Query automáticamente
+      const queriesToInvalidate = toolExecutor.getQueriesToInvalidate(executionResult, currentOrg);
+      queriesToInvalidate.forEach((queryKey) => {
+        queryClient.invalidateQueries({ queryKey });
+      });
 
-      // Toast de confirmación SOLO para tools de acción (no contexto)
-      if (result.success && isActionTool) {
-        showSuccessToast(functionCall.name, result.message);
+      // Toast de confirmación SOLO para tools de acción
+      if (executionResult.result.success && executionResult.isActionTool) {
+        showSuccessToast(functionCall.name, executionResult.result.message);
       }
 
+      // Métricas de éxito
+      voiceMetrics.track(VOICE_METRICS.TOOL_SUCCESS, 1, { toolName: functionCall.name });
+      endTimer();
+
       // Log async
-      logCommand(currentUser.id, {
-        transcription: transcript,
+const currentState = machine.getState();
+      const currentTranscript = currentState.status === 'executing'
+        ? ''
+        : (currentState.status === 'processing' && 'transcript' in currentState ? currentState.transcript : '');
+      
+      logCommand({
+        transcription: currentTranscript,
         toolsExecuted: [functionCall.name],
         tokensUsed: 0,
         success: true,
@@ -262,8 +340,18 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     } catch (err) {
       console.error('[VoiceProvider] Error ejecutando tool:', err);
       
-      const errorMessage = err instanceof Error ? err.message : 'Error al ejecutar la acción';
+      const errorObj = err instanceof Error ? err : new Error('Error desconocido');
+      const voiceError = VoiceErrorHandler.handle(errorObj);
+      const errorMessage = voiceError.description || voiceError.message;
       
+      // Métricas de error
+      voiceMetrics.track(VOICE_METRICS.TOOL_ERROR, 1, { 
+        toolName: functionCall.name,
+        errorCode: voiceError.code,
+        errorMessage: voiceError.message 
+      });
+      
+      // Enviar error al modelo
       if (providerRef.current) {
         providerRef.current.sendFunctionResult(functionCall.callId, {
           success: false,
@@ -271,20 +359,28 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
         });
       }
 
-      toast.error('Error al ejecutar acción', { description: errorMessage });
+      // Mostrar error al usuario
+      toast.error(voiceError.message, { 
+        description: voiceError.description,
+        action: voiceError.recoveryAction ? {
+          label: voiceError.recoveryAction.label,
+          onClick: voiceError.recoveryAction.handler,
+        } : undefined,
+      });
 
-      logCommand(userRef.current?.id || '', {
-        transcription: transcript,
+      // Log error
+      logCommand({
+        transcription: '',
         toolsExecuted: [functionCall.name],
         tokensUsed: 0,
         success: false,
         errorMessage,
       }).catch(() => {});
 
-      setError(errorMessage);
-      // NO poner error state — la sesión sigue activa para retry
+      // Transición a error
+      machine.send({ type: 'ERROR', error: voiceError });
     }
-  }, [transcript, logCommand]);
+  }, [logCommand, queryClient]);
 
   // Mantener ref actualizado para evitar stale closures en listeners del provider
   useEffect(() => {
@@ -306,22 +402,18 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     toast.success(config.title, { description: message, icon: config.icon, duration: 3000 });
   }, []);
 
-  const invalidateCacheForTool = useCallback((toolName: string, orgId: string) => {
-    const invalidationMap: Record<string, string[][]> = {
-      'create_expense': [['transactions', orgId], ['accounts', orgId], ['dashboard', orgId]],
-      'create_income': [['transactions', orgId], ['accounts', orgId], ['dashboard', orgId]],
-      'get_balance': [],
-      'get_dashboard_summary': [],
-      'list_accounts': [],
-      'list_categories': [],
-      'navigate_to': [],
+  const getToolLabel = useCallback((toolName: string): string => {
+    const labels: Record<string, string> = {
+      'create_expense': 'Registrando gasto...',
+      'create_income': 'Registrando ingreso...',
+      'get_balance': 'Consultando saldo...',
+      'get_dashboard_summary': 'Cargando resumen...',
+      'list_accounts': 'Listando cuentas...',
+      'list_categories': 'Listando categorías...',
+      'navigate_to': 'Navegando...',
     };
-
-    const queryKeys = invalidationMap[toolName] || [];
-    queryKeys.forEach((queryKey) => {
-      queryClient.invalidateQueries({ queryKey });
-    });
-  }, [queryClient]);
+    return labels[toolName] || 'Ejecutando acción...';
+  }, []);
 
   // =====================
   // Acciones públicas
@@ -334,19 +426,23 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
   const connectSession = useCallback(async () => {
     const currentUser = userRef.current;
     const currentOrg = orgIdRef.current;
+    const machine = stateMachineRef.current;
+    const endTimer = startTimer(VOICE_METRICS.CONNECTION_DURATION_MS.replace('_duration_ms', ''));
     
     if (!currentUser || !firebaseUser || !currentOrg) {
-      const errorMsg = 'Usuario no autenticado o organización no seleccionada';
-      setError(errorMsg);
-      toast.error('No disponible', { description: errorMsg });
-      throw new Error(errorMsg);
+      const errorObj = new Error('Usuario no autenticado o organización no seleccionada');
+      const voiceError = VoiceErrorHandler.handle(errorObj);
+      machine.send({ type: 'ERROR', error: voiceError });
+      toast.error(voiceError.message, { description: voiceError.description });
+      voiceMetrics.track(VOICE_METRICS.CONNECTION_ERROR, 1, { error: 'No authenticated user' });
+      throw errorObj;
     }
 
-    setState('connecting');
+    machine.send({ type: 'CONNECT' });
 
     // Crear proveedor si no existe
     if (!providerRef.current) {
-      providerRef.current = AIProviderFactory.create(APP_CONFIG.aiProvider);
+      providerRef.current = VoiceProviderFactory.create(APP_CONFIG.aiProvider);
       setupProviderListeners(providerRef.current);
     }
 
@@ -388,44 +484,45 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
       });
 
       setIsSessionActive(true);
+      
+      // Métricas de éxito
+      voiceMetrics.track(VOICE_METRICS.CONNECTION_SUCCESS, 1);
+      endTimer();
 
     } catch (err) {
       console.error('[VoiceProvider] Error conectando sesión:', err);
       
-      let errorMessage = 'Error al iniciar comando de voz';
-      let errorDescription = '';
+      const errorObj = err instanceof Error ? err : new Error('Error al iniciar comando de voz');
+      const voiceError = VoiceErrorHandler.handle(errorObj);
 
-      if (err instanceof Error) {
-        if (err.name === 'NotAllowedError' || err.message.includes('Permission denied')) {
-          errorMessage = 'Permisos de micrófono denegados';
-          errorDescription = 'Por favor, permite el acceso al micrófono en la configuración de tu navegador.';
-        } else if (err.name === 'NotFoundError' || err.message.includes('not found')) {
-          errorMessage = 'Micrófono no encontrado';
-          errorDescription = 'No se detectó ningún micrófono en tu dispositivo.';
-        } else if (err.message.includes('Failed to fetch') || err.message.includes('Network')) {
-          errorMessage = 'Error de conexión';
-          errorDescription = 'Verifica tu conexión a internet e intenta nuevamente.';
-        } else {
-          errorMessage = err.message;
-        }
-      }
-
-      setError(errorMessage);
-      setState('error');
-      toast.error(errorMessage, errorDescription ? { description: errorDescription } : undefined);
+      machine.send({ type: 'ERROR', error: voiceError });
+      toast.error(voiceError.message, {
+        description: voiceError.description,
+        action: voiceError.recoveryAction ? {
+          label: voiceError.recoveryAction.label,
+          onClick: voiceError.recoveryAction.handler,
+        } : undefined,
+      });
+      
+      // Métricas de error
+      voiceMetrics.track(VOICE_METRICS.CONNECTION_ERROR, 1, { 
+        errorCode: voiceError.code,
+        errorMessage: voiceError.message 
+      });
+      
+      // Log error
+      logError(voiceError.code, voiceError.message).catch(console.error);
+      
       throw err;
     }
-  }, [firebaseUser, setupProviderListeners]);
+  }, [firebaseUser, setupProviderListeners, logError]);
 
   /**
    * Iniciar grabación (push-to-talk DOWN)
    * Conecta sesión automáticamente si no está conectada
    */
   const startRecording = useCallback(async () => {
-    setError(null);
-    setTranscript('');
-    setResponse('');
-    setRecordingTimeLeft(15);
+    const machine = stateMachineRef.current;
 
     // Solo conectar si no hay sesión activa
     if (!isSessionActive || !providerRef.current) {
@@ -434,7 +531,9 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
 
     // Iniciar captura de audio
     if (providerRef.current) {
-      await providerRef.current.startAudioCapture();
+      machine.send({ type: 'START_RECORDING' });
+      voiceMetrics.track(VOICE_METRICS.RECORDING_STARTED, 1);
+      await providerRef.current.startRecording();
     }
   }, [isSessionActive, connectSession]);
 
@@ -456,29 +555,6 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     await connectSession();
   }, [isSessionActive, connectSession]);
 
-  // Auto-conectar sesión cuando user y org están disponibles (mejora UX: sin "Conectando" al abrir modal)
-  const autoConnectAttemptedRef = useRef(false);
-  useEffect(() => {
-    if (
-      user && 
-      firebaseUser && 
-      currentOrgId && 
-      APP_CONFIG.enableVoiceAgent && 
-      !isSessionActive && 
-      !autoConnectAttemptedRef.current
-    ) {
-      autoConnectAttemptedRef.current = true;
-      prepareSession().catch((err) => {
-        // Silenciar error en auto-conexión (no bloquear la app)
-        console.warn('[VoiceProvider] Auto-conexión fallida (no crítico):', err.message);
-      });
-    }
-    // Resetear intento si el usuario cambia
-    if (!user || !currentOrgId) {
-      autoConnectAttemptedRef.current = false;
-    }
-  }, [user, firebaseUser, currentOrgId, isSessionActive, prepareSession]);
-
   /**
    * Detener grabación (push-to-talk UP)
    * Valida transcript vacío — si vacío, no gasta tokens
@@ -486,32 +562,41 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
   const stopRecording = useCallback(() => {
     if (!providerRef.current) return;
     
+    const machine = stateMachineRef.current;
+    const currentState = machine.getState();
+    
     // Solo detener si estamos grabando (evita múltiples llamadas)
-    if (state !== 'recording') {
+    if (currentState.status !== 'recording') {
       return;
     }
 
-    providerRef.current.stopAudioCaptureAndProcess();
+    // Enviar evento de stop con el transcript actual
+    machine.send({
+      type: 'STOP_RECORDING',
+      transcript: currentState.transcript,
+    });
 
-    // Agregar transcripción del usuario al historial (se actualiza cuando llega el transcript final)
-    // El transcript real llega async vía onTranscript callback
-  }, [state]);
+    providerRef.current.stopRecording();
+
+    // Agregar transcripción del usuario al historial
+    if (currentState.transcript.trim()) {
+      addMessage('user', currentState.transcript);
+    }
+  }, [addMessage]);
 
   /**
    * Cerrar sesión completa
    */
   const endSession = useCallback(() => {
+    const machine = stateMachineRef.current;
+    
     if (providerRef.current) {
       providerRef.current.disconnect();
       providerRef.current = null;
     }
     
     setIsSessionActive(false);
-    setState('idle');
-    setTranscript('');
-    setResponse('');
-    setError(null);
-    setRecordingTimeLeft(15);
+    machine.send({ type: 'DISCONNECT' });
     setConversationHistory([]);
     setAudioStream(null);
     messageIdRef.current = 0;
@@ -532,21 +617,9 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     endSession();
   }, [endSession]);
 
-  // Agregar transcript del usuario al historial cuando pasa a processing
-  useEffect(() => {
-    if (state === 'processing' && transcript.trim().length > 0) {
-      addMessage('user', transcript);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state]);
-
   // =====================
   // Backward compat aliases
   // =====================
-  const startCommand = startRecording;
-  const cancelCommand = endSession;
-  const forceCommitAudio = stopRecording;
-
   const isAvailable = Boolean(
     user && 
     currentOrgId && 
@@ -559,6 +632,7 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     isAvailable,
     isSessionActive,
     isModalOpen,
+    currentExecutingTool,
     openModal,
     closeModal,
     startRecording,
@@ -572,10 +646,6 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     recordingTimeLeft,
     conversationHistory,
     audioStream,
-    // Backward compat
-    startCommand,
-    cancelCommand,
-    forceCommitAudio,
   };
 
   return (

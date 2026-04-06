@@ -56,11 +56,25 @@ export interface VoiceToolResult {
 }
 
 /**
+ * Metadata de un tool para comportamientos automáticos
+ */
+export interface VoiceToolMetadata {
+  /** Tipo de tool: acción (modifica datos) o query (obtiene datos) */
+  type: 'action' | 'query';
+  /** Query keys a invalidar después de ejecución exitosa */
+  invalidates?: string[];
+  /** Función opcional para generar mensaje de confirmación automático */
+  confirmationMessage?: (args: Record<string, unknown>) => string;
+}
+
+/**
  * Definición completa de una herramienta de voz
  */
 export interface VoiceTool {
   /** Declaración del tool para OpenAI (schema de function calling) */
   declaration: OpenAIToolDeclaration;
+  /** Metadata opcional para comportamientos automáticos */
+  metadata?: VoiceToolMetadata;
   /** Función que ejecuta la lógica del tool */
   execute: (args: Record<string, unknown>, context: VoiceToolContext) => Promise<VoiceToolResult>;
 }

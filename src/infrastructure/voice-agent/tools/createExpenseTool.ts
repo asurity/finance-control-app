@@ -116,6 +116,24 @@ export const createExpenseTool: VoiceTool = {
     },
   },
 
+  metadata: {
+    type: 'action',
+    invalidates: ['transactions', 'accounts', 'dashboard'],
+    confirmationMessage: (args) => {
+      const amount = args.amount as number;
+      const categoryName = args.categoryName as string | undefined;
+      const accountName = args.accountName as string | undefined;
+      
+      const formattedAmount = new Intl.NumberFormat('es-CL', {
+        style: 'currency',
+        currency: 'CLP',
+        minimumFractionDigits: 0,
+      }).format(amount);
+      
+      return `Gasto de ${formattedAmount} en ${categoryName || 'categoría'} registrado en ${accountName || 'cuenta'}`;
+    },
+  },
+
   async execute(
     args: Record<string, unknown>,
     context: VoiceToolContext
@@ -142,10 +160,29 @@ export const createExpenseTool: VoiceTool = {
         notes: validatedArgs.notes,
       });
 
+      // Obtener nombres de categoría y cuenta para confirmación descriptiva
+      const categoryRepo = context.container.getCategoryRepository();
+      const accountRepo = context.container.getAccountRepository();
+
+      const [categoryResult, accountResult] = await Promise.all([
+        categoryRepo.getById(validatedArgs.categoryId),
+        accountRepo.getById(validatedArgs.accountId),
+      ]);
+
+      const categoryName = categoryResult?.name || 'categoría';
+      const accountName = accountResult?.name || 'cuenta';
+
+      // Formatear monto
+      const formattedAmount = new Intl.NumberFormat('es-CL', {
+        style: 'currency',
+        currency: 'CLP',
+        minimumFractionDigits: 0,
+      }).format(validatedArgs.amount);
+
       return {
         success: true,
         data: result,
-        message: 'Registrado',
+        message: `Gasto de ${formattedAmount} en ${categoryName} registrado en ${accountName}`,
       };
     } catch (error) {
       console.error('Error en createExpenseTool:', error);

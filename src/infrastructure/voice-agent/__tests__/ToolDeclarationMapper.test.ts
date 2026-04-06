@@ -4,9 +4,9 @@
  */
 
 import { ToolDeclarationMapper } from '../ToolDeclarationMapper';
-import type { AIToolDeclaration } from '@/domain/ports/IAIRealtimeProvider';
+import type { ToolDeclaration } from '@/domain/ports/IVoiceProvider';
 
-const sampleTool: AIToolDeclaration = {
+const sampleTool: ToolDeclaration = {
   name: 'create_expense',
   description: 'Crear un gasto',
   parameters: {
@@ -85,7 +85,7 @@ describe('ToolDeclarationMapper', () => {
 
   describe('allToOpenAI', () => {
     it('debe mapear múltiples tools', () => {
-      const tools: AIToolDeclaration[] = [
+      const tools: ToolDeclaration[] = [
         sampleTool,
         { name: 'list_accounts', description: 'Listar cuentas', parameters: { type: 'object', properties: {} } },
       ];

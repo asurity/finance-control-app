@@ -17,6 +17,7 @@ import type { VoiceAgentState } from './VoiceProvider';
 interface VoicePushToTalkButtonProps {
   state: VoiceAgentState;
   recordingTimeLeft: number;
+  currentExecutingTool?: string | null;
   onStartRecording: () => void;
   onStopRecording: () => void;
   disabled?: boolean;
@@ -25,6 +26,7 @@ interface VoicePushToTalkButtonProps {
 export function VoicePushToTalkButton({
   state,
   recordingTimeLeft,
+  currentExecutingTool,
   onStartRecording,
   onStopRecording,
   disabled = false,
@@ -56,11 +58,27 @@ export function VoicePushToTalkButton({
   const isBusy = isConnecting || isProcessing || isExecuting;
 
   const getLabel = () => {
-    if (isConnecting) return 'Conectando...';
-    if (isRecording) return `Escuchando... ${recordingTimeLeft}s`;
-    if (isProcessing) return 'Procesando...';
-    if (isExecuting) return 'Ejecutando...';
-    return 'Mantén presionado para hablar';
+    if (isConnecting) return 'Preparando micrófono...';
+    if (isRecording) return `🎤 Te escucho (${recordingTimeLeft}s)`;
+    if (isProcessing) return 'Entendiendo tu comando...';
+    
+    if (isExecuting) {
+      // Mapeo de tools a mensajes descriptivos
+      const toolLabels: Record<string, string> = {
+        'create_expense': '💸 Registrando gasto...',
+        'create_income': '💰 Registrando ingreso...',
+        'get_balance': '💳 Consultando saldo...',
+        'get_dashboard_summary': '📊 Cargando resumen...',
+        'list_accounts': '🏦 Listando cuentas...',
+        'list_categories': '🏷️ Listando categorías...',
+        'get_organization_context': '⚙️ Cargando contexto...',
+        'navigate_to': '🧭 Navegando...',
+      };
+      
+      return toolLabels[currentExecutingTool || ''] || 'Ejecutando acción...';
+    }
+    
+    return '🎤 Presiona y mantén para hablar';
   };
 
   const getIcon = () => {

@@ -10,7 +10,7 @@ import { adminAuth } from '@/lib/firebase/admin';
 import { VOICE_AGENT_CONFIG, VOICE_LIMITS, buildSystemInstructions } from '@/infrastructure/voice-agent/config';
 import { AdminVoiceUsageRepository } from '@/infrastructure/repositories/AdminVoiceUsageRepository';
 import { APP_CONFIG } from '@/lib/constants/config';
-import type { AIProviderType } from '@/domain/ports';
+import type { VoiceProviderType } from '@/domain/ports/IVoiceProvider';
 
 /**
  * Repositorio de uso de voz (persistente en Firestore)
@@ -168,11 +168,11 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Determinar proveedor de AI
-    let provider: AIProviderType = APP_CONFIG.aiProvider;
+    let provider: VoiceProviderType = APP_CONFIG.aiProvider;
     try {
       const body = await request.json().catch(() => ({}));
       if (body.provider && ['openai', 'gemini', 'claude'].includes(body.provider)) {
-        provider = body.provider as AIProviderType;
+        provider = body.provider as VoiceProviderType;
       }
     } catch {
       // Sin body o body inválido, usar provider por defecto

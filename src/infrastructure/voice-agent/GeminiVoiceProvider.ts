@@ -1,26 +1,27 @@
 /**
- * GeminiTextProvider — Implementación de IAIRealtimeProvider para Gemini API + Web Speech API
+ * GeminiVoiceProvider — Implementación de IVoiceProvider para Gemini API + Web Speech API
  * 
- * FASE 3: Provider completo con Web Speech API (STT/TTS) + HTTP REST (Gemini function calling)
+ * Provider completo con Web Speech API (STT/TTS) + HTTP REST (Gemini function calling)
  * 
  * Arquitectura:
  * - STT: Web Speech API (SpeechRecognition) - GRATIS
  * - Function Calling: Gemini 2.5 Flash-Lite vía HTTP POST - GRATIS (tier gratuito)
  * - TTS: Web Speech API (speechSynthesis) - GRATIS
  * 
- * Diferencias vs OpenAIRealtimeProvider:
+ * Diferencias vs OpenAIRealtimeProvider (deprecated):
  * - No usa WebRTC/DataChannel → Usa fetch() a /api/voice/gemini
  * - No usa MediaStream para TTS → Usa speechSynthesis
  * - Multi-turno manual con conversationParts[] → No hay sesión persistente en servidor
  */
 
 import type {
-  IAIRealtimeProvider,
-  AIProviderState,
-  AIFunctionCall,
-  AISessionConfig,
-  AIToolDeclaration,
-} from '@/domain/ports/IAIRealtimeProvider';
+  IVoiceProvider,
+  VoiceProviderState,
+  FunctionCall,
+  VoiceSessionConfig,
+  ToolDeclaration,
+} from '@/domain/ports/IVoiceProvider';
+import { VoiceErrorHandler, type VoiceError } from './VoiceErrorHandler';
 import type { GeminiContentPart } from '@/app/api/voice/gemini/route';
 import { VOICE_LIMITS } from './config';
 
@@ -77,10 +78,10 @@ declare global {
   }
 }
 
-export class GeminiTextProvider implements IAIRealtimeProvider {
+export class GeminiVoiceProvider implements IVoiceProvider {
   private recognition: SpeechRecognition | null = null;
   private idToken: string | null = null;
-  private tools: AIToolDeclaration[] = [];
+  private tools: ToolDeclaration[] = [];
   private conversationParts: GeminiContentPart[] = [];
   private turnIndex: number = 0;
   private pendingFunctionCalls: number = 0;
@@ -91,41 +92,35 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
   private recordingStartTime: number | null = null;
   private currentTranscript: string = '';
   
-  private state: AIProviderState = 'idle';
+  private state: VoiceProviderState = 'idle';
 
-  // Event callbacks
-  private onStateChangeCallback?: (state: AIProviderState) => void;
-  private onFunctionCallCallback?: (call: AIFunctionCall) => void;
-  private onTranscriptCallback?: (transcript: string, isFinal: boolean) => void;
-  private onTextResponseCallback?: (text: string, isFinal: boolean) => void;
-  private onAudioResponseCallback?: (audioTrack: MediaStreamTrack) => void;
-  private onErrorCallback?: (error: Error) => void;
+  // Event callbacks (sin isFinal en las firmas)
+  private onStateChangeCallback?: (state: VoiceProviderState) => void;
+  private onFunctionCallCallback?: (call: FunctionCall) => void;
+  private onTranscriptCallback?: (transcript: string) => void;
+  private onResponseCallback?: (text: string) => void;
+  private onErrorCallback?: (error: VoiceError) => void;
   private onRecordingTimeUpdateCallback?: (timeLeft: number) => void;
 
-  // --- Event listener setters ---
+  // --- Event listener setters (interfaz IVoiceProvider) ---
 
-  onStateChange(callback: (state: AIProviderState) => void): void {
+  onStateChange(callback: (state: VoiceProviderState) => void): void {
     this.onStateChangeCallback = callback;
   }
 
-  onFunctionCall(callback: (call: AIFunctionCall) => void): void {
+  onFunctionCall(callback: (call: FunctionCall) => void): void {
     this.onFunctionCallCallback = callback;
   }
 
-  onTranscript(callback: (transcript: string, isFinal: boolean) => void): void {
+  onTranscript(callback: (transcript: string) => void): void {
     this.onTranscriptCallback = callback;
   }
 
-  onTextResponse(callback: (text: string, isFinal: boolean) => void): void {
-    this.onTextResponseCallback = callback;
+  onResponse(callback: (text: string) => void): void {
+    this.onResponseCallback = callback;
   }
 
-  onAudioResponse(callback: (audioTrack: MediaStreamTrack) => void): void {
-    this.onAudioResponseCallback = callback;
-    // No usado en Gemini (speechSynthesis es directo)
-  }
-
-  onError(callback: (error: Error) => void): void {
+  onError(callback: (error: VoiceError) => void): void {
     this.onErrorCallback = callback;
   }
 
@@ -135,10 +130,10 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
 
   // --- Private utility methods (used by public methods) ---
 
-  private setState(newState: AIProviderState): void {
+  private setState(newState: VoiceProviderState): void {
     if (this.state === newState) return;
     
-    console.log(`[GeminiTextProvider] Estado: ${this.state} → ${newState}`);
+    console.log(`[GeminiVoiceProvider] Estado: ${this.state} → ${newState}`);
     this.state = newState;
 
     if (this.onStateChangeCallback) {
@@ -151,8 +146,8 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
     }
   }
 
-  private handleError(error: Error): void {
-    console.error('[GeminiTextProvider] Error:', error);
+  private handleError(error: VoiceError): void {
+    console.error('[GeminiVoiceProvider] Error:', error);
     this.setState('error');
 
     if (this.onErrorCallback) {
@@ -187,8 +182,8 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
 
     // Timer para detener grabación automáticamente
     this.recordingTimer = setTimeout(() => {
-      console.log('[GeminiTextProvider] Tiempo máximo de grabación alcanzado');
-      this.stopAudioCaptureAndProcess();
+      console.log('[GeminiVoiceProvider] Tiempo máximo de grabación alcanzado');
+      this.stopRecording();
     }, maxDuration);
 
     // Interval para actualizar UI con tiempo restante
@@ -222,9 +217,9 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
 
       this.currentTranscript = transcript;
 
-      // Emitir transcripción
+      // Emitir transcripción (sin parámetro isFinal en callback)
       if (this.onTranscriptCallback) {
-        this.onTranscriptCallback(transcript.trim(), isFinal);
+        this.onTranscriptCallback(transcript.trim());
       }
 
       // Si es final, procesar
@@ -234,41 +229,45 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
     };
 
     this.recognition.onerror = (event) => {
-      console.error('[GeminiTextProvider] Recognition error:', event.error);
+      console.error('[GeminiVoiceProvider] Recognition error:', event.error);
       
-      // Manejar errores específicos
+      // Convertir errores de recognition a Error estándar para VoiceErrorHandler
+      let errorMessage: string;
+      
       if (event.error === 'no-speech') {
-        this.handleError(new Error('No se detectó audio. Intenta hablar más fuerte o verifica tu micrófono.'));
+        errorMessage = 'No se detectó audio. Intenta hablar más fuerte o verifica tu micrófono.';
       } else if (event.error === 'audio-capture') {
-        this.handleError(new Error('Error al capturar audio. Verifica que tu micrófono esté conectado.'));
+        errorMessage = 'Error al capturar audio. Verifica que tu micrófono esté conectado.';
       } else if (event.error === 'not-allowed') {
-        this.handleError(new Error('Permiso de micrófono denegado.'));
+        errorMessage = 'Permission denied: micrófono bloqueado';
       } else {
-        this.handleError(new Error(`Error de reconocimiento de voz: ${event.error}`));
+        errorMessage = `Error de reconocimiento de voz: ${event.error}`;
       }
+      
+      const voiceError = VoiceErrorHandler.handle(new Error(errorMessage));
+      this.handleError(voiceError);
     };
 
     this.recognition.onend = () => {
       // Recognition terminó - si aún estamos en recording y no hay transcript, error
       if (this.state === 'recording') {
         if (!this.currentTranscript || this.currentTranscript.trim().length === 0) {
-          this.handleError(new Error('No se detectó audio. Intenta de nuevo.'));
+          const error = VoiceErrorHandler.handle(new Error('No se detectó audio. Intenta de nuevo.'));
+          this.handleError(error);
         }
         // Si hay transcript, el procesamiento ya se disparó en onresult
       }
     };
   }
 
-  async connect(config: AISessionConfig): Promise<void> {
+  async connect(config: VoiceSessionConfig): Promise<void> {
     try {
       this.setState('connecting');
 
       // 1. Verificar soporte de Web Speech API
       const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognitionClass) {
-        throw new Error(
-          'Tu navegador no soporta reconocimiento de voz. Por favor usa Chrome, Edge o Safari.'
-        );
+        throw new Error('Tu navegador no soporta reconocimiento de voz. Por favor usa Chrome, Edge o Safari.');
       }
 
       // 2. Guardar token para requests HTTP
@@ -281,7 +280,9 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
         // Detener stream inmediatamente (solo queríamos permiso)
         stream.getTracks().forEach(track => track.stop());
       } catch (error) {
-        throw new Error('Permiso de micrófono denegado. Habilita el micrófono para usar el comando de voz.');
+        const permissionError = new Error('Permission denied: micrófono bloqueado');
+        permissionError.name = 'NotAllowedError';
+        throw permissionError;
       }
 
       // 4. Inicializar SpeechRecognition
@@ -295,7 +296,7 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
 
       // 5. Verificar soporte de speechSynthesis para TTS
       if (!window.speechSynthesis) {
-        console.warn('[GeminiTextProvider] speechSynthesis no disponible. TTS deshabilitado.');
+        console.warn('[GeminiVoiceProvider] speechSynthesis no disponible. TTS deshabilitado.');
       } else {
         // Cargar voces (necesario en algunos navegadores)
         if (speechSynthesis.getVoices().length === 0) {
@@ -309,7 +310,8 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
 
       this.setState('ready');
     } catch (error) {
-      this.handleError(error as Error);
+      const voiceError = VoiceErrorHandler.handle(error as Error);
+      this.handleError(voiceError);
       throw error;
     }
   }
@@ -338,13 +340,13 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
     this.setState('idle');
   }
 
-  async startAudioCapture(): Promise<void> {
+  async startRecording(): Promise<void> {
     if (!this.recognition) {
-      throw new Error('No hay conexión activa. Llama a connect() primero.');
+      throw new Error('Sesión expirada. No hay conexión activa.');
     }
 
     if (this.state === 'recording') {
-      console.warn('[GeminiTextProvider] Ya hay una grabación en curso');
+      console.warn('[GeminiVoiceProvider] Ya hay una grabación en curso');
       return;
     }
 
@@ -357,16 +359,16 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
     } catch (error) {
       // Si ya estaba iniciado, ignorar
       if ((error as Error).message?.includes('already started')) {
-        console.warn('[GeminiTextProvider] Recognition ya estaba iniciado');
+        console.warn('[GeminiVoiceProvider] Recognition ya estaba iniciado');
       } else {
         throw error;
       }
     }
   }
 
-  stopAudioCaptureAndProcess(): void {
+  stopRecording(): void {
     if (this.state !== 'recording') {
-      console.warn('[GeminiTextProvider] stopAudioCaptureAndProcess llamado pero no estamos grabando');
+      console.warn('[GeminiVoiceProvider] stopRecording llamado pero no estamos grabando');
       return;
     }
 
@@ -376,7 +378,7 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
       try {
         this.recognition.stop();
       } catch (error) {
-        console.warn('[GeminiTextProvider] Error stopping recognition:', error);
+        console.warn('[GeminiVoiceProvider] Error stopping recognition:', error);
       }
     }
 
@@ -387,7 +389,7 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
     // Obtener el nombre de la función del mapa
     const functionName = this.functionCallMap.get(callId);
     if (!functionName) {
-      console.error('[GeminiTextProvider] No se encontró función para callId:', callId);
+      console.error('[GeminiVoiceProvider] No se encontró función para callId:', callId);
       return;
     }
 
@@ -413,7 +415,7 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
     }
   }
 
-  getState(): AIProviderState {
+  getState(): VoiceProviderState {
     return this.state;
   }
 
@@ -421,7 +423,8 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
 
   private async processTranscript(text: string): Promise<void> {
     if (!text || text.length === 0) {
-      this.handleError(new Error('Transcripción vacía'));
+      const error = VoiceErrorHandler.handle(new Error('No se detectó audio'));
+      this.handleError(error);
       return;
     }
 
@@ -450,7 +453,7 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
         // Agregar function calls del modelo a conversationParts
         this.conversationParts.push({
           role: 'model',
-          parts: response.functionCalls.map((fc: AIFunctionCall) => ({
+          parts: response.functionCalls.map((fc: FunctionCall) => ({
             functionCall: {
               name: fc.name,
               args: fc.arguments,
@@ -471,9 +474,9 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
           parts: [{ text: response.textResponse }],
         });
 
-        // Emitir texto
-        if (this.onTextResponseCallback) {
-          this.onTextResponseCallback(response.textResponse, true);
+        // Emitir texto (sin isFinal)
+        if (this.onResponseCallback) {
+          this.onResponseCallback(response.textResponse);
         }
 
         // Hablar con TTS
@@ -482,10 +485,12 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
         this.transitionToReadyIfDone();
       } else {
         // Sin respuesta válida
-        this.handleError(new Error('Respuesta inválida del modelo'));
+        const error = VoiceErrorHandler.handle(new Error('Respuesta inválida del modelo'));
+        this.handleError(error);
       }
     } catch (error) {
-      this.handleError(error as Error);
+      const voiceError = VoiceErrorHandler.handle(error as Error);
+      this.handleError(voiceError);
     }
   }
 
@@ -508,7 +513,7 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
 
         this.conversationParts.push({
           role: 'model',
-          parts: response.functionCalls.map((fc: AIFunctionCall) => ({
+          parts: response.functionCalls.map((fc: FunctionCall) => ({
             functionCall: {
               name: fc.name,
               args: fc.arguments,
@@ -528,19 +533,31 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
           parts: [{ text: response.textResponse }],
         });
 
-        if (this.onTextResponseCallback) {
-          this.onTextResponseCallback(response.textResponse, true);
+        if (this.onResponseCallback) {
+          this.onResponseCallback(response.textResponse);
         }
 
         this.speak(response.textResponse);
         this.transitionToReadyIfDone();
       }
     } catch (error) {
-      this.handleError(error as Error);
+      const voiceError = VoiceErrorHandler.handle(error as Error);
+      this.handleError(voiceError);
     }
   }
 
   private async callGeminiAPI(text: string, isContinuation: boolean = false): Promise<any> {
+    // Cargar contexto pre-cargado de localStorage
+    let context = null;
+    try {
+      const contextStr = localStorage.getItem('voice_context');
+      if (contextStr) {
+        context = JSON.parse(contextStr);
+      }
+    } catch (err) {
+      console.warn('[GeminiVoiceProvider] Error cargando contexto:', err);
+    }
+
     const response = await fetch('/api/voice/gemini', {
       method: 'POST',
       headers: {
@@ -551,6 +568,7 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
         text: isContinuation ? '' : text,
         conversationHistory: isContinuation ? this.conversationParts : this.conversationParts.slice(0, -1),
         turnIndex: this.turnIndex++,
+        context, // Incluir contexto pre-cargado
       }),
     });
 
@@ -565,7 +583,7 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
   private speak(text: string): void {
     if (!text || text.length < 2) return;
     if (!window.speechSynthesis) {
-      console.warn('[GeminiTextProvider] speechSynthesis no disponible');
+      console.warn('[GeminiVoiceProvider] speechSynthesis no disponible');
       return;
     }
 
@@ -589,11 +607,11 @@ export class GeminiTextProvider implements IAIRealtimeProvider {
     }
 
     utterance.onend = () => {
-      console.log('[GeminiTextProvider] TTS completed');
+      console.log('[GeminiVoiceProvider] TTS completed');
     };
 
     utterance.onerror = (event) => {
-      console.error('[GeminiTextProvider] TTS error:', event.error);
+      console.error('[GeminiVoiceProvider] TTS error:', event.error);
     };
 
     speechSynthesis.speak(utterance);

@@ -8,6 +8,7 @@
  */
 
 import { useVoiceContext, VoiceAgentState } from '@/components/voice/VoiceProvider';
+import type { VoiceError } from '@/infrastructure/voice-agent/VoiceErrorHandler';
 import type { ConversationMessage } from '@/components/voice/VoiceConversationHistory';
 
 export interface UseVoiceAgent {
@@ -16,6 +17,7 @@ export interface UseVoiceAgent {
   isAvailable: boolean;
   isSessionActive: boolean;
   isModalOpen: boolean;
+  currentExecutingTool: string | null;
 
   // Acciones multi-turno
   openModal: () => void;
@@ -28,7 +30,7 @@ export interface UseVoiceAgent {
   // Datos
   transcript: string;
   response: string;
-  error: string | null;
+  error: VoiceError | null;
   commandsRemainingToday: number;
   recordingTimeLeft: number;
   conversationHistory: ConversationMessage[];
@@ -41,11 +43,6 @@ export interface UseVoiceAgent {
   isExecuting: boolean;
   isConversing: boolean;
   hasError: boolean;
-
-  // Backward compat (deprecados)
-  startCommand: () => Promise<void>;
-  cancelCommand: () => void;
-  forceCommitAudio: () => void;
 }
 
 /**
@@ -69,6 +66,7 @@ export function useVoiceAgent(): UseVoiceAgent {
     isAvailable: context.isAvailable,
     isSessionActive: context.isSessionActive,
     isModalOpen: context.isModalOpen,
+    currentExecutingTool: context.currentExecutingTool,
 
     // Acciones multi-turno
     openModal: context.openModal,
@@ -94,10 +92,5 @@ export function useVoiceAgent(): UseVoiceAgent {
     isExecuting,
     isConversing,
     hasError,
-
-    // Backward compat
-    startCommand: context.startCommand,
-    cancelCommand: context.cancelCommand,
-    forceCommitAudio: context.forceCommitAudio,
   };
 }
