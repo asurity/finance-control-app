@@ -41,13 +41,13 @@ function InitializeCategoriesInner({ orgId, userId }: { orgId: string; userId: s
 
     // Only seed if no categories exist
     if (categories.length === 0) {
-      console.log('[InitializeCategories] No categories found, initializing defaults...');
+      // console.log('[InitializeCategories] No categories found, initializing defaults...');
       seedCategories.mutate(userId);
       setInitialized(true);
     } else {
-      console.log(
-        `[InitializeCategories] Found ${categories.length} categories, skipping initialization`
-      );
+      // console.log(
+      //   `[InitializeCategories] Found ${categories.length} categories, skipping initialization`
+      // );
       setInitialized(true);
     }
   }, [categories, initialized, isLoading, seedCategories, userId]);

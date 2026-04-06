@@ -88,7 +88,7 @@ export function SavingsGoalForm({ orgId, userId, initialData, onSuccess }: Savin
             'yyyy-MM-dd'
           )
         : '',
-      linkedAccountId: initialData?.linkedAccountId || '',
+      linkedAccountId: initialData?.linkedAccountId || 'none',
     },
   });
 
@@ -103,7 +103,7 @@ export function SavingsGoalForm({ orgId, userId, initialData, onSuccess }: Savin
             targetAmount: values.targetAmount,
             icon: values.icon,
             targetDate: values.targetDate ? new Date(values.targetDate) : undefined,
-            linkedAccountId: values.linkedAccountId || undefined,
+            linkedAccountId: values.linkedAccountId && values.linkedAccountId !== 'none' ? values.linkedAccountId : undefined,
           },
         },
         { onSuccess }
@@ -119,7 +119,7 @@ export function SavingsGoalForm({ orgId, userId, initialData, onSuccess }: Savin
           status: 'ACTIVE',
           icon: values.icon,
           targetDate: values.targetDate ? new Date(values.targetDate) : undefined,
-          linkedAccountId: values.linkedAccountId || undefined,
+          linkedAccountId: values.linkedAccountId && values.linkedAccountId !== 'none' ? values.linkedAccountId : undefined,
           userId,
         } as Omit<SavingsGoal, 'id'>,
         { onSuccess }
@@ -232,14 +232,17 @@ export function SavingsGoalForm({ orgId, userId, initialData, onSuccess }: Savin
           render={({ field }) => (
             <FormItem>
               <FormLabel>Cuenta vinculada (opcional)</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value || 'none'}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Sin cuenta vinculada" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">Sin cuenta vinculada</SelectItem>
+                  <SelectItem value="none">Sin cuenta vinculada</SelectItem>
                   {accounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
                       {account.name}

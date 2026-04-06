@@ -23,8 +23,10 @@ export function useAlerts(orgId: string, userId: string) {
   const queryClient = useQueryClient();
   const container = DIContainer.getInstance();
 
-  // Set organization ID in DI container
-  container.setOrgId(orgId);
+  // Set organization ID in DI container (only if valid)
+  if (orgId) {
+    container.setOrgId(orgId);
+  }
 
   // Get repository
   const alertRepo = container.getAlertRepository();

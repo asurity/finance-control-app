@@ -210,6 +210,30 @@ export function useOrganization() {
     [currentOrgId, organizations]
   );
 
+  // Helper to check user permissions in current organization
+  const hasPermission = useCallback(
+    (permission: 'read' | 'write' | 'delete' | 'manage_users' | 'all') => {
+      if (!currentOrganization?.role) return false;
+
+      const role = currentOrganization.role;
+
+      // OWNER has all permissions
+      if (role === 'OWNER') return true;
+
+      // Check specific permissions by role
+      const rolePermissions: Record<string, string[]> = {
+        ADMIN: ['read', 'write', 'delete', 'manage_users'],
+        ACCOUNTANT: ['read', 'write'],
+        USER: ['read', 'write'],
+        VIEWER: ['read'],
+      };
+
+      const permissions = rolePermissions[role] || [];
+      return permissions.includes(permission);
+    },
+    [currentOrganization]
+  );
+
   return {
     organizations,
     currentOrgId,
@@ -218,5 +242,6 @@ export function useOrganization() {
     createOrganization,
     refreshOrganizations,
     isLoading,
+    hasPermission,
   };
 }

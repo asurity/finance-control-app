@@ -144,7 +144,7 @@ export class CreateTransactionUseCase extends BaseUseCase<
     // Update budget spent amount (only for EXPENSE transactions)
     if (input.type === 'EXPENSE') {
       await this.updateBudgetSpent(input.categoryId, input.amount, input.date);
-      await this.updateCategoryBudget(input.userId, input.categoryId, input.amount, input.date);
+      await this.updateCategoryBudget(account.orgId, input.categoryId, input.amount, input.date);
 
       // Check budget alerts as a side-effect (don't fail transaction if alerts fail)
       if (this.checkBudgetAlertsUseCase) {
@@ -180,7 +180,8 @@ export class CreateTransactionUseCase extends BaseUseCase<
     // Update available credit for credit accounts
     if (account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT') {
       if (account.creditLimit !== undefined) {
-        const newAvailableCredit = Math.max(0, account.creditLimit - Math.abs(newBalance));
+        // available = limit + balance (balance negative=debt, positive=saldo a favor)
+        const newAvailableCredit = account.creditLimit + newBalance;
         // Update availableCredit if the account repository supports it
         try {
           await this.accountRepo.update(accountId, {
@@ -200,19 +201,19 @@ export class CreateTransactionUseCase extends BaseUseCase<
    * @private
    */
   private async updateCategoryBudget(
-    userId: string,
+    organizationId: string | undefined,
     categoryId: string,
     amount: number,
     transactionDate: Date
   ): Promise<void> {
-    // Skip if budget repositories are not available
-    if (!this.budgetPeriodRepo || !this.categoryBudgetRepo) {
+    // Skip if budget repositories are not available or no organizationId
+    if (!this.budgetPeriodRepo || !this.categoryBudgetRepo || !organizationId) {
       return;
     }
 
     try {
-      // Find the budget period that contains the transaction date
-      const budgetPeriod = await this.budgetPeriodRepo.getByDate(userId, transactionDate);
+      // Find the budget period that contains the transaction date for this organization
+      const budgetPeriod = await this.budgetPeriodRepo.getByDateAndOrganization(organizationId, transactionDate);
       if (!budgetPeriod) {
         // No budget period configured for this date, skip tracking
         return;

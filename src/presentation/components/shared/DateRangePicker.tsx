@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface DateRangePickerProps {
   startDate: Date;
@@ -68,6 +69,7 @@ export function DateRangePicker({
     from: startDate,
     to: endDate,
   });
+  const { isMobile } = useResponsive();
 
   const handleSelect = (selected: DateRange | undefined) => {
     setRange(selected);
@@ -109,10 +111,10 @@ export function DateRangePicker({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <div className="flex">
+      <PopoverContent className="w-auto p-0 max-w-[calc(100vw-2rem)]" align="start">
+        <div className="flex flex-col sm:flex-row">
           {/* Presets */}
-          <div className="border-r p-3 space-y-1">
+          <div className="border-b sm:border-b-0 sm:border-r p-3 space-y-1">
             <p className="text-xs font-medium text-muted-foreground mb-2">Rápido</p>
             {PRESETS.map((preset) => (
               <Button
@@ -132,7 +134,7 @@ export function DateRangePicker({
               mode="range"
               selected={range}
               onSelect={handleSelect}
-              numberOfMonths={2}
+              numberOfMonths={isMobile ? 1 : 2}
               locale={es}
             />
           </div>

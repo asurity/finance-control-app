@@ -21,8 +21,7 @@ import { Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   format,
   startOfDay,
-  endOfDay,
-  startOfWeek,
+  endOfDay,  startOfWeek,
   endOfWeek,
   startOfMonth,
   endOfMonth,
@@ -31,6 +30,12 @@ import {
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { TransactionFilterState, DateRangePreset } from '@/types/filters';
+
+interface BudgetPeriod {
+  startDate: Date;
+  endDate: Date;
+  name: string;
+}
 
 interface Account {
   id: string;
@@ -50,6 +55,7 @@ interface TransactionFiltersProps {
   categories: Category[];
   onFiltersChange: (filters: TransactionFilterState) => void;
   initialFilters: TransactionFilterState;
+  activeBudgetPeriod?: BudgetPeriod | null;
 }
 
 export function TransactionFilters({
@@ -57,40 +63,55 @@ export function TransactionFilters({
   categories,
   onFiltersChange,
   initialFilters,
+  activeBudgetPeriod,
 }: TransactionFiltersProps) {
   const [filters, setFilters] = useState<TransactionFilterState>(initialFilters);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<DateRangePreset | 'activePeriod' | null>('activePeriod');
+
+  // Sync filters when initialFilters change
+  useEffect(() => {
+    setFilters(initialFilters);
+  }, [initialFilters]);
 
   // Apply date range preset
-  const applyDatePreset = (preset: DateRangePreset) => {
+  const applyDatePreset = (preset: DateRangePreset | 'activePeriod') => {
     const now = new Date();
     let startDate: Date;
     let endDate: Date;
 
-    switch (preset) {
-      case 'today':
-        startDate = startOfDay(now);
-        endDate = endOfDay(now);
-        break;
-      case 'week':
-        startDate = startOfWeek(now, { weekStartsOn: 1 });
-        endDate = endOfWeek(now, { weekStartsOn: 1 });
-        break;
-      case 'month':
-        startDate = startOfMonth(now);
-        endDate = endOfMonth(now);
-        break;
-      case 'lastMonth':
-        const lastMonth = subMonths(now, 1);
-        startDate = startOfMonth(lastMonth);
-        endDate = endOfMonth(lastMonth);
-        break;
-      case 'last3Months':
-        startDate = startOfMonth(subMonths(now, 2));
-        endDate = endOfMonth(now);
-        break;
-      default:
-        return;
+    if (preset === 'activePeriod' && activeBudgetPeriod) {
+      startDate = startOfDay(activeBudgetPeriod.startDate);
+      endDate = endOfDay(activeBudgetPeriod.endDate);
+      setSelectedPreset('activePeriod');
+    } else {
+      switch (preset) {
+        case 'today':
+          startDate = startOfDay(now);
+          endDate = endOfDay(now);
+          break;
+        case 'week':
+          startDate = startOfWeek(now, { weekStartsOn: 1 });
+          endDate = endOfWeek(now, { weekStartsOn: 1 });
+          break;
+        case 'month':
+          startDate = startOfMonth(now);
+          endDate = endOfMonth(now);
+          break;
+        case 'lastMonth':
+          const lastMonth = subMonths(now, 1);
+          startDate = startOfMonth(lastMonth);
+          endDate = endOfMonth(lastMonth);
+          break;
+        case 'last3Months':
+          startDate = startOfMonth(subMonths(now, 2));
+          endDate = endOfMonth(now);
+          break;
+        default:
+          return;
+      }
+      setSelectedPreset(preset);
     }
 
     updateFilters({ dateRange: { startDate, endDate } });
@@ -133,54 +154,81 @@ export function TransactionFilters({
   return (
     <Card>
       <CardContent className="pt-6">
-        {/* Primary Filters - Always Visible */}
-        <div className="space-y-4">
-          {/* Date Range Presets */}
-          <div className="space-y-2">
-            <Label>Período</Label>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => applyDatePreset('today')}
-              >
-                Hoy
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => applyDatePreset('week')}
-              >
-                Esta semana
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => applyDatePreset('month')}
-              >
-                Este mes
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => applyDatePreset('lastMonth')}
-              >
-                Mes pasado
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => applyDatePreset('last3Months')}
-              >
-                Últimos 3 meses
-              </Button>
-            </div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-medium">Filtros</h3>
+            {activeFiltersCount > 0 && (
+              <span className="text-xs text-muted-foreground">({activeFiltersCount})</span>
+            )}
           </div>
+          <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)}>
+            {isOpen ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+
+        {isOpen && (
+          <div className="space-y-4">
+            {/* Date Range Presets */}
+            <div className="space-y-2">
+              <Label>Período</Label>
+              <div className="flex flex-wrap gap-2">
+                {activeBudgetPeriod && (
+                  <Button
+                    type="button"
+                    variant={selectedPreset === 'activePeriod' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => applyDatePreset('activePeriod')}
+                  >
+                    Periodo activo
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant={selectedPreset === 'today' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => applyDatePreset('today')}
+                >
+                  Hoy
+                </Button>
+                <Button
+                  type="button"
+                  variant={selectedPreset === 'week' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => applyDatePreset('week')}
+                >
+                  Esta semana
+                </Button>
+                <Button
+                  type="button"
+                  variant={selectedPreset === 'month' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => applyDatePreset('month')}
+                >
+                  Este mes
+                </Button>
+                <Button
+                  type="button"
+                  variant={selectedPreset === 'lastMonth' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => applyDatePreset('lastMonth')}
+                >
+                  Mes pasado
+                </Button>
+                <Button
+                  type="button"
+                  variant={selectedPreset === 'last3Months' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => applyDatePreset('last3Months')}
+                >
+                  Últimos 3 meses
+                </Button>
+              </div>
+            </div>
 
           {/* Custom Date Range */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -353,6 +401,7 @@ export function TransactionFilters({
             )}
           </div>
         </div>
+        )}
       </CardContent>
     </Card>
   );

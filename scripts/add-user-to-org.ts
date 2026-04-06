@@ -1,129 +1,103 @@
 /**
- * Script para Agregar Usuario a Organización Existente
+ * Script para Agregar Usuario Existente a Organización
  * 
- * Este script crea un usuario en Firebase Auth y lo vincula a una organización existente
- * sin crear una nueva organización personal.
+ * Usa Firebase Admin SDK (bypasea reglas de seguridad).
+ * Ambos (usuario y organización) deben existir previamente.
  * 
  * Uso: npm run add-user
  */
 
-import { config } from 'dotenv';
-import { resolve } from 'path';
+import { initializeApp, cert, type ServiceAccount } from 'firebase-admin/app';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import * as path from 'path';
+import * as fs from 'fs';
 
-// Cargar variables de entorno desde .env.local
-config({ path: resolve(process.cwd(), '.env.local') });
+// Inicializar Firebase Admin
+const serviceAccountPath = path.join(__dirname, '..', 'cuentas-financieras-0625-firebase-adminsdk-fbsvc-d97375c92b.json');
 
-import { initializeApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
+if (!fs.existsSync(serviceAccountPath)) {
+  console.error('❌ Service account file not found at:', serviceAccountPath);
+  process.exit(1);
+}
 
-// Configuración de Firebase (leer desde .env.local)
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
+const serviceAccount = JSON.parse(
+  fs.readFileSync(serviceAccountPath, 'utf8')
+) as ServiceAccount;
 
-// Inicializar Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+initializeApp({ credential: cert(serviceAccount) });
+const db = getFirestore();
 
 // 🔧 CONFIGURACIÓN - Modifica estos datos
-const NEW_USER = {
-  email: 'carreronc@gmail.com',              // 📧 Email de tu esposa
-  password: 'Temporal2026!',                  // 🔒 Contraseña temporal (que ella cambie después)
-  name: 'Nieves Carrero',                     // 👤 Nombre completo
-};
-
-const EXISTING_ORG_ID = 'PEfURLowIyfxHbs66CpW'; // 🏢 ID de tu organización existente
-const ROLE = 'MEMBER'; // Opciones: 'OWNER', 'ADMIN', 'MEMBER'
+const EXISTING_USER_ID = 'Sy36q08EyiOZ1jxeHgVPZsb96mN2';
+const EXISTING_ORG_ID = 'QorVu0F4Y73evZrK6BF8';
+// Roles válidos: 'OWNER' | 'ADMIN' | 'ACCOUNTANT' | 'USER' | 'VIEWER'
+const ROLE = 'USER';
 
 async function addUserToOrganization() {
   try {
-    console.log('🚀 Iniciando proceso de agregar usuario a organización...\n');
-    console.log('📦 Proyecto:', firebaseConfig.projectId);
-    console.log('👤 Usuario:', NEW_USER.email);
+    console.log('🚀 Agregando usuario existente a organización...\n');
+    console.log('👤 Usuario UID:', EXISTING_USER_ID);
     console.log('🏢 Organización:', EXISTING_ORG_ID);
     console.log('🎭 Rol:', ROLE);
     console.log('');
 
     // 1. Verificar que la organización existe
     console.log('1️⃣ Verificando organización...');
-    const orgRef = doc(db, 'organizations', EXISTING_ORG_ID);
-    const orgDoc = await getDoc(orgRef);
+    const orgDoc = await db.collection('organizations').doc(EXISTING_ORG_ID).get();
     
-    if (!orgDoc.exists()) {
-      throw new Error(`❌ La organización ${EXISTING_ORG_ID} no existe en Firestore`);
+    if (!orgDoc.exists) {
+      throw new Error(`La organización ${EXISTING_ORG_ID} no existe en Firestore`);
     }
     
-    const orgData = orgDoc.data();
+    const orgData = orgDoc.data()!;
     console.log(`   ✅ Organización encontrada: "${orgData.name}"`);
 
-    // 2. Crear usuario en Firebase Auth
-    console.log('\n2️⃣ Creando usuario en Firebase Auth...');
-    const { user: firebaseUser } = await createUserWithEmailAndPassword(
-      auth,
-      NEW_USER.email,
-      NEW_USER.password
-    );
-    console.log(`   ✅ Usuario creado en Auth: ${firebaseUser.uid}`);
+    // 2. Verificar que el usuario existe
+    console.log('\n2️⃣ Verificando usuario...');
+    const userDoc = await db.collection('users').doc(EXISTING_USER_ID).get();
+    
+    if (!userDoc.exists) {
+      throw new Error(`El usuario ${EXISTING_USER_ID} no existe en Firestore`);
+    }
+    
+    const userData = userDoc.data()!;
+    console.log(`   ✅ Usuario encontrado: "${userData.name}" (${userData.email})`);
 
-    // 3. Crear documento en collection 'users'
-    console.log('\n3️⃣ Creando documento en Firestore...');
-    const userDocData = {
-      email: NEW_USER.email,
-      name: NEW_USER.name,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-    };
+    // 3. Verificar que no exista ya el membership
+    console.log('\n3️⃣ Verificando membership existente...');
+    const membershipId = `${EXISTING_ORG_ID}_${EXISTING_USER_ID}`;
+    const memberDoc = await db.collection('organizationMembers').doc(membershipId).get();
+    
+    if (memberDoc.exists) {
+      console.log(`   ⚠️ Ya es miembro con rol: ${memberDoc.data()!.role}`);
+      console.log('   No se realizaron cambios.');
+      process.exit(0);
+    }
 
-    await setDoc(doc(db, 'users', firebaseUser.uid), userDocData);
-    console.log(`   ✅ Documento creado en colección 'users'`);
-
-    // 4. Crear membership vinculando al usuario con la organización existente
+    // 4. Crear membership
     console.log('\n4️⃣ Creando membership...');
-    const membershipId = `${EXISTING_ORG_ID}_${firebaseUser.uid}`;
-    const memberDocData = {
+    await db.collection('organizationMembers').doc(membershipId).set({
       organizationId: EXISTING_ORG_ID,
-      userId: firebaseUser.uid,
+      userId: EXISTING_USER_ID,
       role: ROLE,
       joinedAt: Timestamp.now(),
-    };
-
-    await setDoc(doc(db, 'organizationMembers', membershipId), memberDocData);
+    });
     console.log(`   ✅ Membership creado: ${membershipId}`);
 
-    // Resumen final
+    // Resumen
     console.log('\n' + '='.repeat(70));
-    console.log('✨ ¡Usuario agregado exitosamente!');
+    console.log('✨ ¡Usuario agregado exitosamente a la organización!');
     console.log('='.repeat(70));
-    console.log('\n📊 Resumen:');
-    console.log(`   👤 Usuario ID: ${firebaseUser.uid}`);
-    console.log(`   📧 Email: ${NEW_USER.email}`);
-    console.log(`   👤 Nombre: ${NEW_USER.name}`);
-    console.log(`   🏢 Organización: ${orgData.name} (${EXISTING_ORG_ID})`);
-    console.log(`   🎭 Rol: ${ROLE}`);
-    console.log('\n🔐 Credenciales de acceso:');
-    console.log(`   Email: ${NEW_USER.email}`);
-    console.log(`   Password: ${NEW_USER.password}`);
-    console.log('\n⚠️  IMPORTANTE: Pídele que cambie su contraseña después del primer login');
-    console.log('');
+    console.log(`\n   👤 ${userData.name} (${userData.email})`);
+    console.log(`   🏢 ${orgData.name}`);
+    console.log(`   🎭 Rol: ${ROLE}\n`);
 
   } catch (error: any) {
     console.error('\n❌ Error:', error.message);
-    if (error.code === 'auth/email-already-in-use') {
-      console.log('\n💡 El email ya está registrado. Si necesitas agregarlo a otra organización,');
-      console.log('   puedes crear el membership manualmente en Firestore.');
-    }
     process.exit(1);
   }
 }
 
-// Ejecutar el script
 addUserToOrganization()
   .then(() => {
     console.log('✅ Script finalizado correctamente\n');

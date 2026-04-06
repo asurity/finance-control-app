@@ -78,7 +78,7 @@ export function BudgetPeriodSummaryCard({
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Asignado</p>
-            <p className="text-2xl font-bold text-blue-600">
+            <p className="text-2xl font-bold text-budget">
               {formatCurrency(summary.totalAllocated)}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -87,7 +87,7 @@ export function BudgetPeriodSummaryCard({
           </div>
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Gastado</p>
-            <p className="text-2xl font-bold text-red-600">{formatCurrency(summary.totalSpent)}</p>
+            <p className="text-2xl font-bold text-expense">{formatCurrency(summary.totalSpent)}</p>
             <p className="text-xs text-muted-foreground">
               {summary.spentPercentage.toFixed(1)}% del asignado
             </p>
@@ -95,12 +95,12 @@ export function BudgetPeriodSummaryCard({
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Disponible</p>
             <p
-              className={`text-2xl font-bold ${summary.totalRemaining >= 0 ? 'text-green-600' : 'text-red-600'}`}
+              className={`text-2xl font-bold ${summary.totalRemaining >= 0 ? 'text-success' : 'text-danger'}`}
             >
               {formatCurrency(Math.abs(summary.totalRemaining))}
             </p>
             {summary.totalRemaining < 0 && (
-              <p className="text-xs text-red-600 font-medium">Excedido</p>
+              <p className="text-xs text-danger font-medium">Excedido</p>
             )}
           </div>
         </div>
@@ -113,7 +113,7 @@ export function BudgetPeriodSummaryCard({
           </div>
           <Progress
             value={Math.min(summary.spentPercentage, 100)}
-            className={summary.spentPercentage > 100 ? 'bg-red-100' : undefined}
+            className={summary.spentPercentage > 100 ? 'bg-danger-light' : undefined}
           />
         </div>
 

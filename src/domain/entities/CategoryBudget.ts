@@ -14,7 +14,8 @@ export class CategoryBudget {
     public readonly userId: string,
     public readonly organizationId: string | null = null,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly updatedAt: Date = new Date(),
+    public readonly version: number = 1
   ) {
     this.validate();
   }
@@ -116,7 +117,8 @@ export class CategoryBudget {
       this.userId,
       this.organizationId,
       this.createdAt,
-      new Date() // updatedAt
+      new Date(), // updatedAt
+      this.version // preserve version for optimistic locking
     );
   }
 
@@ -138,7 +140,8 @@ export class CategoryBudget {
       this.userId,
       this.organizationId,
       this.createdAt,
-      new Date() // updatedAt
+      new Date(), // updatedAt
+      this.version // preserve version for optimistic locking
     );
   }
 
@@ -158,7 +161,8 @@ export class CategoryBudget {
       this.userId,
       this.organizationId,
       this.createdAt,
-      new Date() // updatedAt
+      new Date(), // updatedAt
+      this.version // preserve version for optimistic locking
     );
   }
 
@@ -181,7 +185,8 @@ export class CategoryBudget {
       this.userId,
       this.organizationId,
       this.createdAt,
-      new Date() // updatedAt
+      new Date(), // updatedAt
+      this.version // preserve version for optimistic locking
     );
   }
 
@@ -200,6 +205,7 @@ export class CategoryBudget {
       organizationId: this.organizationId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      version: this.version,
     };
   }
 }

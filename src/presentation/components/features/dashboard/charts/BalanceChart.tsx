@@ -12,9 +12,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
   Legend,
 } from 'recharts';
+import { ResponsiveChart } from '@/presentation/components/shared/Charts/ResponsiveChart';
 import { formatCurrency, formatCurrencyAbsolute } from '@/lib/utils/format';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
@@ -56,11 +56,11 @@ export function BalanceChart({
             <span className="text-muted-foreground">Balance: </span>
             <span className="font-medium">{formatCurrency(data.balance)}</span>
           </p>
-          <p className="text-sm text-green-600">
+          <p className="text-sm text-income">
             <span className="text-muted-foreground">Ingresos: </span>
             <span className="font-medium">{formatCurrencyAbsolute(data.income)}</span>
           </p>
-          <p className="text-sm text-red-600">
+          <p className="text-sm text-expense">
             <span className="text-muted-foreground">Gastos: </span>
             <span className="font-medium">{formatCurrencyAbsolute(data.expenses)}</span>
           </p>
@@ -71,9 +71,9 @@ export function BalanceChart({
   };
 
   const getTrendIcon = () => {
-    if (trend === 'up') return <TrendingUp className="h-4 w-4 text-green-600" />;
-    if (trend === 'down') return <TrendingDown className="h-4 w-4 text-red-600" />;
-    return <Minus className="h-4 w-4 text-gray-600" />;
+    if (trend === 'up') return <TrendingUp className="h-4 w-4 text-income" />;
+    if (trend === 'down') return <TrendingDown className="h-4 w-4 text-expense" />;
+    return <Minus className="h-4 w-4 text-muted-foreground" />;
   };
 
   const getTrendText = () => {
@@ -102,10 +102,10 @@ export function BalanceChart({
             <span
               className={`text-sm font-medium ${
                 trend === 'up'
-                  ? 'text-green-600'
+                  ? 'text-income'
                   : trend === 'down'
-                    ? 'text-red-600'
-                    : 'text-gray-600'
+                    ? 'text-expense'
+                    : 'text-muted-foreground'
               }`}
             >
               {getTrendText()}
@@ -114,7 +114,7 @@ export function BalanceChart({
         </div>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveChart desktopHeight={300} mobileHeight={220}>
           <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="date" tickFormatter={formatDate} className="text-xs" />
@@ -146,7 +146,7 @@ export function BalanceChart({
               strokeDasharray="5 5"
             />
           </LineChart>
-        </ResponsiveContainer>
+        </ResponsiveChart>
       </CardContent>
     </Card>
   );

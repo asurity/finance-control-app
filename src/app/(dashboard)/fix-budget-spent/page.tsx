@@ -198,7 +198,7 @@ export default function FixBudgetSpentPage() {
                   <li>Actualiza los valores incorrectos</li>
                   <li>
                     Usa{' '}
-                    <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">
+                    <code className="bg-info-light px-1 rounded">
                       {'>='} y {'<='}
                     </code>{' '}
                     para incluir fechas límite

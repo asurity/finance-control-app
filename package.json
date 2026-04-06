@@ -12,10 +12,12 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "seed:users": "tsx scripts/seed-users.ts",
     "add-user": "tsx scripts/add-user-to-org.ts",
+    "migrate:budget-versions": "tsx scripts/migrate-budget-versions.ts",
     "deploy": "npm run build && firebase deploy --only hosting",
     "deploy:full": "npm run build && firebase deploy"
   },
   "dependencies": {
+    "@google/genai": "^1.48.0",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -34,12 +36,14 @@
     "react-day-picker": "^9.14.0",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.71.2",
+    "react-joyride": "^3.0.2",
     "recharts": "^3.7.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

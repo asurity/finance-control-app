@@ -2,6 +2,7 @@ import { BaseUseCase } from '../base/BaseUseCase';
 import { ICategoryBudgetRepository } from '@/domain/repositories/ICategoryBudgetRepository';
 import { IBudgetPeriodRepository } from '@/domain/repositories/IBudgetPeriodRepository';
 import { ICategoryRepository } from '@/domain/repositories/ICategoryRepository';
+import { ITransactionRepository } from '@/domain/repositories/ITransactionRepository';
 import { CategoryBudget } from '@/domain/entities/CategoryBudget';
 
 /**
@@ -34,7 +35,8 @@ export class SetCategoryBudgetUseCase extends BaseUseCase<
   constructor(
     private categoryBudgetRepo: ICategoryBudgetRepository,
     private budgetPeriodRepo: IBudgetPeriodRepository,
-    private categoryRepo: ICategoryRepository
+    private categoryRepo: ICategoryRepository,
+    private transactionRepo: ITransactionRepository
   ) {
     super();
   }
@@ -89,6 +91,16 @@ export class SetCategoryBudgetUseCase extends BaseUseCase<
       input.percentage
     );
 
+    // Calculate initial spent amount from existing transactions in the period
+    const transactions = await this.transactionRepo.getByDateRange(
+      budgetPeriod.startDate,
+      budgetPeriod.endDate
+    );
+    
+    const initialSpentAmount = transactions
+      .filter(tx => tx.type === 'EXPENSE' && tx.categoryId === input.categoryId)
+      .reduce((sum, tx) => sum + tx.amount, 0);
+
     // Create category budget entity
     const categoryBudget = new CategoryBudget(
       '', // ID will be assigned by repository
@@ -96,7 +108,7 @@ export class SetCategoryBudgetUseCase extends BaseUseCase<
       input.categoryId,
       input.percentage,
       allocatedAmount,
-      0, // Initial spent amount
+      initialSpentAmount, // Use calculated spent amount
       input.userId,
       input.organizationId ?? null,
       new Date(),

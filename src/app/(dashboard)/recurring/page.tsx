@@ -34,6 +34,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
+import { ResponsiveTable, MobileCard } from '@/presentation/components/shared/DataTable';
 import { RecurringTransactionForm } from '@/presentation/components/features/recurring/RecurringTransactionForm';
 import { useOrganization } from '@/hooks/useOrganization';
 import { useAuth } from '@/contexts/AuthContext';
@@ -149,6 +150,20 @@ function RecurringTransactionsContent({ orgId, userId }: RecurringTransactionsCo
     return categories.find((c) => c.id === categoryId)?.name || 'Categoría desconocida';
   };
 
+  const renderRecurringActions = (rt: RecurringTransaction) => (
+    <div className="flex items-center justify-end gap-1">
+      <Button variant="ghost" size="icon" onClick={() => handleToggleActive(rt)} title={rt.isActive ? 'Pausar' : 'Reanudar'}>
+        {rt.isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+      </Button>
+      <Button variant="ghost" size="icon" onClick={() => setEditingTransaction(rt)} title="Editar">
+        <Pencil className="h-4 w-4" />
+      </Button>
+      <Button variant="ghost" size="icon" onClick={() => setDeletingTransactionId(rt.id)} title="Eliminar">
+        <Trash2 className="h-4 w-4 text-destructive" />
+      </Button>
+    </div>
+  );
+
   if (recurringLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -233,84 +248,39 @@ function RecurringTransactionsContent({ orgId, userId }: RecurringTransactionsCo
               </Button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Descripción</TableHead>
-                    <TableHead>Monto</TableHead>
-                    <TableHead>Frecuencia</TableHead>
-                    <TableHead>Cuenta</TableHead>
-                    <TableHead>Categoría</TableHead>
-                    <TableHead>Próxima Fecha</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recurringTransactions.map((rt) => (
-                    <TableRow key={rt.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">{FREQUENCY_ICONS[rt.frequency]}</span>
-                          <span className="font-medium">{rt.description}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <MoneyDisplay amount={rt.amount} type={rt.type.toLowerCase() as 'income' | 'expense'} />
-                      </TableCell>
-                      <TableCell>{FREQUENCY_LABELS[rt.frequency]}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {getAccountName(rt.accountId)}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {getCategoryName(rt.categoryId)}
-                      </TableCell>
-                      <TableCell>
-                        {format(rt.nextOccurrence, 'dd MMM yyyy', { locale: es })}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={rt.isActive ? 'default' : 'secondary'}>
-                          {rt.isActive ? 'Activa' : 'Pausada'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleToggleActive(rt)}
-                            title={rt.isActive ? 'Pausar' : 'Reanudar'}
-                          >
-                            {rt.isActive ? (
-                              <Pause className="h-4 w-4" />
-                            ) : (
-                              <Play className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setEditingTransaction(rt)}
-                            title="Editar"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeletingTransactionId(rt.id)}
-                            title="Eliminar"
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            <ResponsiveTable
+              data={recurringTransactions}
+              keyExtractor={(rt) => rt.id}
+              columns={[
+                { header: 'Descripción', accessor: (rt) => (
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{FREQUENCY_ICONS[rt.frequency]}</span>
+                    <span className="font-medium">{rt.description}</span>
+                  </div>
+                )},
+                { header: 'Monto', accessor: (rt) => <MoneyDisplay amount={rt.amount} type={rt.type.toLowerCase() as 'income' | 'expense'} /> },
+                { header: 'Frecuencia', accessor: (rt) => FREQUENCY_LABELS[rt.frequency] },
+                { header: 'Cuenta', accessor: (rt) => getAccountName(rt.accountId), className: 'text-muted-foreground' },
+                { header: 'Categoría', accessor: (rt) => getCategoryName(rt.categoryId), className: 'text-muted-foreground' },
+                { header: 'Próxima Fecha', accessor: (rt) => format(rt.nextOccurrence, 'dd MMM yyyy', { locale: es }) },
+                { header: 'Estado', accessor: (rt) => <Badge variant={rt.isActive ? 'default' : 'secondary'}>{rt.isActive ? 'Activa' : 'Pausada'}</Badge> },
+                { header: 'Acciones', accessor: (rt) => renderRecurringActions(rt), className: 'text-right' },
+              ]}
+              mobileCard={(rt) => (
+                <MobileCard
+                  title={`${FREQUENCY_ICONS[rt.frequency]} ${rt.description}`}
+                  badge={<Badge variant={rt.isActive ? 'default' : 'secondary'}>{rt.isActive ? 'Activa' : 'Pausada'}</Badge>}
+                  fields={[
+                    { label: 'Monto', value: <MoneyDisplay amount={rt.amount} type={rt.type.toLowerCase() as 'income' | 'expense'} /> },
+                    { label: 'Frecuencia', value: FREQUENCY_LABELS[rt.frequency] },
+                    { label: 'Cuenta', value: getAccountName(rt.accountId) },
+                    { label: 'Categoría', value: getCategoryName(rt.categoryId) },
+                    { label: 'Próxima', value: format(rt.nextOccurrence, 'dd MMM yyyy', { locale: es }) },
+                  ]}
+                  actions={renderRecurringActions(rt)}
+                />
+              )}
+            />
           )}
         </CardContent>
       </Card>

@@ -247,6 +247,10 @@ export function TransactionForm({
                   type="date"
                   value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
                   onChange={(e) => {
+                    if (!e.target.value) {
+                      field.onChange(undefined);
+                      return;
+                    }
                     const date = new Date(e.target.value + 'T00:00:00');
                     if (!isNaN(date.getTime())) {
                       field.onChange(date);

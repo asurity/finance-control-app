@@ -1,10 +1,11 @@
 /**
  * Weekly Expense Widget
- * Shows this week's spending with comparison to last week
+ * Shows this week's spending with comparison to last week, pie chart, and transaction list
  */
 
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MoneyDisplay } from '@/presentation/components/shared/MoneyDisplay';
 import {
@@ -15,10 +16,14 @@ import {
   ArrowDown,
   Receipt,
   DollarSign,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { DailyWeeklyStats } from '@/domain/use-cases/dashboard/GetDailyWeeklyStatsUseCase';
+import { TodayExpensesPieChart } from './TodayExpensesPieChart';
+import { Button } from '@/components/ui/button';
 
 interface WeeklyExpenseWidgetProps {
   stats: DailyWeeklyStats;
@@ -27,6 +32,7 @@ interface WeeklyExpenseWidgetProps {
 
 export function WeeklyExpenseWidget({ stats, date = new Date() }: WeeklyExpenseWidgetProps) {
   const { thisWeek, lastWeek } = stats;
+  const [showTransactions, setShowTransactions] = useState(false);
 
   // Calculate change percentage
   const changeAmount = thisWeek.totalExpenses - lastWeek.totalExpenses;
@@ -41,6 +47,9 @@ export function WeeklyExpenseWidget({ stats, date = new Date() }: WeeklyExpenseW
   const weekStart = startOfWeek(date, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
   const weekRange = `${format(weekStart, 'd MMM', { locale: es })} - ${format(weekEnd, 'd MMM', { locale: es })}`;
+
+  // Filter only expense transactions for the list
+  const expenseTransactions = thisWeek.transactions.filter((t) => t.type === 'EXPENSE');
 
   return (
     <Card>
@@ -94,6 +103,17 @@ export function WeeklyExpenseWidget({ stats, date = new Date() }: WeeklyExpenseW
           />
         </div>
 
+        {/* Pie chart - Expenses by category */}
+        {thisWeek.expensesByCategory.length > 0 && (
+          <div className="space-y-2 pt-2 border-t">
+            <p className="text-xs text-muted-foreground">Gastos por categoría</p>
+            <TodayExpensesPieChart
+              data={thisWeek.expensesByCategory}
+              totalExpenses={thisWeek.totalExpenses}
+            />
+          </div>
+        )}
+
         {/* Income info */}
         {thisWeek.totalIncome > 0 && (
           <div className="flex items-center justify-between pt-2 border-t text-sm">
@@ -110,13 +130,62 @@ export function WeeklyExpenseWidget({ stats, date = new Date() }: WeeklyExpenseW
           </div>
         )}
 
-        {/* Transaction count */}
-        <div className="flex items-center gap-2 pt-2 border-t text-sm text-muted-foreground">
-          <Receipt className="w-4 h-4" />
-          <span>
-            {thisWeek.transactionCount}{' '}
-            {thisWeek.transactionCount === 1 ? 'transacción' : 'transacciones'}
-          </span>
+        {/* Transaction count with expandable list */}
+        <div className="pt-2 border-t">
+          <Button
+            variant="ghost"
+            className="w-full flex items-center justify-between text-sm text-muted-foreground hover:text-foreground p-0 h-auto"
+            onClick={() => setShowTransactions(!showTransactions)}
+          >
+            <div className="flex items-center gap-2">
+              <Receipt className="w-4 h-4" />
+              <span>
+                {thisWeek.transactionCount}{' '}
+                {thisWeek.transactionCount === 1 ? 'transacción' : 'transacciones'}
+              </span>
+            </div>
+            {showTransactions ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </Button>
+
+          {/* Transaction list */}
+          {showTransactions && expenseTransactions.length > 0 && (
+            <div className="mt-3 space-y-2 max-h-[300px] overflow-y-auto">
+              {expenseTransactions.map((transaction) => {
+                // Find category name
+                const category = thisWeek.expensesByCategory.find(
+                  (cat) => cat.categoryId === transaction.categoryId
+                );
+
+                return (
+                  <div
+                    key={transaction.id}
+                    className="flex items-center justify-between p-2 rounded-md bg-muted/50 hover:bg-muted/80 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{transaction.description}</p>
+                      {category && (
+                        <p className="text-xs text-muted-foreground">{category.categoryName}</p>
+                      )}
+                    </div>
+                    <MoneyDisplay
+                      amount={transaction.amount}
+                      type="expense"
+                      size="sm"
+                      className="ml-2"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {showTransactions && expenseTransactions.length === 0 && (
+            <p className="text-xs text-muted-foreground mt-2">No hay gastos esta semana</p>
+          )}
         </div>
       </CardContent>
     </Card>

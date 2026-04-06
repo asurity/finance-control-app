@@ -62,7 +62,7 @@ export class DeleteTransactionUseCase extends BaseUseCase<
     // Decrement category budget spent amount if it was an expense
     if (transaction.type === 'EXPENSE') {
       await this.decrementCategoryBudget(
-        transaction.userId,
+        account.orgId,
         transaction.categoryId,
         transaction.amount,
         transaction.date
@@ -80,19 +80,19 @@ export class DeleteTransactionUseCase extends BaseUseCase<
    * @private
    */
   private async decrementCategoryBudget(
-    userId: string,
+    organizationId: string | undefined,
     categoryId: string,
     amount: number,
     transactionDate: Date
   ): Promise<void> {
-    // Skip if budget repositories are not available
-    if (!this.budgetPeriodRepo || !this.categoryBudgetRepo) {
+    // Skip if budget repositories are not available or no organizationId
+    if (!this.budgetPeriodRepo || !this.categoryBudgetRepo || !organizationId) {
       return;
     }
 
     try {
-      // Find the budget period that contains the transaction date
-      const budgetPeriod = await this.budgetPeriodRepo.getByDate(userId, transactionDate);
+      // Find the budget period that contains the transaction date for this organization
+      const budgetPeriod = await this.budgetPeriodRepo.getByDateAndOrganization(organizationId, transactionDate);
       if (!budgetPeriod) {
         // No budget period configured for this date, skip tracking
         return;

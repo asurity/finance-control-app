@@ -17,6 +17,7 @@ import {
   Cell,
   Legend,
 } from 'recharts';
+import { useResponsive } from '@/hooks/useResponsive';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils/format';
 import { AlertCircle, AlertTriangle } from 'lucide-react';
@@ -103,6 +104,7 @@ export function BudgetVsActualChart({
   totalBudget = 0,
   totalSpent = 0,
 }: BudgetVsActualChartProps) {
+  const { isMobile } = useResponsive();
   const formatYAxis = (value: string) => {
     // Truncar nombres largos en móvil
     return value.length > 12 ? value.substring(0, 12) + '...' : value;
@@ -184,11 +186,11 @@ export function BudgetVsActualChart({
         </div>
 
         {/* Chart - Responsive height */}
-        <ResponsiveContainer width="100%" height={Math.max(300, data.length * 50)}>
+        <ResponsiveContainer width="100%" height={Math.max(isMobile ? 220 : 300, data.length * (isMobile ? 40 : 50))}>
           <BarChart
             data={data}
             layout="vertical"
-            margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+            margin={{ top: 5, right: isMobile ? 10 : 30, left: isMobile ? 40 : 80, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
             <XAxis type="number" tickFormatter={formatXAxis} />

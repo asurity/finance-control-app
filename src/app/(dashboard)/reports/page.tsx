@@ -408,8 +408,8 @@ function ReportsContent({
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 dark:text-green-400">
+                  <TrendingUp className="h-4 w-4 text-income" />
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-income">
                     {formatCurrencyAbsolute(reportData.income)}
                   </p>
                 </div>
@@ -424,8 +424,8 @@ function ReportsContent({
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-2">
-                  <TrendingDown className="h-4 w-4 text-red-600" />
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-red-600 dark:text-red-400">
+                  <TrendingDown className="h-4 w-4 text-expense" />
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-expense">
                     {formatCurrencyAbsolute(reportData.expenses)}
                   </p>
                 </div>
@@ -440,7 +440,7 @@ function ReportsContent({
               </CardHeader>
               <CardContent>
                 <p
-                  className={`text-lg sm:text-xl lg:text-2xl font-bold ${reportData.netBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
+                  className={`text-lg sm:text-xl lg:text-2xl font-bold ${reportData.netBalance >= 0 ? 'text-income' : 'text-expense'}`}
                 >
                   {formatCurrencyWithSign(reportData.netBalance)}
                 </p>
@@ -496,7 +496,7 @@ function ReportsContent({
                             <span className="font-medium">{cat.categoryName}</span>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold text-red-600 dark:text-red-400">
+                            <p className="font-semibold text-expense">
                               {formatCurrencyAbsolute(cat.amount)}
                             </p>
                             <p className="text-xs text-muted-foreground">
@@ -549,7 +549,7 @@ function ReportsContent({
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>
                             Gastado:{' '}
-                            <span className="text-red-600 dark:text-red-400 font-medium">
+                            <span className="text-expense font-medium">
                               {formatCurrencyAbsolute(item.spent)}
                             </span>
                           </span>
@@ -562,7 +562,7 @@ function ReportsContent({
                         </div>
                         <Progress value={Math.min(item.percentage, 100)} className="h-2" />
                         {item.remaining < 0 && (
-                          <p className="text-xs text-red-600 dark:text-red-400 font-medium">
+                          <p className="text-xs text-expense font-medium">
                             Excedido por {formatCurrencyAbsolute(item.remaining)}
                           </p>
                         )}
@@ -642,8 +642,8 @@ function ReportsContent({
                                 <TableCell
                                   className={`text-right font-semibold ${
                                     transaction.type === 'INCOME'
-                                      ? 'text-green-600 dark:text-green-400'
-                                      : 'text-red-600 dark:text-red-400'
+                                      ? 'text-income'
+                                      : 'text-expense'
                                   }`}
                                 >
                                   {transaction.type === 'INCOME' ? '+' : '-'}

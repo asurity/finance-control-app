@@ -154,8 +154,8 @@ function StepAccount({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-blue-100 dark:bg-blue-900/30 p-3">
-          <Wallet className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+        <div className="rounded-full bg-primary-light p-3">
+          <Wallet className="h-6 w-6 text-primary" />
         </div>
         <div>
           <h2 className="text-xl font-bold">Crear tu primera cuenta</h2>
@@ -288,8 +288,8 @@ function StepBudgetPeriod({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-green-100 dark:bg-green-900/30 p-3">
-          <PiggyBank className="h-6 w-6 text-green-600 dark:text-green-400" />
+        <div className="rounded-full bg-budget-light p-3">
+          <PiggyBank className="h-6 w-6 text-budget" />
         </div>
         <div>
           <h2 className="text-xl font-bold">Crear período de presupuesto</h2>

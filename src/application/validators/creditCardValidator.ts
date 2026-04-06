@@ -21,10 +21,6 @@ export const CreateCreditCardSchema = z
     userId: z.string().min(1),
     isActive: z.boolean().default(true),
   })
-  .refine((data) => data.availableCredit <= data.creditLimit, {
-    message: 'El crédito disponible no puede exceder el límite de créd ito',
-    path: ['availableCredit'],
-  })
   .refine((data) => data.cutoffDay !== data.paymentDueDay, {
     message: 'El día de corte y el día de pago deben ser diferentes',
     path: ['paymentDueDay'],

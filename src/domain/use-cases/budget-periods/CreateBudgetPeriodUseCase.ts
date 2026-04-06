@@ -42,11 +42,14 @@ export class CreateBudgetPeriodUseCase extends BaseUseCase<
     }
 
     // Check for overlapping budget periods
-    const hasOverlap = await this.budgetPeriodRepo.hasOverlap(
-      input.userId,
-      input.startDate,
-      input.endDate
-    );
+    // Use organization-based check if organizationId is provided (shared budgets)
+    const hasOverlap = input.organizationId
+      ? await this.budgetPeriodRepo.hasOverlapInOrganization(
+          input.organizationId,
+          input.startDate,
+          input.endDate
+        )
+      : await this.budgetPeriodRepo.hasOverlap(input.userId, input.startDate, input.endDate);
 
     if (hasOverlap) {
       throw new Error('Budget period overlaps with an existing period');

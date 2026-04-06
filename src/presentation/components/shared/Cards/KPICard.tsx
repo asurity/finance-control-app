@@ -62,9 +62,9 @@ export function KPICard({
   };
 
   const getTrendColor = () => {
-    if (changeType === 'positive') return 'text-green-600 dark:text-green-400';
-    if (changeType === 'negative') return 'text-red-600 dark:text-red-400';
-    return 'text-gray-600 dark:text-gray-400';
+    if (changeType === 'positive') return 'text-success dark:text-success';
+    if (changeType === 'negative') return 'text-danger dark:text-danger';
+    return 'text-muted-foreground';
   };
 
   return (

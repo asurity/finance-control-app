@@ -59,9 +59,7 @@ export class CreditCard {
       throw new Error('Available credit cannot be negative');
     }
 
-    if (this.availableCredit > this.creditLimit) {
-      throw new Error('Available credit cannot exceed credit limit');
-    }
+    // availableCredit CAN exceed creditLimit when there's a saldo a favor (refund on paid card)
 
     if (this.currentBalance < 0) {
       throw new Error('Current balance cannot be negative');
@@ -175,11 +173,7 @@ export class CreditCard {
 
     this.currentBalance -= amount;
     this.availableCredit += amount;
-
-    // Ensure available credit doesn't exceed limit due to rounding
-    if (this.availableCredit > this.creditLimit) {
-      this.availableCredit = this.creditLimit;
-    }
+    // availableCredit CAN exceed creditLimit when there's a saldo a favor
   }
 
   /**

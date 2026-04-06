@@ -137,7 +137,10 @@ export class DIContainer {
 
   getOrgId(): string {
     if (!this.orgId) {
-      throw new Error('Organization ID not set. Call setOrgId() first.');
+      // Return empty string instead of throwing — hooks may be initialized
+      // before orgId is available. Queries are guarded with `enabled: !!orgId`
+      // so no Firestore calls will execute with an empty orgId.
+      return '';
     }
     return this.orgId;
   }
@@ -291,7 +294,8 @@ export class DIContainer {
       this.getTransactionRepository(),
       this.getAccountRepository(),
       this.getBudgetRepository(),
-      this.getAlertRepository()
+      this.getAlertRepository(),
+      this.getBudgetPeriodRepository()
     );
   }
 
@@ -305,14 +309,16 @@ export class DIContainer {
   getGetExpensesByCategoryUseCase(): GetExpensesByCategoryUseCase {
     return new GetExpensesByCategoryUseCase(
       this.getTransactionRepository(),
-      this.getCategoryRepository()
+      this.getCategoryRepository(),
+      this.getBudgetPeriodRepository()
     );
   }
 
   getGetDailyWeeklyStatsUseCase(): GetDailyWeeklyStatsUseCase {
     return new GetDailyWeeklyStatsUseCase(
       this.getTransactionRepository(),
-      this.getBudgetPeriodRepository()
+      this.getBudgetPeriodRepository(),
+      this.getCategoryRepository()
     );
   }
 
@@ -330,7 +336,9 @@ export class DIContainer {
   getUpdateTransactionUseCase(): UpdateTransactionUseCase {
     return new UpdateTransactionUseCase(
       this.getTransactionRepository(),
-      this.getAccountRepository()
+      this.getAccountRepository(),
+      this.getBudgetPeriodRepository(),
+      this.getCategoryBudgetRepository()
     );
   }
 
@@ -516,7 +524,8 @@ export class DIContainer {
     return new SetCategoryBudgetUseCase(
       this.getCategoryBudgetRepository(),
       this.getBudgetPeriodRepository(),
-      this.getCategoryRepository()
+      this.getCategoryRepository(),
+      this.getTransactionRepository()
     );
   }
 

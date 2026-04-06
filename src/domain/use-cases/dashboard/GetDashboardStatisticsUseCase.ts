@@ -3,13 +3,27 @@ import { ITransactionRepository } from '@/domain/repositories/ITransactionReposi
 import { IAccountRepository } from '@/domain/repositories/IAccountRepository';
 import { IBudgetRepository } from '@/domain/repositories/IBudgetRepository';
 import { IAlertRepository } from '@/domain/repositories/IAlertRepository';
+import { IBudgetPeriodRepository } from '@/domain/repositories/IBudgetPeriodRepository';
+import { startOfDay, eachDayOfInterval, format } from 'date-fns';
+
+/**
+ * Daily Accumulation Data Point
+ */
+export interface DailyAccumulation {
+  date: string; // ISO format YYYY-MM-DD
+  accumulatedIncome: number;
+  accumulatedExpenses: number;
+  dailyIncome: number;
+  dailyExpenses: number;
+}
 
 /**
  * Dashboard Statistics Output
  */
 export interface DashboardStatistics {
   // Balance metrics
-  currentBalance: number;
+  currentBalance: number; // Net worth (assets - liabilities)
+  availableToSpend: number; // Cash + available credit
   totalIncome: number;
   totalExpenses: number;
   monthlyChange: number;
@@ -39,6 +53,9 @@ export interface DashboardStatistics {
     expense: number;
     total: number;
   };
+
+  // Daily accumulations for charts
+  dailyAccumulations: DailyAccumulation[];
 }
 
 /**
@@ -61,16 +78,50 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
     private transactionRepo: ITransactionRepository,
     private accountRepo: IAccountRepository,
     private budgetRepo: IBudgetRepository,
-    private alertRepo: IAlertRepository
+    private alertRepo: IAlertRepository,
+    private budgetPeriodRepo: IBudgetPeriodRepository
   ) {
     super();
   }
 
   async execute(input: GetDashboardStatisticsInput): Promise<DashboardStatistics> {
-    // Calculate date range based on period
-    const { startDate, endDate, previousStartDate, previousEndDate } = this.calculateDateRange(
-      input.period
-    );
+    // Try to get active budget period first (for custom date ranges like 26-26)
+    const activeBudgetPeriod = await this.budgetPeriodRepo.getByDate(input.userId, new Date());
+    
+    let startDate: Date;
+    let endDate: Date;
+    let previousStartDate: Date;
+    let previousEndDate: Date;
+
+    if (activeBudgetPeriod && input.period === 'month') {
+      // Use the active budget period dates for 'month' view
+      // console.log('Using active budget period:', {
+      //   name: activeBudgetPeriod.name,
+      //   startDate: activeBudgetPeriod.startDate,
+      //   endDate: activeBudgetPeriod.endDate,
+      // });
+      
+      startDate = new Date(activeBudgetPeriod.startDate);
+      endDate = new Date(activeBudgetPeriod.endDate);
+      
+      // Calculate previous period (same duration backwards)
+      const periodDuration = endDate.getTime() - startDate.getTime();
+      previousEndDate = new Date(startDate.getTime() - 1); // Day before current period
+      previousStartDate = new Date(previousEndDate.getTime() - periodDuration);
+    } else {
+      // Fallback to default period calculation (week, quarter, year, or no active period)
+      const dateRange = this.calculateDateRange(input.period);
+      startDate = dateRange.startDate;
+      endDate = dateRange.endDate;
+      previousStartDate = dateRange.previousStartDate;
+      previousEndDate = dateRange.previousEndDate;
+    }
+
+    // console.log('Dashboard period range:', {
+    //   period: input.period,
+    //   startDate: startDate.toISOString(),
+    //   endDate: endDate.toISOString(),
+    // });
 
     // Get transactions for current period
     const currentTransactions = await this.transactionRepo.getByDateRange(startDate, endDate);
@@ -106,6 +157,7 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
     // Get current balance from all accounts
     const accounts = await this.accountRepo.getActive();
     const currentBalance = await this.accountRepo.getNetWorth();
+    const availableToSpend = await this.accountRepo.getAvailableToSpend();
 
     // Calculate monthly change
     const currentPeriodBalance = totalIncome - totalExpenses;
@@ -120,14 +172,11 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
     // Get active budgets
     const activeBudgets = await this.budgetRepo.getActive(new Date());
 
-    // Calculate average budget usage
+    // Calculate average budget usage using the spent amount already tracked in budgets
     let totalBudgetUsage = 0;
     for (const budget of activeBudgets) {
-      const budgetTransactions = userCurrentTransactions.filter(
-        (t) => t.categoryId === budget.categoryId && t.type === 'EXPENSE'
-      );
-      const spent = budgetTransactions.reduce((sum, t) => sum + t.amount, 0);
-      const usage = (spent / budget.amount) * 100;
+      // Use the spent amount already calculated and stored in the budget
+      const usage = (budget.spent / budget.amount) * 100;
       totalBudgetUsage += usage;
     }
     const budgetUsage = activeBudgets.length > 0 ? totalBudgetUsage / activeBudgets.length : 0;
@@ -179,8 +228,20 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
       total: userCurrentTransactions.length,
     };
 
+    // Calculate daily accumulations for the period
+    // Only show data up to today (don't show future dates)
+    const today = new Date();
+    const effectiveEndDate = endDate > today ? today : endDate;
+    
+    const dailyAccumulations = this.calculateDailyAccumulations(
+      userCurrentTransactions,
+      startDate,
+      effectiveEndDate
+    );
+
     return {
       currentBalance,
+      availableToSpend,
       totalIncome,
       totalExpenses,
       monthlyChange,
@@ -191,7 +252,99 @@ export class GetDashboardStatisticsUseCase extends BaseUseCase<
       budgetUsage: Math.round(budgetUsage * 10) / 10,
       topExpenseCategory,
       transactionCounts,
+      dailyAccumulations,
     };
+  }
+
+  /**
+   * Calculate daily income and expense accumulations
+   */
+  private calculateDailyAccumulations(
+    transactions: any[],
+    startDate: Date,
+    endDate: Date
+  ): DailyAccumulation[] {
+    try {
+      // Validate dates
+      if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.error('Invalid date range for daily accumulations:', { startDate, endDate });
+        return [];
+      }
+
+      // Get all days in the period
+      const days = eachDayOfInterval({ start: startDate, end: endDate });
+
+      // Group transactions by day
+      const dailyData: Record<string, { income: number; expenses: number }> = {};
+
+      days.forEach((day) => {
+        const dateKey = format(day, 'yyyy-MM-dd');
+        dailyData[dateKey] = { income: 0, expenses: 0 };
+      });
+
+    // Aggregate transactions by day
+    transactions.forEach((transaction) => {
+      try {
+        // Handle Firestore Timestamp objects or Date objects
+        let transactionDate: Date;
+        if (transaction.date instanceof Date) {
+          transactionDate = transaction.date;
+        } else if (transaction.date?.toDate) {
+          // Firestore Timestamp
+          transactionDate = transaction.date.toDate();
+        } else if (typeof transaction.date === 'string') {
+          transactionDate = new Date(transaction.date);
+        } else {
+          console.warn('Invalid transaction date format:', transaction.date);
+          return; // Skip this transaction
+        }
+
+        // Validate date is valid
+        if (isNaN(transactionDate.getTime())) {
+          console.warn('Invalid transaction date value:', transaction.date);
+          return; // Skip this transaction
+        }
+
+        const dateKey = format(startOfDay(transactionDate), 'yyyy-MM-dd');
+
+        if (dailyData[dateKey]) {
+          if (transaction.type === 'INCOME') {
+            dailyData[dateKey].income += transaction.amount;
+          } else if (transaction.type === 'EXPENSE') {
+            dailyData[dateKey].expenses += transaction.amount;
+          }
+        }
+      } catch (error) {
+        console.error('Error processing transaction date:', transaction.date, error);
+      }
+    });
+
+    // Calculate accumulations
+    let accumulatedIncome = 0;
+    let accumulatedExpenses = 0;
+    const result: DailyAccumulation[] = [];
+
+    days.forEach((day) => {
+      const dateKey = format(day, 'yyyy-MM-dd');
+      const dayData = dailyData[dateKey];
+
+      accumulatedIncome += dayData.income;
+      accumulatedExpenses += dayData.expenses;
+
+      result.push({
+        date: dateKey,
+        accumulatedIncome,
+        accumulatedExpenses,
+        dailyIncome: dayData.income,
+        dailyExpenses: dayData.expenses,
+      });
+    });
+
+    return result;
+    } catch (error) {
+      console.error('Error calculating daily accumulations:', error);
+      return [];
+    }
   }
 
   private calculateDateRange(period: 'week' | 'month' | 'quarter' | 'year'): {

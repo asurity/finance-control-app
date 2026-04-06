@@ -77,8 +77,8 @@ export class UpdateCategoryBudgetPercentageUseCase extends BaseUseCase<
       budgetPeriod.totalAmount
     );
 
-    // Save updated category budget
-    await this.categoryBudgetRepo.update(input.id, updatedCategoryBudget);
+    // Save updated category budget with optimistic locking
+    await this.categoryBudgetRepo.updateWithOptimisticLock(input.id, updatedCategoryBudget);
 
     return {
       categoryBudget: updatedCategoryBudget,

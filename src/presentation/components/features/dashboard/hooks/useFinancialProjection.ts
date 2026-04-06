@@ -31,6 +31,7 @@ export function useFinancialProjection(referenceDate: Date = new Date()) {
         const useCase = container.getCalculateFinancialProjectionUseCase();
         const result = await useCase.execute({
           userId: user.id,
+          organizationId: currentOrgId,
           referenceDate,
         });
         return result;

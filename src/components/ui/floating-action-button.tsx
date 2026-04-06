@@ -38,8 +38,8 @@ export function FloatingActionButton({
         />
       )}
 
-      {/* Contenedor del FAB */}
-      <div className={cn('fixed bottom-6 right-6 z-50 lg:hidden', className)}>
+      {/* Contenedor del FAB - posicionado encima del VoiceButton */}
+      <div className={cn('fixed bottom-24 right-6 z-50 lg:hidden', className)}>
         {/* Opciones del menú */}
         <div
           className={cn(
@@ -50,7 +50,7 @@ export function FloatingActionButton({
           {/* Opción de Gasto */}
           <button
             onClick={handleExpenseClick}
-            className="flex items-center gap-3 bg-red-500 text-white px-4 py-3 rounded-full shadow-lg hover:bg-red-600 transition-colors"
+            className="flex items-center gap-3 bg-expense text-expense-foreground px-4 py-3 rounded-full shadow-lg hover:bg-expense/90 transition-colors"
           >
             <TrendingDown className="h-5 w-5" />
             <span className="font-medium text-sm whitespace-nowrap">Nuevo Gasto</span>
@@ -59,7 +59,7 @@ export function FloatingActionButton({
           {/* Opción de Ingreso */}
           <button
             onClick={handleIncomeClick}
-            className="flex items-center gap-3 bg-green-500 text-white px-4 py-3 rounded-full shadow-lg hover:bg-green-600 transition-colors"
+            className="flex items-center gap-3 bg-income text-income-foreground px-4 py-3 rounded-full shadow-lg hover:bg-income/90 transition-colors"
           >
             <TrendingUp className="h-5 w-5" />
             <span className="font-medium text-sm whitespace-nowrap">Nuevo Ingreso</span>

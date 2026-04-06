@@ -24,7 +24,8 @@ export class CategoryBudgetMapper {
       doc.userId,
       doc.organizationId || null,
       doc.createdAt instanceof Timestamp ? doc.createdAt.toDate() : new Date(doc.createdAt),
-      doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : new Date(doc.updatedAt)
+      doc.updatedAt instanceof Timestamp ? doc.updatedAt.toDate() : new Date(doc.updatedAt),
+      doc.version || 1
     );
   }
 
@@ -44,6 +45,7 @@ export class CategoryBudgetMapper {
       organizationId: categoryBudget.organizationId || null,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
+      version: 1,
     };
   }
 
@@ -56,6 +58,8 @@ export class CategoryBudgetMapper {
     const data: DocumentData = {
       updatedAt: Timestamp.now(),
     };
+
+    // Note: version is handled separately in optimistic locking
 
     if (categoryBudget.percentage !== undefined) {
       data.percentage = categoryBudget.percentage;

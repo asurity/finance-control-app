@@ -13,6 +13,7 @@ import {
   GetBudgetPeriodSummaryDTO,
   ListCategoryBudgetsDTO,
 } from '@/application/dto';
+import { handleOptimisticLockError } from '@/lib/utils/optimisticLockErrorHandler';
 
 /**
  * Category Budget query keys factory
@@ -36,8 +37,10 @@ export function useCategoryBudgets(orgId: string) {
   const queryClient = useQueryClient();
   const container = DIContainer.getInstance();
 
-  // Set organization ID in DI container
-  container.setOrgId(orgId);
+  // Set organization ID in DI container (only if valid)
+  if (orgId) {
+    container.setOrgId(orgId);
+  }
 
   // Get use cases
   const setCategoryBudgetUseCase = container.getSetCategoryBudgetUseCase();
@@ -144,6 +147,10 @@ export function useCategoryBudgets(orgId: string) {
       queryClient.invalidateQueries({ queryKey: categoryBudgetKeys.status(orgId, variables.id) });
       // Invalidate all lists that might contain this budget
       queryClient.invalidateQueries({ queryKey: categoryBudgetKeys.all(orgId) });
+    },
+    onError: (error) => {
+      // Handle optimistic locking errors with user-friendly messages
+      handleOptimisticLockError(error);
     },
   });
 

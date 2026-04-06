@@ -20,7 +20,7 @@ import {
   Bell,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { APP_CONFIG } from '@/lib/constants/config';
 
@@ -67,9 +67,8 @@ function SidebarContent({ onLinkClick }: SidebarContentProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Filtrar items de debug en producción
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  const visibleMenuItems = menuItems.filter((item) => isDevelopment || !item.debug);
+  // Debug items are always hidden from the sidebar (use direct URLs if needed)
+  const visibleMenuItems = menuItems.filter((item) => !item.debug);
 
   const handleNavigation = (href: string) => {
     router.push(href);
@@ -149,6 +148,12 @@ export function Sidebar() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-64 p-0">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Menú de navegación</SheetTitle>
+            <SheetDescription>
+              Accede a todas las secciones de la aplicación
+            </SheetDescription>
+          </SheetHeader>
           <div className="flex flex-col h-full">
             <SidebarContent onLinkClick={() => setMobileMenuOpen(false)} />
           </div>

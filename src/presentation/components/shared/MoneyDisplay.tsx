@@ -33,12 +33,12 @@ export function MoneyDisplay({
   let formattedAmount: string;
   let colorClass: string;
 
-  // Size classes
+  // Size classes with responsive scaling
   const sizeClasses = {
-    sm: 'text-sm',
-    md: 'text-base',
-    lg: 'text-lg',
-    xl: 'text-2xl',
+    sm: 'text-xs sm:text-sm',
+    md: 'text-sm sm:text-base',
+    lg: 'text-base sm:text-lg',
+    xl: 'text-lg sm:text-xl md:text-2xl',
   };
 
   // Apply rules based on type
@@ -49,7 +49,7 @@ export function MoneyDisplay({
           ? `+${formatCurrencyAbsolute(amount)}`
           : `-${formatCurrencyAbsolute(amount)}`
         : formatCurrencyAbsolute(amount);
-      colorClass = 'text-green-600 dark:text-green-400';
+      colorClass = 'text-income';
       break;
 
     case 'expense':
@@ -58,14 +58,14 @@ export function MoneyDisplay({
           ? `+${formatCurrencyAbsolute(amount)}`
           : `-${formatCurrencyAbsolute(amount)}`
         : formatCurrencyAbsolute(amount);
-      colorClass = 'text-red-600 dark:text-red-400';
+      colorClass = 'text-expense';
       break;
 
     case 'balance':
       // Balance always shows sign
       formattedAmount = formatCurrencyWithSign(amount);
       colorClass =
-        amount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+        amount >= 0 ? 'text-income' : 'text-expense';
       break;
 
     case 'neutral':

@@ -24,8 +24,10 @@ export function useRecurringTransactions(orgId: string, userId: string) {
   const queryClient = useQueryClient();
   const container = DIContainer.getInstance();
 
-  // Set organization ID in DI container
-  container.setOrgId(orgId);
+  // Set organization ID in DI container (only if valid)
+  if (orgId) {
+    container.setOrgId(orgId);
+  }
 
   // Get repository
   const recurringRepo = container.getRecurringTransactionRepository();
@@ -107,11 +109,18 @@ export function useRecurringTransactions(orgId: string, userId: string) {
   const processRecurringTransaction = useMutation({
     mutationFn: (recurringId: string) =>
       processRecurringUseCase.execute({ currentDate: new Date() }),
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: recurringTransactionKeys.all(orgId, userId) });
       queryClient.invalidateQueries({ queryKey: ['transactions', orgId] });
       queryClient.invalidateQueries({ queryKey: ['accounts', orgId] });
-      toast.success('Transacción procesada');
+      
+      // Solo mostrar toast si realmente procesó transacciones
+      if (result.processedCount > 0) {
+        const message = result.processedCount === 1 
+          ? '1 transacción procesada' 
+          : `${result.processedCount} transacciones procesadas`;
+        toast.success(message);
+      }
     },
     onError: (error: Error) => {
       toast.error(`Error al procesar: ${error.message}`);

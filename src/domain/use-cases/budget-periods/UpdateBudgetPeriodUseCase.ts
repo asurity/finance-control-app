@@ -75,8 +75,8 @@ export class UpdateBudgetPeriodUseCase extends BaseUseCase<
       description: input.description,
     });
 
-    // Save updated budget period
-    await this.budgetPeriodRepo.update(input.id, updatedBudgetPeriod);
+    // Save updated budget period with optimistic locking
+    await this.budgetPeriodRepo.updateWithOptimisticLock(input.id, updatedBudgetPeriod);
 
     // If total amount changed, recalculate all category budgets
     if (input.totalAmount && input.totalAmount !== existingBudgetPeriod.totalAmount) {

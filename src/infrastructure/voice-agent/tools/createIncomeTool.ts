@@ -1,0 +1,204 @@
+/**
+ * Tool: Create Income
+ * Crea un ingreso en la aplicación mediante comando de voz
+ * Fase 2: Tool Declarations
+ */
+
+import { z } from 'zod';
+import { VoiceTool, VoiceToolContext, VoiceToolResult } from '../types';
+import { CreateTransactionUseCase } from '@/domain/use-cases/transactions/CreateTransactionUseCase';
+
+/**
+ * Schema de validación para los argumentos del tool
+ */
+const CreateIncomeArgsSchema = z.object({
+  amount: z.number().positive('El monto debe ser positivo'),
+  description: z.string().min(1, 'La descripción es requerida'),
+  categoryId: z.string().min(1, 'El ID de categoría es requerido'),
+  accountId: z.string().min(1, 'El ID de cuenta es requerido'),
+  date: z.string().optional(), // Fecha en formato ISO o relativa (ej: "ayer", "hace 2 días")
+  notes: z.string().optional(),
+});
+
+type CreateIncomeArgs = z.infer<typeof CreateIncomeArgsSchema>;
+
+/**
+ * Parsea una fecha relativa o ISO a un objeto Date
+ * Soporta: "hoy", "ayer", "hace X días", "hace X semanas", formatos ISO
+ */
+function parseRelativeDate(dateString?: string): Date {
+  if (!dateString) return new Date();
+  
+  const today = new Date();
+  const normalizedDate = dateString.toLowerCase().trim();
+  
+  // Hoy
+  if (normalizedDate === 'hoy') {
+    return today;
+  }
+  
+  // Ayer
+  if (normalizedDate === 'ayer') {
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    return yesterday;
+  }
+  
+  // Hace X días
+  const daysMatch = normalizedDate.match(/hace\s+(\d+)\s+d[ií]as?/);
+  if (daysMatch) {
+    const daysAgo = parseInt(daysMatch[1]);
+    const date = new Date(today);
+    date.setDate(date.getDate() - daysAgo);
+    return date;
+  }
+  
+  // Hace X semanas
+  const weeksMatch = normalizedDate.match(/hace\s+(\d+)\s+semanas?/);
+  if (weeksMatch) {
+    const weeksAgo = parseInt(weeksMatch[1]);
+    const date = new Date(today);
+    date.setDate(date.getDate() - (weeksAgo * 7));
+    return date;
+  }
+  
+  // Intentar parsear como fecha ISO
+  try {
+    const parsedDate = new Date(dateString);
+    if (!isNaN(parsedDate.getTime())) {
+      return parsedDate;
+    }
+  } catch (error) {
+    // Ignorar error de parseo
+  }
+  
+  // Por defecto, retornar hoy
+  return today;
+}
+
+/**
+ * Tool para crear un ingreso vía comando de voz
+ */
+export const createIncomeTool: VoiceTool = {
+  declaration: {
+    type: 'function',
+    name: 'create_income',
+    description: 'Crea un nuevo ingreso en la aplicación. Usa esta función cuando el usuario quiere registrar un ingreso, ganancia, cobro o entrada de dinero.',
+    parameters: {
+      type: 'object',
+      properties: {
+        amount: {
+          type: 'number',
+          description: 'Monto del ingreso en pesos chilenos (sin decimales). Ejemplo: 50000 para $50.000',
+        },
+        description: {
+          type: 'string',
+          description: 'Descripción narrativa del ingreso (3-8 palabras). Debe incluir contexto mencionado por el usuario. Ejemplos: "Pago de sueldo mensual enero", "Proyecto freelance diseño web", "Venta de muebles usados". Si no hay contexto, usar solo categoría: "Sueldo", "Freelance".',
+        },
+        categoryId: {
+          type: 'string',
+          description: 'ID de la categoría del ingreso. Usar las categorías de tipo ingreso del contexto del usuario.',
+        },
+        accountId: {
+          type: 'string',
+          description: 'ID de la cuenta donde se recibe el ingreso. Usar las cuentas disponibles del contexto del usuario.',
+        },
+        date: {
+          type: 'string',
+          description: 'Fecha del ingreso. Si el usuario menciona "ayer", usar "ayer". Si dice "hace 3 días", usar "hace 3 días". Si no menciona nada, omitir este campo (se asume hoy). Ejemplos: "ayer", "hoy", "hace 2 días", "hace 1 semana".',
+        },
+        notes: {
+          type: 'string',
+          description: 'Notas adicionales opcionales sobre el ingreso',
+        },
+      },
+      required: ['amount', 'description', 'categoryId', 'accountId'],
+    },
+  },
+
+  metadata: {
+    type: 'action',
+    invalidates: ['transactions', 'accounts', 'dashboard'],
+    confirmationMessage: (args) => {
+      const amount = args.amount as number;
+      const categoryName = args.categoryName as string | undefined;
+      const accountName = args.accountName as string | undefined;
+      
+      const formattedAmount = new Intl.NumberFormat('es-CL', {
+        style: 'currency',
+        currency: 'CLP',
+        minimumFractionDigits: 0,
+      }).format(amount);
+      
+      return `Ingreso de ${formattedAmount} en ${categoryName || 'categoría'} registrado en ${accountName || 'cuenta'}`;
+    },
+  },
+
+  async execute(
+    args: Record<string, unknown>,
+    context: VoiceToolContext
+  ): Promise<VoiceToolResult> {
+    try {
+      // Validar argumentos con Zod
+      const validatedArgs = CreateIncomeArgsSchema.parse(args);
+
+      // Obtener el Use Case del DIContainer
+      const createTransactionUseCase = context.container.getCreateTransactionUseCase();
+
+      // Parsear la fecha (si se proporciona)
+      const transactionDate = parseRelativeDate(validatedArgs.date);
+
+      // Ejecutar el Use Case
+      const result = await createTransactionUseCase.execute({
+        type: 'INCOME',
+        amount: validatedArgs.amount,
+        description: validatedArgs.description,
+        categoryId: validatedArgs.categoryId,
+        accountId: validatedArgs.accountId,
+        userId: context.userId,
+        date: transactionDate,
+        notes: validatedArgs.notes,
+      });
+
+      // Obtener nombres de categoría y cuenta para confirmación descriptiva
+      const categoryRepo = context.container.getCategoryRepository();
+      const accountRepo = context.container.getAccountRepository();
+
+      const [categoryResult, accountResult] = await Promise.all([
+        categoryRepo.getById(validatedArgs.categoryId),
+        accountRepo.getById(validatedArgs.accountId),
+      ]);
+
+      const categoryName = categoryResult?.name || 'categoría';
+      const accountName = accountResult?.name || 'cuenta';
+
+      // Formatear monto
+      const formattedAmount = new Intl.NumberFormat('es-CL', {
+        style: 'currency',
+        currency: 'CLP',
+        minimumFractionDigits: 0,
+      }).format(validatedArgs.amount);
+
+      return {
+        success: true,
+        data: result,
+        message: `Ingreso de ${formattedAmount} en ${categoryName} registrado en ${accountName}`,
+      };
+    } catch (error) {
+      console.error('Error en createIncomeTool:', error);
+      
+      if (error instanceof z.ZodError) {
+        const validationErrors = error.issues.map(issue => issue.message).join(', ');
+        return {
+          success: false,
+          message: `Error de validación: ${validationErrors}`,
+        };
+      }
+
+      return {
+        success: false,
+        message: 'Error. Intenta de nuevo',
+      };
+    }
+  },
+};

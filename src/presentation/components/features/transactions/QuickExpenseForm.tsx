@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronDown, ChevronUp, Calendar, Check } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,10 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -30,6 +33,16 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
 import { CreateTransactionSchema } from '@/application/validators/transactionValidator';
+
+// Helper para parsear fecha del input sin problemas de timezone
+const parseLocalDate = (dateString: string): Date | undefined => {
+  if (!dateString) return undefined;
+  const parts = dateString.split('-');
+  if (parts.length !== 3) return undefined;
+  const [year, month, day] = parts.map(Number);
+  const date = new Date(year, month - 1, day);
+  return isNaN(date.getTime()) ? undefined : date;
+};
 import { useTransactions } from '@/application/hooks/useTransactions';
 import { useAccounts } from '@/application/hooks/useAccounts';
 import { useCategories } from '@/application/hooks/useCategories';
@@ -60,10 +73,8 @@ export function QuickExpenseForm({
   onSuccess,
   onAdvancedMode,
 }: QuickExpenseFormProps) {
-  const [showDescription, setShowDescription] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showAllCategories, setShowAllCategories] = useState(false);
   const amountInputRef = useRef<HTMLInputElement>(null);
+  const [showAllAccounts, setShowAllAccounts] = useState(false);
 
   // Hooks
   const { createTransaction } = useTransactions(orgId);
@@ -117,11 +128,6 @@ export function QuickExpenseForm({
   // Filtrar categorías de gastos (excluir sub-categorías del listado principal)
   const expenseCategories = allCategories.filter((cat) => cat.type === 'EXPENSE' && !cat.parentId);
 
-  // Categorías no frecuentes (para el selector completo)
-  const otherCategories = expenseCategories.filter(
-    (cat) => !smartDefaults.recentCategories.some((rc) => rc.id === cat.id)
-  );
-
   // Submit handler
   const onSubmit = async (data: QuickExpenseFormValues) => {
     try {
@@ -171,7 +177,7 @@ export function QuickExpenseForm({
     transactionType: 'EXPENSE',
     description: watchDescription || '',
     categories: allCategories,
-    enabled: showDescription && !!watchDescription && watchDescription.length >= 2,
+    enabled: !!watchDescription && watchDescription.length >= 2,
   });
 
   // Auto-select category on high confidence suggestion
@@ -185,8 +191,8 @@ export function QuickExpenseForm({
     }
   }, [categorySuggestion.categoryId, categorySuggestion.confidence, watchCategoryId, form]);
 
-  const isLoading =
-    createTransaction.isPending || accountsLoading || categoriesLoading || smartDefaults.isLoading;
+  const isLoading = accountsLoading || categoriesLoading || smartDefaults.isLoading;
+  const isSubmitting = createTransaction.isPending;
 
   return (
     <Form {...form}>
@@ -197,17 +203,17 @@ export function QuickExpenseForm({
           name="amount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base font-semibold">¿Cuánto gastaste?</FormLabel>
+              <FormLabel className="text-sm sm:text-base font-semibold">¿Cuánto gastaste?</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-3xl font-bold text-muted-foreground">
+                  <span className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-xl sm:text-2xl md:text-3xl font-bold text-muted-foreground">
                     $
                   </span>
                   <Input
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    className="text-3xl font-bold pl-12 h-16 text-red-600"
+                    className="text-xl sm:text-2xl md:text-3xl font-bold pl-9 sm:pl-12 h-12 sm:h-14 md:h-16 text-expense"
                     {...field}
                     ref={(e) => {
                       field.ref(e);
@@ -228,18 +234,18 @@ export function QuickExpenseForm({
           name="categoryId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base font-semibold">¿En qué?</FormLabel>
+              <FormLabel className="text-sm sm:text-base font-semibold">¿En qué?</FormLabel>
 
-              {/* Categorías frecuentes como chips */}
+              {/* Categorías frecuentes como chips - máximo 4 para no saturar */}
               {smartDefaults.recentCategories.length > 0 && (
                 <div className="grid grid-cols-2 gap-2 mb-3">
-                  {smartDefaults.recentCategories.map((category) => (
+                  {smartDefaults.recentCategories.slice(0, 4).map((category) => (
                     <button
                       key={category.id}
                       type="button"
                       onClick={() => field.onChange(category.id)}
                       className={cn(
-                        'relative p-4 rounded-lg border-2 text-left transition-all',
+                        'relative p-3 sm:p-4 rounded-lg border-2 text-left transition-all',
                         'hover:border-primary hover:bg-accent',
                         'active:scale-95',
                         field.value === category.id
@@ -249,7 +255,7 @@ export function QuickExpenseForm({
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{category.name}</div>
+                          <div className="text-sm sm:text-base font-medium truncate">{category.name}</div>
                           <div className="text-xs text-muted-foreground">
                             {category.count} {category.count === 1 ? 'vez' : 'veces'}
                           </div>
@@ -267,199 +273,242 @@ export function QuickExpenseForm({
                 </div>
               )}
 
-              {/* Botón para mostrar todas las categorías */}
-              {(otherCategories.length > 0 || smartDefaults.recentCategories.length === 0) && (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => setShowAllCategories(!showAllCategories)}
-                  >
-                    {showAllCategories ? (
-                      <>
-                        <ChevronUp className="mr-2 h-4 w-4" />
-                        Ocultar otras categorías
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown className="mr-2 h-4 w-4" />
-                        {smartDefaults.recentCategories.length > 0
-                          ? 'Ver otras categorías'
-                          : 'Seleccionar categoría'}
-                      </>
-                    )}
-                  </Button>
-
-                  {showAllCategories && (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Selecciona una categoría" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {expenseCategories.map((category) => (
+              {/* Dropdown con categorías agrupadas: frecuentes primero, luego todas */}
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="O busca en todas las categorías" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent position="popper" className="w-[var(--radix-select-trigger-width)]">
+                  {smartDefaults.recentCategories.length > 0 && (
+                    <>
+                      <SelectGroup>
+                        <SelectLabel>⭐ Frecuentes</SelectLabel>
+                        {smartDefaults.recentCategories.slice(0, 6).map((category) => (
                           <SelectItem key={category.id} value={category.id}>
                             <div className="flex items-center gap-2">
                               <div
                                 className="w-3 h-3 rounded-full"
                                 style={{ backgroundColor: category.color }}
                               />
-                              {category.name}
+                              <span>{category.name}</span>
+                              <span className="text-xs text-muted-foreground ml-auto">
+                                {category.count}x
+                              </span>
                             </div>
                           </SelectItem>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </SelectGroup>
+                      <SelectSeparator />
+                    </>
                   )}
-                </>
-              )}
+                  <SelectGroup>
+                    <SelectLabel>Todas las categorías</SelectLabel>
+                    {expenseCategories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: category.color }}
+                          />
+                          {category.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
 
               <FormMessage />
             </FormItem>
           )}
         />
 
-        {/* Account Selection - Pre-seleccionada pero modificable */}
+        {/* Account Selection - Expandible sin dropdown */}
         <FormField
           control={form.control}
           name="accountId"
+          render={({ field }) => {
+            // Ordenar cuentas: más usada primero, luego por nombre
+            const sortedAccounts = [...accounts].sort((a, b) => {
+              if (a.id === smartDefaults.mostUsedAccount) return -1;
+              if (b.id === smartDefaults.mostUsedAccount) return 1;
+              return a.name.localeCompare(b.name);
+            });
+
+            const topAccounts = sortedAccounts.slice(0, 3);
+            const remainingAccounts = sortedAccounts.slice(3);
+            const selectedAccount = accounts.find(acc => acc.id === field.value);
+
+            return (
+              <FormItem>
+                <FormLabel className="text-sm">Cuenta</FormLabel>
+                
+                {/* Cuentas principales */}
+                <div className="space-y-2">
+                  {topAccounts.map((account) => (
+                    <button
+                      key={account.id}
+                      type="button"
+                      onClick={() => field.onChange(account.id)}
+                      className={cn(
+                        'w-full p-3 rounded-lg border-2 text-left transition-all',
+                        'hover:border-primary hover:bg-accent',
+                        'active:scale-[0.98]',
+                        field.value === account.id
+                          ? 'border-primary bg-accent shadow-sm'
+                          : 'border-border'
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">{account.name}</span>
+                            {account.id === smartDefaults.mostUsedAccount && (
+                              <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
+                                ★
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {account.cardNumber && `****${account.cardNumber.slice(-4)} • `}
+                            {account.currency} {account.balance.toFixed(2)}
+                          </div>
+                        </div>
+                        {field.value === account.id && (
+                          <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Botón Ver todas + Lista expandible */}
+                {remainingAccounts.length > 0 && (
+                  <div className="mt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowAllAccounts(!showAllAccounts)}
+                      className="w-full justify-between"
+                    >
+                      <span className="text-xs">
+                        {showAllAccounts ? 'Ocultar' : `Ver todas (${remainingAccounts.length} más)`}
+                      </span>
+                      {showAllAccounts ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+
+                    {/* Lista expandible con scroll nativo */}
+                    {showAllAccounts && (
+                      <div className="mt-2 space-y-2 max-h-[200px] overflow-y-auto overscroll-contain pr-1">
+                        {remainingAccounts.map((account) => (
+                          <button
+                            key={account.id}
+                            type="button"
+                            onClick={() => {
+                              field.onChange(account.id);
+                              setShowAllAccounts(false);
+                            }}
+                            className={cn(
+                              'w-full p-3 rounded-lg border-2 text-left transition-all',
+                              'hover:border-primary hover:bg-accent',
+                              'active:scale-[0.98]',
+                              field.value === account.id
+                                ? 'border-primary bg-accent shadow-sm'
+                                : 'border-border'
+                            )}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-sm">{account.name}</div>
+                                <div className="text-xs text-muted-foreground mt-0.5">
+                                  {account.cardNumber && `****${account.cardNumber.slice(-4)} • `}
+                                  {account.currency} {account.balance.toFixed(2)}
+                                </div>
+                              </div>
+                              {field.value === account.id && (
+                                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
+
+        {/* Date Picker - Siempre visible pero compacto */}
+        <FormField
+          control={form.control}
+          name="date"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm">Cuenta</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona una cuenta" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      {account.name}
-                      {account.id === smartDefaults.mostUsedAccount && (
-                        <Badge variant="secondary" className="ml-2 text-xs">
-                          Frecuente
-                        </Badge>
-                      )}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormLabel className="text-xs text-muted-foreground">Fecha</FormLabel>
+              <FormControl>
+                <Input
+                  type="date"
+                  value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => field.onChange(parseLocalDate(e.target.value))}
+                  className="h-9 text-sm"
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        {/* Optional: Date Picker (collapsed by default) */}
-        <div className="space-y-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-auto p-0 font-normal text-muted-foreground"
-            onClick={() => setShowDatePicker(!showDatePicker)}
-          >
-            <Calendar className="mr-2 h-4 w-4" />
-            {format(watchDate, "d 'de' MMMM, yyyy", { locale: es })}
-            {showDatePicker ? (
-              <ChevronUp className="ml-2 h-4 w-4" />
-            ) : (
-              <ChevronDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-
-          {showDatePicker && (
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
-                      onChange={(e) => field.onChange(new Date(e.target.value))}
-                      className="mt-2"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+        {/* Description - Siempre visible pero compacto */}
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-xs text-muted-foreground">Descripción (opcional)</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Ej: Compra en supermercado"
+                  className="h-9 text-sm"
+                  {...field}
+                />
+              </FormControl>
+              {categorySuggestion.confidence === 'medium' && categorySuggestion.categoryName && (
+                <p
+                  className="text-xs text-primary cursor-pointer hover:underline"
+                  onClick={() => {
+                    if (categorySuggestion.categoryId) {
+                      form.setValue('categoryId', categorySuggestion.categoryId);
+                    }
+                  }}
+                >
+                  ¿Es esto {categorySuggestion.categoryName}?
+                </p>
               )}
-            />
+              <FormMessage />
+            </FormItem>
           )}
-        </div>
-
-        {/* Optional: Description (collapsed by default) */}
-        <div className="space-y-2">
-          {!showDescription && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-auto p-0 font-normal text-muted-foreground"
-              onClick={() => setShowDescription(true)}
-            >
-              <ChevronDown className="mr-2 h-4 w-4" />
-              Agregar descripción (opcional)
-            </Button>
-          )}
-
-          {showDescription && (
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center justify-between">
-                    <FormLabel className="text-sm">Descripción</FormLabel>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-auto p-0 font-normal text-muted-foreground"
-                      onClick={() => setShowDescription(false)}
-                    >
-                      <ChevronUp className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Ej: Compra en supermercado"
-                      className="resize-none"
-                      rows={2}
-                      {...field}
-                    />
-                  </FormControl>
-                  {categorySuggestion.confidence === 'medium' && categorySuggestion.categoryName && (
-                    <p
-                      className="text-xs text-primary cursor-pointer hover:underline mt-1"
-                      onClick={() => {
-                        if (categorySuggestion.categoryId) {
-                          form.setValue('categoryId', categorySuggestion.categoryId);
-                        }
-                      }}
-                    >
-                      ¿Es esto {categorySuggestion.categoryName}?
-                    </p>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-        </div>
+        />
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-2 pt-2">
           <Button
             type="submit"
-            disabled={isLoading || !watchAmount || !watchCategoryId}
+            disabled={isSubmitting || !watchAmount || !watchCategoryId}
             className="w-full h-12 text-base font-semibold"
             variant="destructive"
           >
-            {isLoading ? 'Registrando...' : 'Registrar Gasto'}
+            {isSubmitting ? 'Registrando...' : 'Registrar Gasto'}
           </Button>
 
           {onAdvancedMode && (

@@ -16,6 +16,7 @@ import {
   CheckPeriodExpirationDTO,
   SuggestCategoryBudgetsDTO,
 } from '@/application/dto';
+import { handleOptimisticLockError } from '@/lib/utils/optimisticLockErrorHandler';
 
 /**
  * Budget Period query keys factory
@@ -27,11 +28,11 @@ export const budgetPeriodKeys = {
   active: (orgId: string, userId: string) => ['budgetPeriods', orgId, 'active', userId] as const,    
   current: (orgId: string, userId: string, date?: Date) =>
     ['budgetPeriods', orgId, 'current', userId, date?.toISOString()] as const,
-  byDateRange: (orgId: string, userId: string, startDate: Date, endDate: Date) =>
-    ['budgetPeriods', orgId, 'dateRange', userId, startDate.toISOString(), endDate.toISOString()] as const,
+  byDateRange: (orgId: string, userId: string, startDate?: Date, endDate?: Date) =>
+    ['budgetPeriods', orgId, 'dateRange', userId, startDate?.toISOString(), endDate?.toISOString()] as const,
   expiration: (orgId: string, userId: string) => ['budgetPeriods', orgId, 'expiration', userId] as const,
-  suggestions: (orgId: string, userId: string, startDate: Date, endDate: Date) => 
-    ['budgetPeriods', orgId, 'suggestions', userId, startDate.toISOString(), endDate.toISOString()] as const,
+  suggestions: (orgId: string, userId: string, startDate?: Date, endDate?: Date) => 
+    ['budgetPeriods', orgId, 'suggestions', userId, startDate?.toISOString(), endDate?.toISOString()] as const,
 };
 
 /**
@@ -41,30 +42,26 @@ export function useBudgetPeriods(orgId: string) {
   const queryClient = useQueryClient();
   const container = DIContainer.getInstance();
 
-  // Set organization ID in DI container
-  container.setOrgId(orgId);
+  // Set organization ID in DI container (only if valid)
+  if (orgId) {
+    container.setOrgId(orgId);
+  }
 
-  // Get use cases
-  const createBudgetPeriodUseCase = container.getCreateBudgetPeriodUseCase();
-  const updateBudgetPeriodUseCase = container.getUpdateBudgetPeriodUseCase();
-  const deleteBudgetPeriodUseCase = container.getDeleteBudgetPeriodUseCase();
-  const getBudgetPeriodUseCase = container.getGetBudgetPeriodUseCase();
-  const listBudgetPeriodsUseCase = container.getListBudgetPeriodsUseCase();
-  const getCurrentBudgetPeriodUseCase = container.getGetCurrentBudgetPeriodUseCase();
-  const cloneBudgetPeriodUseCase = container.getCloneBudgetPeriodUseCase();
-  const checkPeriodExpirationUseCase = container.getCheckPeriodExpirationUseCase();
-  const suggestCategoryBudgetsUseCase = container.getSuggestCategoryBudgetsUseCase();
   // Queries
   // ========================================
 
   /**
-   * Query: Get all budget periods for a user
+   * Query: Get all budget periods for organization (shared budgets)
    */
   const useBudgetPeriodsByUser = (userId: string) => {
     return useQuery({
       queryKey: budgetPeriodKeys.byUser(orgId, userId),
-      queryFn: () => listBudgetPeriodsUseCase.execute({ userId }),
-      enabled: !!userId,
+      queryFn: () => {
+        const useCase = container.getListBudgetPeriodsUseCase();
+        // Query by organizationId to get shared budgets
+        return useCase.execute({ organizationId: orgId });
+      },
+      enabled: !!userId && !!orgId,
     });
   };
 
@@ -74,41 +71,55 @@ export function useBudgetPeriods(orgId: string) {
   const useBudgetPeriod = (id: string) => {
     return useQuery({
       queryKey: budgetPeriodKeys.byId(orgId, id),
-      queryFn: () => getBudgetPeriodUseCase.execute({ id }),
-      enabled: !!id,
+      queryFn: () => {
+        const useCase = container.getGetBudgetPeriodUseCase();
+        return useCase.execute({ id });
+      },
+      enabled: !!id && !!orgId,
     });
   };
 
   /**
-   * Query: Get active budget periods for a user
+   * Query: Get active budget periods for organization (shared budgets)
    */
   const useActiveBudgetPeriods = (userId: string) => {
     return useQuery({
       queryKey: budgetPeriodKeys.active(orgId, userId),
-      queryFn: () => listBudgetPeriodsUseCase.execute({ userId, activeOnly: true }),
-      enabled: !!userId,
+      queryFn: () => {
+        const useCase = container.getListBudgetPeriodsUseCase();
+        // Query by organizationId to get shared active budgets
+        return useCase.execute({ organizationId: orgId, activeOnly: true });
+      },
+      enabled: !!userId && !!orgId,
     });
   };
 
   /**
-   * Query: Get current budget period for a user
+   * Query: Get current budget period for organization (shared budgets)
    */
   const useCurrentBudgetPeriod = (userId: string, date?: Date) => {
     return useQuery({
       queryKey: budgetPeriodKeys.current(orgId, userId, date),
-      queryFn: () => getCurrentBudgetPeriodUseCase.execute({ userId, date }),
-      enabled: !!userId,
+      queryFn: () => {
+        const useCase = container.getGetCurrentBudgetPeriodUseCase();
+        // Query by organizationId to get shared current budget
+        return useCase.execute({ organizationId: orgId, date });
+      },
+      enabled: !!userId && !!orgId,
     });
   };
 
   /**
    * Query: Get budget periods within a date range
    */
-  const useBudgetPeriodsByDateRange = (userId: string, startDate: Date, endDate: Date) => {
+  const useBudgetPeriodsByDateRange = (userId: string, startDate?: Date, endDate?: Date) => {
     return useQuery({
       queryKey: budgetPeriodKeys.byDateRange(orgId, userId, startDate, endDate),
-      queryFn: () => listBudgetPeriodsUseCase.execute({ userId, startDate, endDate }),
-      enabled: !!userId && !!startDate && !!endDate,
+      queryFn: () => {
+        const useCase = container.getListBudgetPeriodsUseCase();
+        return useCase.execute({ userId, startDate: startDate!, endDate: endDate! });
+      },
+      enabled: !!userId && !!startDate && !!endDate && !!orgId,
     });
   };
 
@@ -118,8 +129,11 @@ export function useBudgetPeriods(orgId: string) {
   const usePeriodExpiration = (userId: string) => {
     return useQuery({
       queryKey: budgetPeriodKeys.expiration(orgId, userId),
-      queryFn: () => checkPeriodExpirationUseCase.execute({ userId }),
-      enabled: !!userId,
+      queryFn: () => {
+        const useCase = container.getCheckPeriodExpirationUseCase();
+        return useCase.execute({ userId, organizationId: orgId });
+      },
+      enabled: !!userId && !!orgId,
     });
   };
 
@@ -128,9 +142,12 @@ export function useBudgetPeriods(orgId: string) {
    */
   const useSuggestedCategories = (userId: string, startDate?: Date, endDate?: Date) => {
     return useQuery({
-      queryKey: budgetPeriodKeys.suggestions(orgId, userId, startDate as Date, endDate as Date),
-      queryFn: () => suggestCategoryBudgetsUseCase.execute({ userId, startDate: startDate!, endDate: endDate! }),
-      enabled: !!userId && !!startDate && !!endDate,
+      queryKey: budgetPeriodKeys.suggestions(orgId, userId, startDate, endDate),
+      queryFn: () => {
+        const useCase = container.getSuggestCategoryBudgetsUseCase();
+        return useCase.execute({ userId, startDate: startDate!, endDate: endDate! });
+      },
+      enabled: !!userId && !!startDate && !!endDate && !!orgId,
     });
   };
 
@@ -142,7 +159,10 @@ export function useBudgetPeriods(orgId: string) {
    * Mutation: Create budget period
    */
   const createBudgetPeriod = useMutation({
-    mutationFn: (input: CreateBudgetPeriodDTO) => createBudgetPeriodUseCase.execute(input),
+    mutationFn: (input: CreateBudgetPeriodDTO) => {
+      const useCase = container.getCreateBudgetPeriodUseCase();
+      return useCase.execute(input);
+    },
     onSuccess: (data, variables) => {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: budgetPeriodKeys.byUser(orgId, variables.userId) });
@@ -155,7 +175,10 @@ export function useBudgetPeriods(orgId: string) {
    * Mutation: Update budget period
    */
   const updateBudgetPeriod = useMutation({
-    mutationFn: (input: UpdateBudgetPeriodDTO) => updateBudgetPeriodUseCase.execute(input),
+    mutationFn: (input: UpdateBudgetPeriodDTO) => {
+      const useCase = container.getUpdateBudgetPeriodUseCase();
+      return useCase.execute(input);
+    },
     onSuccess: (data, variables) => {
       // Invalidate specific budget period
       queryClient.invalidateQueries({ queryKey: budgetPeriodKeys.byId(orgId, variables.id) });
@@ -164,13 +187,20 @@ export function useBudgetPeriods(orgId: string) {
       // Also invalidate category budgets as amounts may have been recalculated
       queryClient.invalidateQueries({ queryKey: ['categoryBudgets', orgId] });
     },
+    onError: (error) => {
+      // Handle optimistic locking errors with user-friendly messages
+      handleOptimisticLockError(error);
+    },
   });
 
   /**
    * Mutation: Delete budget period
    */
   const deleteBudgetPeriod = useMutation({
-    mutationFn: (input: DeleteBudgetPeriodDTO) => deleteBudgetPeriodUseCase.execute(input),
+    mutationFn: (input: DeleteBudgetPeriodDTO) => {
+      const useCase = container.getDeleteBudgetPeriodUseCase();
+      return useCase.execute(input);
+    },
     onSuccess: (data, variables) => {
       // Invalidate all budget period queries
       queryClient.invalidateQueries({ queryKey: budgetPeriodKeys.byUser(orgId, variables.userId) });
@@ -185,7 +215,10 @@ export function useBudgetPeriods(orgId: string) {
    * Mutation: Clone budget period
    */
   const cloneBudgetPeriod = useMutation({
-    mutationFn: (input: CloneBudgetPeriodDTO) => cloneBudgetPeriodUseCase.execute(input),
+    mutationFn: (input: CloneBudgetPeriodDTO) => {
+      const useCase = container.getCloneBudgetPeriodUseCase();
+      return useCase.execute(input);
+    },
     onSuccess: (data, variables) => {
       // Invalidate queries
       queryClient.invalidateQueries({ queryKey: budgetPeriodKeys.byUser(orgId, variables.userId) });

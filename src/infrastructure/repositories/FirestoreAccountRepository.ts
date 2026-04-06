@@ -116,8 +116,8 @@ export class FirestoreAccountRepository implements IAccountRepository {
         // LINE_OF_CREDIT: balance is available credit
         updates.availableCredit = newBalance;
       } else if (account.type === 'CREDIT_CARD') {
-        // CREDIT_CARD: available = limit - |balance|
-        updates.availableCredit = account.creditLimit - Math.abs(newBalance);
+        // CREDIT_CARD: available = limit + balance (balance negative=debt, positive=saldo a favor)
+        updates.availableCredit = account.creditLimit + newBalance;
       }
     }
 
@@ -167,6 +167,27 @@ export class FirestoreAccountRepository implements IAccountRepository {
     });
 
     return assets - liabilities;
+  }
+
+  async getAvailableToSpend(): Promise<number> {
+    const accounts = await this.getActive();
+
+    let cashAvailable = 0;
+    let creditAvailable = 0;
+
+    accounts.forEach((account) => {
+      if (account.type === 'CREDIT_CARD' || account.type === 'LINE_OF_CREDIT') {
+        // For credit accounts, add available credit
+        const availableCredit = account.availableCredit ?? 
+          (account.creditLimit ? account.creditLimit + account.balance : 0);
+        creditAvailable += availableCredit;
+      } else {
+        // For regular accounts, add positive balance
+        cashAvailable += Math.max(0, account.balance);
+      }
+    });
+
+    return cashAvailable + creditAvailable;
   }
 
   async getBalanceHistory(

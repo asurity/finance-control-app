@@ -13,9 +13,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
   Cell,
 } from 'recharts';
+import { ResponsiveChart } from '@/presentation/components/shared/Charts/ResponsiveChart';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils/format';
 import { TrendingUp, Calendar } from 'lucide-react';
@@ -131,7 +131,7 @@ export function WeeklyPatternChart({ data, peakDay }: WeeklyPatternChartProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={250}>
+        <ResponsiveChart desktopHeight={250} mobileHeight={200}>
           <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="dayName" tick={{ fontSize: 11 }} tickLine={false} />
@@ -158,7 +158,7 @@ export function WeeklyPatternChart({ data, peakDay }: WeeklyPatternChartProps) {
               ))}
             </Bar>
           </BarChart>
-        </ResponsiveContainer>
+        </ResponsiveChart>
 
         {/* Insight text */}
         {peakDay && (

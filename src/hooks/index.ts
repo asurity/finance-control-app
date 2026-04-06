@@ -5,3 +5,4 @@
 
 export { useOrganization } from './useOrganization';
 export { useMediaQuery } from './useMediaQuery';
+export { useResponsive } from './useResponsive';
